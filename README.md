@@ -3,8 +3,8 @@
 1. clone the repo
 2. npm install --global yarn
 3. yarn install
-4. open Android Studio, go to SDK Manager and install andoid sdk 34
-5. open Virtual Device Manager and create a new device with API 34
+4. open Android Studio, go to SDK Manager and install andoid sdk 36
+5. open Virtual Device Manager and create a new device with API 36
 6. npx react-native doctor
 7. enter `a` for automatic fix
 8. connect to your virtual device
