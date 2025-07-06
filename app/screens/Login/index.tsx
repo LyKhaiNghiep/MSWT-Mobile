@@ -1,23 +1,21 @@
 import React, {useState} from 'react';
 import {
-  StatusBar,
-  TextInput,
-  View,
-  StyleSheet,
   Image,
+  StatusBar,
+  StyleSheet,
+  TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import {Screen, Text} from '../../components';
+import {useAuth} from '../../contexts/AuthContext';
 import {colors} from '../../theme';
 
 export const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Implement your login logic here
-    console.log('Login attempt with:', phoneNumber, password);
-  };
+  const {login} = useAuth();
 
   return (
     <Screen>
@@ -61,7 +59,11 @@ export const Login = () => {
           </Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() =>
+                login({password: password, username: phoneNumber})
+              }>
               <Text style={styles.loginButtonText}>Đăng nhập</Text>
             </TouchableOpacity>
           </View>
