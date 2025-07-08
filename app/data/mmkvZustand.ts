@@ -30,7 +30,7 @@ export const localStore = create<StoreState>()(
     }),
 
     {
-      name: 'wellbeing_Doctor',
+      name: 'App_Storage',
       storage: createJSONStorage(() => zustandStorage),
     },
   ),

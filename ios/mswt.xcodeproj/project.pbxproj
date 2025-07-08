@@ -533,7 +533,7 @@
 				DEVELOPMENT_TEAM = SRUZS4FWJ4;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = mswt/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Wellbeing Doctor";
+				INFOPLIST_KEY_CFBundleDisplayName = "MSWT";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -563,7 +563,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SRUZS4FWJ4;
 				INFOPLIST_FILE = mswt/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Wellbeing Doctor";
+				INFOPLIST_KEY_CFBundleDisplayName = "MSWT";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

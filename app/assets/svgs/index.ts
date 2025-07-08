@@ -15,7 +15,6 @@ import EarningActive from './earningActive.svg';
 import Gastrology from './gastrology.svg';
 import General from './general.svg';
 import HomeActive from './homeActive.svg';
-import HomeTab from './hometab.svg';
 import Lungs from './lungs.svg';
 import Neurology from './neurology.svg';
 import OnboardingOne from './onboarding_1.svg';
@@ -33,6 +32,7 @@ import Upload from './upload.svg';
 import VideoOff from './videooff.svg';
 import VideoOn from './videoon.svg';
 
+import ArrowRight from './arrow-right.svg';
 import Attachment from './attachment.svg';
 import Calender from './calender.svg';
 import Call from './call.svg';
@@ -40,11 +40,15 @@ import CallDown from './calldown.svg';
 import CamOFF from './camoff.svg';
 import CamOn from './camon.svg';
 import CancelWhite from './cancelWhite.svg';
+import ChatFill from './chatfill.svg';
+import Clipboard from './clipboard.svg';
 import Delivered from './delivered.svg';
 import Dropdown from './dropdown.svg';
 import EndTime from './endTime.svg';
 import Google from './google.svg';
 import Gynecology from './gynecology.svg';
+import Lock from './lock.svg';
+import Logout from './logout.svg';
 import MarkCheck from './mark.svg';
 import MicOn from './mic.svg';
 import MicOff from './micoff.svg';
@@ -56,34 +60,20 @@ import Rotate from './rotate.svg';
 import Send from './send.svg';
 import Sent from './sent.svg';
 import StartTime from './startTime.svg';
-import Video from './video.svg';
-import Lock from './lock.svg';
-import Trash from './trash.svg';
-import Verified from './verified.svg';
-import Logout from './logout.svg';
-import ArrowRight from './arrow-right.svg';
-import Clipboard from './clipboard.svg';
-import VideoCall from './videocall.svg';
 import TimeFill from './timefill.svg';
+import Trash from './trash.svg';
 import Users from './users.svg';
-import ChatFill from './chatfill.svg';
+import Verified from './verified.svg';
+import Video from './video.svg';
 
 export {
   Apple,
   ArrowBackAndroid,
   ArrowBackiOS,
-  Verified,
-  TimeFill,
-  Clipboard,
-  Attachment,
-  Users,
   ArrowRight,
-  ChatFill,
+  Attachment,
   Calender,
   CalenderActive,
-  Lock,
-  Logout,
-  Trash,
   CalenderTab,
   Call,
   CallDown,
@@ -94,6 +84,8 @@ export {
   Cardiology,
   Chat,
   ChatActive,
+  ChatFill,
+  Clipboard,
   Delivered,
   Dentist,
   Dropdown,
@@ -105,7 +97,8 @@ export {
   Google,
   Gynecology,
   HomeActive,
-  HomeTab,
+  Lock,
+  Logout,
   Lungs,
   MarkCheck,
   MicOff,
@@ -131,9 +124,12 @@ export {
   SpeakerOff,
   SpeakerOn,
   StartTime,
+  TimeFill,
+  Trash,
   Upload,
+  Users,
+  Verified,
   Video,
-  VideoCall,
   VideoOff,
   VideoOn,
 };

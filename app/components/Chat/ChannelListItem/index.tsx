@@ -22,13 +22,7 @@ const ChannelListItem = memo(({channel, unread}: ChannelListItemProps) => {
   const {UID} = localStore();
   const navigation = useNavigation<StackNavigation>();
 
-  const onPress = () => {
-    navigation.navigate('Messages', {
-      patientID: channel.patient,
-      channelName: channel.channelName,
-      channelSelfie: channel.channelSelfie,
-    });
-  };
+  const onPress = () => {};
   return (
     <>
       <Pressable

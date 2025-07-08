@@ -41,11 +41,6 @@ export const AppointmentTimeline = ({appointments}: AppointmentTimeline) => {
 
   const onPress = async () => {
     bottomSheetModalRef.current?.close();
-    navigation.navigate('Messages', {
-      patientID: patient.patientID,
-      channelName: patient.patientName,
-      channelSelfie: patient.selfie,
-    });
   };
   const NOW = new Date().toString();
   //I observe some issue with moment()

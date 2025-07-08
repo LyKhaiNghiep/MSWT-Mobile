@@ -1,9 +1,8 @@
-import api from './api';
-import {API_URLS} from '../constants/api-urls';
 import {ILoginRequest} from '../config/models/auth.model';
 import {UserData} from '../config/models/user.model';
+import {API_URLS} from '../constants/api-urls';
 import {StorageUtil} from '../utils/storage';
-import {User} from '@react-native-google-signin/google-signin';
+import api from './api';
 
 // Authentication Service - Backend xử lý authentication trong USER endpoints
 export const authService = {
@@ -61,18 +60,6 @@ export const authService = {
           console.log('✅ Created user data based on username:', userData);
           console.log('🎭 Guessed role:', userData.role);
           console.log('💼 Guessed position:', userData.position);
-
-          // Check if user is Leader - only Leaders can access this web
-          if (userData.role !== 'Leader') {
-            console.log(
-              '❌ Access denied - Only Leaders can access this system',
-            );
-            return {
-              success: false,
-              error:
-                'Chỉ có Quản trị hệ thống (Leader) mới được phép truy cập ứng dụng này.',
-            };
-          }
 
           await StorageUtil.setUserData(userData);
 
@@ -159,16 +146,6 @@ export const authService = {
         console.log('🎭 Final role:', userData.role);
         console.log('💼 Final position:', userData.position);
 
-        // Check if user is Leader - only Leaders can access this web
-        if (userData.role !== 'Leader') {
-          console.log('❌ Access denied - Only Leaders can access this system');
-          return {
-            success: false,
-            error:
-              'Chỉ có Quản trị hệ thống (Leader) mới được phép truy cập ứng dụng này.',
-          };
-        }
-
         await StorageUtil.setUserData(userData);
 
         return {
@@ -185,8 +162,6 @@ export const authService = {
         };
       }
     } catch (error: any) {
-      console.error('❌ Login API Error:', error);
-
       // Handle different error responses
       if (error.response) {
         const status = error.response.status;

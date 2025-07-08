@@ -16,22 +16,6 @@ export const Avatar = ({
 }) => {
   const [activeUsers, _] = useState<string>('');
 
-  // const {uid} = useUser();
-
-  // useEffect(() => {
-  //   getOnlineUsers();
-  // }, []);
-
-  // const getOnlineUsers = async () => {
-  //   const users = await associatedUsers();
-  //   socket.emit('active', {users, me: uid});
-  // };
-
-  // socket.on('active', async data => {
-  //   await getOnlineUsers();
-  //   setActiveUser(data);
-  // });
-
   return (
     <Box
       width={wnh ? wnh : 40}

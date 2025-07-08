@@ -20,8 +20,6 @@ import {TabIcon} from './TabIcon';
 import {ProfileItem} from './Profile';
 import {Text} from './Text';
 import {NoAppointment} from './Empty';
-import {AppointmentTimeline} from './Timeline';
-import {Call, IncomingCall} from './VideoCall';
 import {VerificationHeader} from './VerificationHeader';
 import {WorkingHoursForm, WorkingHoursFormList} from './WorkingHours';
 
@@ -29,14 +27,11 @@ import {EnhancedChannelList, EnhancedMessageItem} from './Chat';
 
 export {
   AnimatedBox,
-  AppointmentTimeline,
   AuthModal,
   Avatar,
   ProfileItem,
   NoAppointment,
-  Call,
   Box,
-  IncomingCall,
   Button,
   CameraButton,
   DateRangeInfo,

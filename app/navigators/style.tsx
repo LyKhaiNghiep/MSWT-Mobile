@@ -8,9 +8,11 @@ export const $tabLabel: TextStyle = {
 };
 
 export const $tabBar: ViewStyle = {
-  backgroundColor: colors.white,
+  backgroundColor: colors.mainColor,
   elevation: 3,
   height: isAndroid ? 67 : 89,
   paddingBottom: isAndroid ? 7 : 30,
   paddingTop: isAndroid ? 4 : 0,
+  borderTopLeftRadius: 50,
+  borderTopRightRadius: 50,
 };

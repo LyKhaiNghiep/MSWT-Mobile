@@ -1,6 +1,4 @@
 import notifee from '@notifee/react-native';
-import firestore from '@react-native-firebase/firestore';
-import messaging from '@react-native-firebase/messaging';
 import React, {useEffect} from 'react';
 import {Box, Gradient, Screen, Text} from '../../components';
 import {localStore} from '../../data';
@@ -9,21 +7,6 @@ import {moderateScale} from '../../utils';
 export const VerificationStatus = () => {
   const {fullName, UID} = localStore();
 
-  async function saveTokenToDatabase(token: string) {
-    await firestore().collection('Users').doc(UID).update({
-      fcmToken: token,
-    });
-  }
-  useEffect(() => {
-    (async () => {
-      messaging()
-        .getToken()
-        .then(token => {
-          return saveTokenToDatabase(token);
-        });
-      await notifee.requestPermission();
-    })();
-  });
   return (
     <Gradient colors={['#D5FFEE', '#FCEFE9']}>
       <Screen

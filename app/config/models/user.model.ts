@@ -17,6 +17,6 @@ export interface UserData {
   image: string;
   roleId: string;
   createdAt: string;
-  role: string;
+  role: 'Manager' | 'Worker' | 'Supervisor';
   position: string;
 }

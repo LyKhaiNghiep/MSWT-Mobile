@@ -1,11 +1,17 @@
 import React from 'react';
-import {Screen, Text} from '../../components';
+import {ManagerHome} from '../../components/Home/ManagerHome';
+import {SupervisorHome} from '../../components/Home/SupervisorHome';
+import {WorkerHome} from '../../components/Home/WorkerHome';
+import {useAuth} from '../../contexts/AuthContext';
 
 export const Home = () => {
+  const {user} = useAuth();
+  console.log(user);
   return (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <Screen styles={{backgroundColor: 'white'}} useAlignment useDefault>
-      <Text>Home</Text>
-    </Screen>
+    <>
+      {user?.role === 'Manager' && <ManagerHome />}
+      {user?.role === 'Supervisor' && <SupervisorHome />}
+      {user?.role === 'Worker' && <WorkerHome />}
+    </>
   );
 };

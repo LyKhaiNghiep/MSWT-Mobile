@@ -6,10 +6,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import {Screen, Text} from '../../components';
 import {useAuth} from '../../contexts/AuthContext';
 import {colors} from '../../theme';
+import {showSnackbar} from '../../utils/snackbar';
 
 export const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -17,58 +21,74 @@ export const Login = () => {
 
   const {login} = useAuth();
 
+  const handleLogin = async () => {
+    const result = await login({password, username: phoneNumber});
+    if (result.success) {
+      showSnackbar?.success('Đăng nhập thành công');
+    } else {
+      showSnackbar?.error(result.error!);
+    }
+  };
+
   return (
     <Screen>
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
-      <View style={styles.container}>
-        <Image
-          source={require('../../assets/images/login.png')}
-          style={styles.illustration}
-          resizeMode="contain"
-        />
-
-        <Text style={styles.title}>Đăng nhập</Text>
-
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Số điện thoại</Text>
-            <TextInput
-              style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              placeholder="0982382934"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.container}>
+            <Image
+              source={require('../../assets/images/login.png')}
+              style={styles.illustration}
+              resizeMode="contain"
             />
-          </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Mật khẩu</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder="••••••••"
-            />
-          </View>
+            <Text style={styles.title}>Đăng nhập</Text>
 
-          <Text
-            style={styles.forgotPassword}
-            onPress={() => console.log('Forgot password')}>
-            Quên mật khẩu?
-          </Text>
+            <View style={styles.form}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Số điện thoại</Text>
+                <TextInput
+                  style={styles.input}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  placeholder="0982382934"
+                />
+              </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={() =>
-                login({password: password, username: phoneNumber})
-              }>
-              <Text style={styles.loginButtonText}>Đăng nhập</Text>
-            </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Mật khẩu</Text>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  placeholder="••••••••"
+                />
+              </View>
+
+              <Text
+                style={styles.forgotPassword}
+                onPress={() => console.log('Forgot password')}>
+                Quên mật khẩu?
+              </Text>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.loginButton}
+                  onPress={() => handleLogin()}>
+                  <Text style={styles.loginButtonText}>Đăng nhập</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 };
@@ -130,5 +150,11 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
 });

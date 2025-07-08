@@ -38,16 +38,6 @@ export const ProfileItem = ({bg, icon, title, onPress}: ProfileItemProps) => {
         alignItems="center"
         justifyContent="space-between">
         <Box flexDirection="row" alignItems="center" gap="n">
-          <Box
-            justifyContent="center"
-            alignItems="center"
-            width={35}
-            height={35}
-            backgroundColor={bg}
-            borderRadius={9}>
-            {icon}
-            {/* <User /> */}
-          </Box>
           <Text color="primary" variant="medium" fontSize={moderateScale(15)}>
             {title}
           </Text>

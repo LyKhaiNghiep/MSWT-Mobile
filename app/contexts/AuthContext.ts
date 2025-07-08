@@ -8,11 +8,15 @@ import React, {
 import authService from '../services/authenService';
 import {UserData} from '../config/models/user.model';
 import {ILoginRequest} from '../config/models/auth.model';
+import {StorageUtil} from '../utils/storage';
+import {IResponse, IResponseWithData} from '../config/types';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
   user: UserData | null;
-  login: (request: ILoginRequest) => Promise<void>;
+  login: (
+    request: ILoginRequest,
+  ) => Promise<IResponse | IResponseWithData<UserData>>;
   logout: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -21,7 +25,8 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
-  login: async (request: ILoginRequest) => {},
+  login: async () =>
+    Promise.resolve({success: false, error: 'Not implemented'}),
   logout: async () => {},
   loading: false,
   error: null,
@@ -48,12 +53,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const userData = localStorage.getItem('userData');
+        const token = await StorageUtil.getToken();
+        const userData = await StorageUtil.getUserData<UserData>();
 
         if (token && userData) {
           // Parse stored user data
-          const storedUser = JSON.parse(userData);
+          const storedUser = userData;
           setIsAuthenticated(true);
           setUser(storedUser);
 
@@ -64,8 +69,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
       } catch (error) {
         console.error('Auth initialization error:', error);
         // Clear any corrupted data
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userData');
+        await StorageUtil.remove('accessToken');
+        await StorageUtil.remove('userData');
       } finally {
         setLoading(false);
       }
@@ -75,7 +80,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   }, []);
 
   // Login function using backend API
-  const login = async (request: ILoginRequest) => {
+  const login = async (
+    request: ILoginRequest,
+  ): Promise<IResponse | IResponseWithData<UserData>> => {
     try {
       const {username, password} = request;
       console.log('🔐 AuthContext: Starting login process...');
@@ -86,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
       console.log('🔍 AuthContext: AuthService result:', result);
 
       if (result.success) {
-        const userData = result.data!.user;
+        const userData = result.data!.user as UserData;
 
         console.log('✅ AuthContext: Setting authentication state...');
         setIsAuthenticated(true);
@@ -99,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
           isAuthenticated: true,
         });
 
-        return {success: true, user: userData};
+        return {success: true, data: userData};
       } else {
         console.log('❌ AuthContext: Login failed:', result.error);
         return {
@@ -108,7 +115,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
         };
       }
     } catch (error) {
-      console.error('❌ AuthContext: Login error:', error);
       return {
         success: false,
         error: 'Đã có lỗi xảy ra trong quá trình đăng nhập',

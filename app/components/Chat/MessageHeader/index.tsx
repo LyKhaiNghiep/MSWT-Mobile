@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {memo} from 'react';
 import {Alert, Pressable} from 'react-native';
 import {RectButton} from 'react-native-gesture-handler';
-import {ArrowBackAndroid, ArrowBackiOS, VideoCall} from '../../../assets/svgs';
+import {ArrowBackAndroid, ArrowBackiOS} from '../../../assets/svgs';
 import {StackNavigation} from '../../../navigators';
 import {StackTabNavigation} from '../../../navigators/TabParamList';
 import {isAndroid, moderateScale} from '../../../utils';
@@ -29,12 +29,6 @@ export const MessageHeader = memo(
     };
     const videoCallOnPress = () => {
       if (isConnected) {
-        mainNavigation.navigate('VideoCall', {
-          patientName: channelName,
-          patientID,
-          incomingCall: false,
-          avatar: channelSelfie,
-        });
       } else {
         Alert.alert(
           "We're unable to establish a connection. Please connect to the internet to proceed with the video call.",
@@ -80,11 +74,7 @@ export const MessageHeader = memo(
               </Box>
             </Box>
           </Box>
-          <Pressable hitSlop={70} onPress={videoCallOnPress}>
-            <Box>
-              <VideoCall />
-            </Box>
-          </Pressable>
+          <Pressable hitSlop={70} onPress={videoCallOnPress}></Pressable>
         </Box>
         {/* LINE */}
         <Box marginVertical="n" height={0.7} backgroundColor="line" />

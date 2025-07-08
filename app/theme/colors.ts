@@ -3,6 +3,7 @@ export const colors = {
   white: '#FFFFFF',
   subLabel: '#9195A2',
   darkLabel: '#8A98A1',
+  dark: '#000',
   secondary1: '#F5ECDA',
   secondary1Light: '#FCF9F4',
   socialButton: '#F4F6F8',
@@ -55,7 +56,7 @@ export const colors = {
 
   softPink: '#FFE6F7',
   softPinkDark: '#9B1B54',
-
+  mainColor: '#FF5B27',
   chatSender: '#C1EFAF',
 };
 

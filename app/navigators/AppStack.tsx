@@ -1,53 +1,22 @@
-import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import React, {useEffect, useState} from 'react';
-
 import {useIsFocused} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React, {useEffect} from 'react';
 import SplashScreen from 'react-native-splash-screen';
-import {localStore} from '../data';
-import {
-  CustomDateRange,
-  ManageAppointment,
-  Login,
-  Verification,
-  VerificationStatus,
-} from '../screens';
-import {Capture} from '../screens/Capture';
-import {isAndroid, isEmpty} from '../utils';
+import {useAuth} from '../contexts/AuthContext';
+import {Login} from '../screens';
+import {isAndroid} from '../utils';
 import {AppStackParamList} from './AppStackParamList';
-import {HomeNavigator} from './HomeNavigator';
+import {Navigator} from './Navigator';
+import Report from '../screens/Report';
+import Trash from '../screens/Trash';
+import User from '../screens/User';
+import Restroom from '../screens/Restroom';
+import Floor from '../screens/Floor';
+
 export const AppStack = () => {
   const Stack = createNativeStackNavigator<AppStackParamList>();
-
-  const [user, setUser] = useState<FirebaseAuthTypes.User>();
+  const {user} = useAuth();
   const isFocused = useIsFocused();
-  const [initializing, setInitializing] = useState(true);
-  const {
-    addFullName,
-    addEmail,
-    verificationStatus,
-    fullName: storeFullName,
-    email: storeEmail,
-    addUID,
-  } = localStore();
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(users => {
-      setUser(users!);
-      if (isEmpty(storeEmail) && isEmpty(storeFullName)) {
-        addEmail(users?.email!);
-        addFullName(users?.displayName!);
-        addUID(auth()?.currentUser?.uid!);
-      }
-
-      if (initializing) {
-        setInitializing(false);
-      }
-    });
-    return subscriber;
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (isFocused) {
@@ -56,7 +25,6 @@ export const AppStack = () => {
   }, [isFocused]);
 
   // eslint-disable-next-line curly
-  if (initializing) return <></>;
   return (
     <Stack.Navigator
       initialRouteName="Login"
@@ -66,51 +34,21 @@ export const AppStack = () => {
       }}>
       {user ? (
         <>
-          {verificationStatus === 'pending' ? (
-            <Stack.Screen
-              name="VerificationStatus"
-              component={VerificationStatus}
-            />
-          ) : verificationStatus === 'not_started' ? (
-            <>
-              <Stack.Screen
-                name="Verification"
-                component={Verification}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen name="Capture" component={Capture} />
-            </>
-          ) : verificationStatus === 'verified' ? (
-            <>
-              <Stack.Screen name="HomeTab" component={HomeNavigator} />
-              <Stack.Screen name="Messages" component={HomeNavigator} />
-              <Stack.Screen name="VideoCall" component={HomeNavigator} />
-              <Stack.Screen
-                name="ManageAppointment"
-                component={ManageAppointment}
-              />
-              <Stack.Group
-                screenOptions={{
-                  presentation: 'containedModal',
-                }}>
-                <Stack.Screen
-                  name="CustomDateRange"
-                  component={CustomDateRange}
-                />
-              </Stack.Group>
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Login" component={Login} />
-            </>
-          )}
+          <Stack.Screen name="Tabs" component={Navigator} />
+          <Stack.Screen name="Report" component={Report} />
+          <Stack.Screen name="Trash" component={Trash} />
+          <Stack.Screen name="Floor" component={Floor} />
+          <Stack.Screen name="Restroom" component={Restroom} />
+          <Stack.Screen name="User" component={User} />
+          {/* <Stack.Group
+            screenOptions={{
+              presentation: 'containedModal',
+            }}>
+            <Stack.Screen name="CustomDateRange" component={CustomDateRange} />
+          </Stack.Group> */}
         </>
       ) : (
-        <>
-          <Stack.Screen name="Login" component={Login} />
-        </>
+        <Stack.Screen name="Login" component={Login} />
       )}
     </Stack.Navigator>
   );
