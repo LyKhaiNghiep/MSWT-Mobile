@@ -1,4 +1,4 @@
-import {Restroom} from './restroom.model';
+import {Area, Restroom} from './restroom.model';
 
 export interface ICreateFloorRequest {
   numberOfRestroom: number;
@@ -22,4 +22,5 @@ export interface Floor {
   numberOfBin: number;
   status: string;
   restrooms?: Restroom[];
+  areas: Area[];
 }

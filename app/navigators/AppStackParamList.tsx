@@ -1,15 +1,28 @@
 import {NavigationProp} from '@react-navigation/native';
 
 export type AppStackParamList = {
+  Home: undefined;
   Login: undefined;
   Verification: undefined;
   VerificationStatus: undefined;
   CustomDateRange: undefined;
   Tabs: undefined;
   Report: undefined;
+  ReportDetails: undefined;
   Trash: undefined;
+  TrashDetails: undefined;
   Floor: undefined;
+  FloorDetails: undefined;
   Restroom: undefined;
+  RestroomDetails: undefined;
   User: undefined;
+  UserDetails: undefined;
+  Schedule: undefined;
+  ScheduleDetails: undefined;
+  Leave: undefined;
+  LeaveDetails: undefined;
+  WorkerReport: undefined;
+  WorkerReportDetails: undefined;
+  CreateWorkerReport: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;

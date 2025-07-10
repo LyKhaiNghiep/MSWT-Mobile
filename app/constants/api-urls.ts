@@ -25,6 +25,14 @@ export const API_URLS = {
     DELETE: (id: string) => `floors/${id}`,
   },
 
+  TRASH_BIN: {
+    GET_ALL: `trashbins`,
+    GET_BY_ID: (id: string) => `trashbins/${id}`,
+    CREATE: `trashbins`,
+    UPDATE: (id: string) => `trashbins/${id}`,
+    DELETE: (id: string) => `trashbins/${id}`,
+  },
+
   // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
   AREA: {
     GET_ALL: `areas`,

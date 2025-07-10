@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {Pressable} from 'react-native';
-import {RectButton} from 'react-native-gesture-handler';
 import {ArrowBackAndroid, ArrowBackiOS, Cancel} from '../../assets/svgs';
 import {StackNavigation} from '../../navigators';
 import {isAndroid, moderateScale} from '../../utils';
@@ -33,20 +32,7 @@ export const Dismiss = ({
 
   return (
     <Box flexDirection="row" justifyContent="center" alignItems="center">
-      <Box style={[$container, $widthHeightStyle(wnh), title && $border]}>
-        <RectButton
-          hitSlop={50}
-          onPress={isModal ? modalOnPress : onPress}
-          style={[$button, $widthHeightStyle(wnh)]}>
-          {isModal ? (
-            <Cancel />
-          ) : !isAndroid ? (
-            <ArrowBackiOS />
-          ) : (
-            <ArrowBackAndroid />
-          )}
-        </RectButton>
-      </Box>
+      <Box style={[$container, $widthHeightStyle(wnh), title && $border]}></Box>
 
       <Box flex={1} alignItems="center">
         <Text variant="medium" fontSize={moderateScale(18)}>

@@ -20,6 +20,18 @@ export type MenuItem = {
   id: string;
   title: string;
   icon: string;
-  route: 'Report' | 'Trash' | 'Floor' | 'Restroom' | 'User';
+  route: ScreenName;
   color: string;
 };
+
+export type ScreenName =
+  | 'Report'
+  | 'Trash'
+  | 'Floor'
+  | 'Restroom'
+  | 'User'
+  | 'Home'
+  | 'ReportDetails'
+  | 'Leave'
+  | 'Schedule'
+  | 'WorkerReport';

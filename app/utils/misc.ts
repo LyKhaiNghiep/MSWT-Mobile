@@ -103,8 +103,8 @@ export const formatAMPM = (date: Date) => {
   }
 };
 
-export function isEmpty(str: string) {
-  return !str || str.length === 0;
+export function isEmpty(str: string | null | undefined) {
+  return !str || str?.length === 0;
 }
 
 export const today = () => {

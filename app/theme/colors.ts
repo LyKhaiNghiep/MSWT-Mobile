@@ -58,6 +58,14 @@ export const colors = {
   softPinkDark: '#9B1B54',
   mainColor: '#FF5B27',
   chatSender: '#C1EFAF',
+
+  // Status Colors
+  success: '#02B974', // Using greenDark for success
+  successLight: '#E6F8F1', // Using greenLight for success background
+  warning: '#FD995C', // Using orangeDark for warning
+  warningLight: '#FEF1E6', // Using orangeLight for warning background
+  error: '#D32F2F', // Using palePinkDark for error
+  errorLight: '#F8E6E6', // Using palePink for error background
 };
 
 export type Colors = typeof colors;

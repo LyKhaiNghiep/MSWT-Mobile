@@ -1,16 +1,10 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import CountryPicker, {Country} from 'react-native-country-picker-modal';
-import {AnimatedBox, Box, Option, Text} from '../../components';
+import {Box, Text} from '../../components';
 import {Dropdown, InputField} from '../../components/Form';
 import {Header} from '../../components/Verification';
 
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetView,
-} from '@gorhom/bottom-sheet';
-import {Pressable} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {localStore} from '../../data';
@@ -47,8 +41,6 @@ export const PersonalInformation = () => {
   });
   const [open, setOpen] = useState(false);
   const [openCountryModal, setOpenCountryModal] = useState(false);
-  const snapPoints = useMemo(() => ['1', '26%'], []);
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const MARGIN_LEFT = -5;
   const onSelect = (CO: Country) => {
     addCountry({
@@ -63,7 +55,7 @@ export const PersonalInformation = () => {
       addBio(getValues('bio'));
       addYOE(getValues('yoe'));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watch('fullName'), watch('bio'), watch('yoe')]);
 
   useEffect(() => {
@@ -83,11 +75,6 @@ export const PersonalInformation = () => {
     yoe,
     country,
   ]);
-
-  const chooseGender = (type: 'Male' | 'Female') => {
-    addGender(type);
-    bottomSheetModalRef.current?.dismiss();
-  };
 
   return (
     <>
@@ -111,11 +98,7 @@ export const PersonalInformation = () => {
               )}
             />
 
-            <Dropdown
-              value={gender}
-              label="Gender"
-              onPress={() => bottomSheetModalRef.current?.present()}
-            />
+            <Dropdown value={gender} label="Gender" onPress={() => {}} />
 
             <Dropdown
               value={formatDate(dob)}
@@ -201,7 +184,7 @@ export const PersonalInformation = () => {
           maximumDate={maxDate}
           mode="date"
           open={open}
-          date={!dob && dob instanceof Date ? dob : maxDate}
+          date={!dob ? dob : maxDate}
           onConfirm={date => {
             setOpen(false);
             addDOB(date);
@@ -210,32 +193,6 @@ export const PersonalInformation = () => {
             setOpen(false);
           }}
         />
-        <BottomSheetModal
-          ref={bottomSheetModalRef}
-          index={1}
-          backdropComponent={BottomSheetBackdrop}
-          snapPoints={snapPoints}>
-          <BottomSheetView>
-            <AnimatedBox>
-              <Text
-                pl="m"
-                color="primary"
-                variant="mSemiBold"
-                fontSize={moderateScale(20)}>
-                Gender
-              </Text>
-              <Box mt="n">
-                <Pressable onPress={() => chooseGender('Male')}>
-                  <Option isActive={gender === 'Male'} label="Male" />
-                </Pressable>
-                <Box backgroundColor="socialButton" height={2} />
-                <Pressable onPress={() => chooseGender('Female')}>
-                  <Option isActive={gender === 'Female'} label="Female" />
-                </Pressable>
-              </Box>
-            </AnimatedBox>
-          </BottomSheetView>
-        </BottomSheetModal>
       </KeyboardAwareScrollView>
     </>
   );

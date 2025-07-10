@@ -2,16 +2,12 @@ import {useNetInfo} from '@react-native-community/netinfo';
 import {useNavigation} from '@react-navigation/native';
 import React, {memo} from 'react';
 import {Alert, Pressable} from 'react-native';
-import {RectButton} from 'react-native-gesture-handler';
-import {ArrowBackAndroid, ArrowBackiOS} from '../../../assets/svgs';
 import {StackNavigation} from '../../../navigators';
 import {StackTabNavigation} from '../../../navigators/TabParamList';
-import {isAndroid, moderateScale} from '../../../utils';
+import {moderateScale} from '../../../utils';
 import {Avatar} from '../../Avatar';
 import {Box} from '../../Box';
-import {$button, $widthHeightStyle} from '../../Dismiss/style';
 import {Text} from '../../Text';
-import {$back} from './styles';
 
 type MessageHeaderProps = {
   channelSelfie: string;
@@ -24,9 +20,7 @@ export const MessageHeader = memo(
 
     const navigation = useNavigation<StackTabNavigation>();
     const mainNavigation = useNavigation<StackNavigation>();
-    const onPress = () => {
-      navigation.navigate('Chat');
-    };
+    const onPress = () => {};
     const videoCallOnPress = () => {
       if (isConnected) {
       } else {
@@ -45,14 +39,7 @@ export const MessageHeader = memo(
           alignItems="center"
           justifyContent="space-between">
           <Box flex={1} flexDirection="row" alignItems="center">
-            <Box>
-              <RectButton
-                hitSlop={50}
-                onPress={onPress}
-                style={[$button, $widthHeightStyle(), $back]}>
-                {!isAndroid ? <ArrowBackiOS /> : <ArrowBackAndroid />}
-              </RectButton>
-            </Box>
+            <Box></Box>
             <Box alignItems="center" flexDirection="row" gap="n">
               <Avatar uri={channelSelfie} patientID={patientID} />
 

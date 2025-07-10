@@ -1,12 +1,11 @@
 import React, {ReactNode} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
-import {RectButtonProps} from 'react-native-gesture-handler';
 import {LinearTransition} from 'react-native-reanimated';
 import {colors} from '../../theme';
 import {AnimatedBox, Box} from '../Box';
 import {Button} from '../Button';
 import {$container, $default, $shadow} from './style';
-type ScreenProps = RectButtonProps & {
+type ScreenProps = {
   children: ReactNode;
   useAlignment?: boolean;
   styles?: StyleProp<ViewStyle>;

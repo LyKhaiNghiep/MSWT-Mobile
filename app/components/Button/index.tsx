@@ -1,6 +1,5 @@
 import React, {ReactNode} from 'react';
 import {Pressable} from 'react-native';
-import {RectButtonProps} from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,7 +13,7 @@ import {Box} from '../Box';
 import {Text} from '../Text';
 import {$button, $buttonContainer, $label, $skottie} from './styles';
 
-type ButtonProps = RectButtonProps & {
+type ButtonProps = {
   onPress?: () => void;
   label: string;
   leftIcon?: ReactNode;
@@ -34,8 +33,7 @@ export const Button = ({
 }: ButtonProps) => {
   const scaleDown = useSharedValue<number>(1);
 
-  const isButtonEnabled =
-    props.enabled === undefined ? false : props.enabled ? false : true;
+  const isButtonEnabled = true;
 
   const onPressIn = () => {
     scaleDown.value = 0.9;

@@ -2,20 +2,27 @@ import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {Image, StyleSheet} from 'react-native';
 import {Appbar, IconButton} from 'react-native-paper';
-import {NavigationTabProps} from '../../config/types';
+import {NavigationTabProps, ScreenName} from '../../config/types';
 import {colors} from '../../theme';
 import {Box} from '../Box';
+import {StackNavigation} from '../../navigators';
 
 type AppHeaderProps = {
   title?: string;
   showLogo?: boolean;
   style?: any;
+  navigateTo?: ScreenName;
 };
 
-export const AppHeader = ({title, style, showLogo = false}: AppHeaderProps) => {
-  const navigation = useNavigation<NavigationTabProps>();
+export const AppHeader = ({
+  title,
+  style,
+  showLogo = false,
+  navigateTo = 'Home',
+}: AppHeaderProps) => {
+  const navigation = useNavigation<StackNavigation>();
 
-  const handleGoBack = () => navigation.navigate('Home');
+  const handleGoBack = () => navigation.navigate(navigateTo);
 
   return (
     <Appbar.Header style={[styles.header, style]}>
