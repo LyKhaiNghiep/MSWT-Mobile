@@ -24,5 +24,12 @@ export type AppStackParamList = {
   WorkerReport: undefined;
   WorkerReportDetails: undefined;
   CreateWorkerReport: undefined;
+  ChangePassword: undefined;
+  EditProfile: undefined;
+  LeaveRequest: undefined;
+  LeaveRequestDetails: undefined;
+  Calendar: undefined;
+  CreateLeaveRequest: undefined;
+  Employees: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;

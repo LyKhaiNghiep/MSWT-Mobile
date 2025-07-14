@@ -1,17 +1,16 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
-  Card,
-  Text,
-  Surface,
-  Badge,
-  IconButton,
-  Chip,
   Avatar,
+  Badge,
+  Card,
+  Chip,
   Divider,
-  SegmentedButtons,
+  IconButton,
+  Surface,
+  Text,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
@@ -20,10 +19,9 @@ import {useAccounts} from '../../hooks/useAccounts';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 
-export default function UserListPage() {
+export default function Employees() {
   const {users, isLoading} = useAccounts();
   const navigation = useNavigation<StackNavigation>();
-  const [selectedRole, setSelectedRole] = useState('Supervisor');
 
   const roles = [
     {value: 'Worker', label: 'Nhân viên'},
@@ -31,9 +29,7 @@ export default function UserListPage() {
     {value: 'Manager', label: 'Quản lý'},
   ];
 
-  const filteredUsers = users?.filter(
-    user => user.role?.roleName === selectedRole,
-  );
+  const filteredUsers = users?.filter(user => user.role?.roleName === 'Worker');
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -111,7 +107,7 @@ export default function UserListPage() {
   if (isLoading) {
     return (
       <Screen useDefault>
-        <AppHeader title="Người dùng" />
+        <AppHeader title="Danh sách nhân viên" />
         <View style={[styles.container, styles.centerContent]}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -121,17 +117,8 @@ export default function UserListPage() {
 
   return (
     <Screen useDefault>
-      <AppHeader title="Người dùng" />
+      <AppHeader title="Danh sách nhân viên" />
       <View style={styles.container}>
-        <SegmentedButtons
-          value={selectedRole}
-          onValueChange={setSelectedRole}
-          buttons={roles.map(role => ({
-            value: role.value,
-            label: role.label,
-          }))}
-          style={styles.segmentedButtons}
-        />
         <FlatList
           data={filteredUsers}
           renderItem={renderItem}

@@ -6,14 +6,16 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useAccounts} from '../../hooks/useAccounts';
 import {colors} from '../../theme';
+import {useAuth} from '../../contexts/AuthContext';
 
 export default function UserDetails() {
   const route = useRoute();
+  const {user} = useAuth();
   const {users} = useAccounts();
   const id = (route.params as any).id;
-  const user = users?.find(u => u.userId === id);
+  const sepcificUser = users?.find(u => u.userId === id);
 
-  if (!user) return null;
+  if (!sepcificUser) return null;
   const roles = [
     {value: 'Worker', label: 'Nhân viên'},
     {value: 'Supervisor', label: 'Giám sát viên'},
@@ -22,7 +24,10 @@ export default function UserDetails() {
 
   return (
     <Screen styles={{backgroundColor: colors.white}} useDefault>
-      <AppHeader title="Chi tiết người dùng" navigateTo="User" />
+      <AppHeader
+        title="Chi tiết người dùng"
+        navigateTo={user?.role === 'Supervisor' ? 'Employees' : 'User'}
+      />
       <ScrollView style={styles.container}>
         <Card style={styles.card}>
           <Card.Content>
@@ -30,19 +35,19 @@ export default function UserDetails() {
               <Avatar.Image
                 size={80}
                 source={
-                  user.image
-                    ? {uri: user.image}
+                  sepcificUser.image
+                    ? {uri: sepcificUser.image}
                     : require('../../assets/images/avatar-default.svg')
                 }
                 style={styles.avatar}
               />
               <View style={styles.headerInfo}>
                 <Text variant="headlineSmall" style={styles.name}>
-                  {user.fullName}
+                  {sepcificUser.fullName}
                 </Text>
                 <Text variant="bodyLarge" style={styles.role}>
-                  {roles.find(r => r.value === user.role?.roleName)?.label ||
-                    'Không có'}
+                  {roles.find(r => r.value === sepcificUser.role?.roleName)
+                    ?.label || 'Không có'}
                 </Text>
               </View>
             </View>
@@ -52,28 +57,28 @@ export default function UserDetails() {
             <List.Section>
               <List.Item
                 title="Email"
-                description={user.email}
+                description={sepcificUser.email}
                 left={props => <List.Icon {...props} icon="email" />}
               />
               <List.Item
                 title="Số điện thoại"
-                description={user.phone}
+                description={sepcificUser.phone}
                 left={props => <List.Icon {...props} icon="phone" />}
               />
               <List.Item
                 title="Địa chỉ"
-                description={user.address}
+                description={sepcificUser.address}
                 left={props => <List.Icon {...props} icon="map-marker" />}
               />
 
               <List.Item
                 title="Trạng thái"
-                description={user.status}
+                description={sepcificUser.status}
                 left={props => <List.Icon {...props} icon="account-check" />}
               />
               <List.Item
                 title="Ngày tạo"
-                description={user.createdAt}
+                description={sepcificUser.createdAt}
                 left={props => <List.Icon {...props} icon="calendar" />}
               />
             </List.Section>

@@ -14,6 +14,7 @@ export const API_URLS = {
     DELETE: (id: string) => `users/${id}`,
     LOGIN: `users/login`, // Backend xử lý login và trả về token
     REGISTER: `users/register`, // Backend xử lý register
+    CHANGE_PASSWORD: `users/change-password`, // Backend xử lý change password
   },
 
   // Floor management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useFloor.ts

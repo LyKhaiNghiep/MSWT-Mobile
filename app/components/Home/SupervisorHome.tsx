@@ -5,13 +5,44 @@ import {IconButton, Surface, Text, useTheme} from 'react-native-paper';
 import Animated, {FadeInUp, Layout} from 'react-native-reanimated';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
+import {MenuItem, NavigationScreenProps} from '../../config/types';
 import {colors} from '../../theme';
 
 export const SupervisorHome = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationScreenProps>();
   const theme = useTheme();
 
-  const menuItems: any[] = [];
+  const menuItems: MenuItem[] = [
+    {
+      id: 'report',
+      title: 'Báo cáo',
+      icon: 'file-document-outline',
+      route: 'WorkerReport',
+      color: theme.colors.primary,
+    },
+
+    {
+      id: 'floor',
+      title: 'Xem lịch',
+      icon: 'calendar-month-outline',
+      route: 'Calendar',
+      color: theme.colors.secondary,
+    },
+    {
+      id: 'trash',
+      title: 'Thùng rác',
+      icon: 'delete-outline',
+      route: 'Trash',
+      color: theme.colors.error,
+    },
+    {
+      id: 'user',
+      title: 'Nhân viên',
+      icon: 'account-group',
+      route: 'Employees',
+      color: theme.colors.primary,
+    },
+  ];
 
   return (
     <Screen styles={styles.screen} useDefault>
@@ -22,7 +53,7 @@ export const SupervisorHome = () => {
           Danh mục
         </Text>
         <View style={styles.menuGrid}>
-          {menuItems?.map((item, index) => (
+          {menuItems.map((item, index) => (
             <Animated.View
               key={item.id}
               entering={FadeInUp.delay(index * 100)}

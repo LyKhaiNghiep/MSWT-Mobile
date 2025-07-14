@@ -32,6 +32,7 @@ export type ScreenName =
   | 'User'
   | 'Home'
   | 'ReportDetails'
-  | 'Leave'
-  | 'Schedule'
-  | 'WorkerReport';
+  | 'LeaveRequest'
+  | 'Calendar'
+  | 'WorkerReport'
+  | 'Employees';

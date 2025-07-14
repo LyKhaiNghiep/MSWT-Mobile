@@ -19,6 +19,14 @@ import RestroomDetails from '../screens/RestroomDetails';
 import UserDetails from '../screens/UserDetails';
 import WorkerReportPage from '../screens/WorkerReport';
 import WorkerReportDetails from '../screens/WorkerReportDetails';
+import CreateWorkerReport from '../screens/CreateWorkerReport';
+import LeaveRequestDetails from '../screens/LeaveRequestDetails';
+import LeaveRequest from '../screens/LeaveRequest';
+import EditProfile from '../screens/EditProfile';
+import ChangePassword from '../screens/ChangePassword';
+import Calendar from '../screens/Calendar';
+import CreateLeaveRequest from '../screens/CreateLeaveRequest';
+import Employees from '../screens/Employee';
 
 export const AppStack = () => {
   const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -99,6 +107,13 @@ export const AppStack = () => {
             }}
           />
           <Stack.Screen
+            name="Employees"
+            component={Employees}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
             name="User"
             component={User}
             options={{
@@ -120,8 +135,61 @@ export const AppStack = () => {
             }}
           />
           <Stack.Screen
+            name="CreateLeaveRequest"
+            component={CreateLeaveRequest}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
             name="WorkerReportDetails"
             component={WorkerReportDetails}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="EditProfile"
+            component={EditProfile}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="Calendar"
+            component={Calendar}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="ChangePassword"
+            component={ChangePassword}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="LeaveRequest"
+            component={LeaveRequest}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="LeaveDetails"
+            component={LeaveRequestDetails}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="CreateWorkerReport"
+            component={CreateWorkerReport}
             options={{
               animation: 'slide_from_right',
             }}

@@ -5,9 +5,14 @@ import {colors} from '../../theme';
 import {Avatar, Button, Card, Divider, List} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigation} from '../../navigators';
 
 export const Profile = () => {
   const {user, logout} = useAuth();
+  const navigation = useNavigation<StackNavigation>();
+  const handleChangePassword = () => navigation.navigate('ChangePassword');
+  const handleEditProfile = () => navigation.navigate('EditProfile');
 
   return (
     <Screen styles={{backgroundColor: colors.grey}} useDefault={false}>
@@ -73,14 +78,14 @@ export const Profile = () => {
             mode="contained"
             style={styles.button}
             labelStyle={styles.buttonText}
-            onPress={logout}>
+            onPress={handleEditProfile}>
             Chỉnh sửa
           </Button>
           <Button
             mode="contained"
             style={styles.button}
             labelStyle={styles.buttonText}
-            onPress={logout}>
+            onPress={handleChangePassword}>
             Đổi mật khẩu
           </Button>
         </Box>

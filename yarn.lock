@@ -2331,6 +2331,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/datetimepicker@npm:^8.4.2":
+  version: 8.4.2
+  resolution: "@react-native-community/datetimepicker@npm:8.4.2"
+  dependencies:
+    invariant: ^2.2.4
+  peerDependencies:
+    expo: ">=52.0.0"
+    react: "*"
+    react-native: "*"
+    react-native-windows: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+    react-native-windows:
+      optional: true
+  checksum: 0a9e2a450d5cedb75478cb449d0a73b31105cc1f90ba9a0d42661497824d0c20657160e05f8ed57b00cf1df4bf4292a01a9d929cffd9954cd59c514a5c49a360
+  languageName: node
+  linkType: hard
+
 "@react-native-community/netinfo@npm:^11.4.1":
   version: 11.4.1
   resolution: "@react-native-community/netinfo@npm:11.4.1"
@@ -8303,6 +8322,7 @@ __metadata:
     "@notifee/react-native": ^9.1.2
     "@nozbe/watermelondb": ^0.27.1
     "@react-native-async-storage/async-storage": ^2.2.0
+    "@react-native-community/datetimepicker": ^8.4.2
     "@react-native-community/netinfo": ^11.4.1
     "@react-native/babel-preset": 0.75.4
     "@react-native/debugger-frontend": ^0.76.3

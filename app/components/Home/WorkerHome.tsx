@@ -25,7 +25,7 @@ export const WorkerHome = () => {
       id: 'floor',
       title: 'Xem lịch',
       icon: 'calendar-month-outline',
-      route: 'Schedule',
+      route: 'Calendar',
       color: theme.colors.secondary,
     },
 
@@ -33,7 +33,7 @@ export const WorkerHome = () => {
       id: 'leave',
       title: 'Xin nghỉ phép',
       icon: 'ticket-outline',
-      route: 'Leave',
+      route: 'LeaveRequest',
       color: theme.colors.primary,
     },
   ];
