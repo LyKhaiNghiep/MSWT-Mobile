@@ -23,17 +23,32 @@ import {colors} from '../../theme';
 export default function UserListPage() {
   const {users, isLoading} = useAccounts();
   const navigation = useNavigation<StackNavigation>();
-  const [selectedRole, setSelectedRole] = useState('Supervisor');
+  const [selectedRole, setSelectedRole] = useState('Leader');
+
+  // Debug: Log user data structure
+  console.log('🔍 Users data:', users?.slice(0, 2)); // Log first 2 users
+  console.log('🔍 Selected role:', selectedRole);
 
   const roles = [
+    {value: 'Leader', label: 'Quản trị viên'},
     {value: 'Worker', label: 'Nhân viên'},
     {value: 'Supervisor', label: 'Giám sát viên'},
     {value: 'Manager', label: 'Quản lý'},
   ];
 
-  const filteredUsers = users?.filter(
-    user => user.role?.roleName === selectedRole,
-  );
+  const filteredUsers = users?.filter(user => {
+    // Try multiple ways to match the role
+    const userRoleName = user.roleName || user.role?.roleName;
+    console.log('🔍 User role match:', {
+      userName: user.userName,
+      userRoleName,
+      selectedRole,
+      match: userRoleName === selectedRole,
+    });
+    return userRoleName === selectedRole;
+  });
+
+  console.log('🔍 Filtered users count:', filteredUsers?.length);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -93,7 +108,9 @@ export default function UserListPage() {
                 icon="briefcase"
                 style={styles.roleChip}
                 textStyle={styles.roleChipText}>
-                {roles.find(x => x.value === item.role?.roleName)?.label}
+                {item.roleName ||
+                  item.description ||
+                  roles.find(x => x.value === item.role?.roleName)?.label}
               </Chip>
               <IconButton
                 icon="chevron-right"

@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Text, Badge, List} from 'react-native-paper';
+import {Card, Text, Badge} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useFloors} from '../../hooks/useFloor';

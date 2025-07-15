@@ -1,8 +1,9 @@
 import useSWRNative from '@nandorojo/swr-react-native';
-import {API_URLS, BASE_API_URL} from '../constants/api-urls';
+import {API_URLS} from '../constants/api-urls';
 import {swrFetcher} from '../utils/swr-fetcher';
+import {colors} from '../theme';
 
-// Report interface based on backend API
+// Report interface based on new backend API structure
 export interface Report {
   reportId: string;
   reportName: string;
@@ -10,20 +11,15 @@ export interface Report {
   status: string;
   priority: string;
   reportType: string;
-  location: string;
-  reportedBy: string;
-  contactInfo: string;
-  createdDate: string;
-  timeCreated: string;
-  createdBy: string;
-  assignedTo: string;
-  image?: string;
-  userId?: string;
+  userId: string;
+  createdAt: string;
+  image?: string | null;
+  resolvedAt?: string | null;
+  userName: string; // The one who created the report
 }
 
 export interface ReportWithRole extends Report {
   roleName: string;
-  userName: string;
 }
 
 // Create report data interface for leader
@@ -51,6 +47,37 @@ export const PRIORITY_MAPPING = {
   Thấp: 1,
   'Trung bình': 2,
   Cao: 3,
+};
+
+// Consistent status color function for both pages
+export const getReportStatusColor = (status: string) => {
+  switch (status) {
+    case 'Đã gửi':
+      return colors.success;
+    case 'Đang xử lý':
+      return colors.warning;
+    case 'Đã xử lý':
+      return colors.primary;
+    case 'Đã đóng':
+      return colors.subLabel;
+    default:
+      return colors.error;
+  }
+};
+
+// Priority color function
+export const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'Thấp':
+      return colors.success;
+    case 'Trung bình':
+    case 'Trung Bình':
+      return colors.yellow;
+    case 'Cao':
+      return colors.error;
+    default:
+      return colors.subLabel;
+  }
 };
 
 // Hook to get all reports (Báo cáo tổng)

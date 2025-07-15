@@ -4,7 +4,7 @@ import {API_URLS, BASE_API_URL} from '../constants/api-urls';
 // User Service for API interactions
 export const userService = {
   // Get all users
-  async getAllUsers(params = {}): Promise<any> {
+  async getAllUsers(params: any = {}): Promise<any> {
     try {
       // Prepare query parameters
       const queryParams = new URLSearchParams();
@@ -50,23 +50,43 @@ export const userService = {
         .map((user, index) => {
           try {
             return {
-              id: user.userId || `temp-${index}`,
-              name: user.fullName || user.userName || 'Unknown User',
-              username: user.userName || 'unknown',
+              userId: user.userId || `temp-${index}`,
+              userName: user.userName || 'unknown',
+              fullName: user.fullName || user.userName || 'Unknown User',
               email: user.email || '',
               phone: user.phone || '',
               address: user.address || 'Chưa cập nhật',
               status: user.status || 'Hoạt động',
+              image:
+                user.image ||
+                'https://i.pinimg.com/736x/65/d6/c4/65d6c4b0cc9e85a631cf2905a881b7f0.jpg',
+              createAt: user.createAt || new Date().toISOString(),
+              roleId: user.roleId,
+              roleName: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+              description:
+                user.description || this.mapRoleIdToDescription(user.roleId),
+              rating: user.rating || null,
+              reasonForLeave: user.reasonForLeave || null,
+              // Keep these for backward compatibility
+              id: user.userId || `temp-${index}`,
+              name: user.fullName || user.userName || 'Unknown User',
+              username: user.userName || 'unknown',
               avatar:
                 user.image ||
                 'https://i.pinimg.com/736x/65/d6/c4/65d6c4b0cc9e85a631cf2905a881b7f0.jpg',
               createdDate: user.createAt
                 ? user.createAt.split('T')[0]
                 : new Date().toISOString().split('T')[0],
-              roleId: user.roleId, // Add roleId to the mapped user
               position: this.mapRoleToPosition(user.roleId),
               location: 'Chưa cập nhật',
               floor: 'Chưa cập nhật',
+              role: {
+                roleId: user.roleId,
+                roleName:
+                  user.roleName || this.mapRoleIdToRoleName(user.roleId),
+                description:
+                  user.description || this.mapRoleIdToDescription(user.roleId),
+              },
             };
           } catch (err) {
             console.error(
@@ -88,9 +108,31 @@ export const userService = {
   },
 
   // Helper function to map roleId to position
-  mapRoleToPosition(roleId) {
-    const roleMap = {
+  mapRoleToPosition(roleId: string) {
+    const roleMap: {[key: string]: string} = {
       RL01: 'Quản lý',
+      RL02: 'Quản trị hệ thống',
+      RL03: 'Giám sát viên vệ sinh',
+      RL04: 'Nhân viên vệ sinh',
+    };
+    return roleMap[roleId] || 'Nhân viên vệ sinh';
+  },
+
+  // Helper function to map roleId to role name
+  mapRoleIdToRoleName(roleId: string) {
+    const roleMap: {[key: string]: string} = {
+      RL01: 'Manager',
+      RL02: 'Leader',
+      RL03: 'Supervisor',
+      RL04: 'Worker',
+    };
+    return roleMap[roleId] || 'Worker';
+  },
+
+  // Helper function to map roleId to description
+  mapRoleIdToDescription(roleId: string) {
+    const roleMap: {[key: string]: string} = {
+      RL01: 'Quản lý cấp cao',
       RL02: 'Quản trị hệ thống',
       RL03: 'Giám sát viên vệ sinh',
       RL04: 'Nhân viên vệ sinh',
@@ -152,8 +194,8 @@ export const userService = {
   },
 
   // Helper function to map position to roleId
-  mapPositionToRoleId(position) {
-    const positionMap = {
+  mapPositionToRoleId(position: string) {
+    const positionMap: {[key: string]: string} = {
       'Nhân viên vệ sinh': 'RL04',
       'Giám sát viên vệ sinh': 'RL03',
       'Quản lý cấp cao': 'RL01',

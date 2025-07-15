@@ -1,35 +1,43 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Text, Badge} from 'react-native-paper';
+import {Card, Text, ActivityIndicator} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {useRestrooms} from '../../hooks/useRestroom';
+import {useRestroom, getRestroomStatusColor} from '../../hooks/useRestroom';
 import {colors} from '../../theme';
 
 export default function RestroomDetails() {
   const route = useRoute();
-  const {restrooms} = useRestrooms();
-  const id = (route.params as any).id;
-  const restroom = restrooms?.find(r => r.restroomId === id);
+  const restroomId = (route.params as any).id;
+  const {restroom, isLoading, isError} = useRestroom(restroomId);
 
-  if (!restroom) return null;
+  if (isLoading) {
+    return (
+      <Screen styles={{backgroundColor: colors.grey}} useDefault>
+        <AppHeader title="Chi tiết nhà vệ sinh" navigateTo="Restroom" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </Screen>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'đang hoạt động':
-        return colors.success;
-      case 'bảo trì':
-        return colors.warning;
-      case 'ngưng hoạt động':
-        return colors.error;
-      default:
-        return colors.subLabel;
-    }
-  };
+  if (isError || !restroom) {
+    return (
+      <Screen styles={{backgroundColor: colors.grey}} useDefault>
+        <AppHeader title="Chi tiết nhà vệ sinh" navigateTo="Restroom" />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Không thể tải thông tin nhà vệ sinh
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
-    <Screen styles={{backgroundColor: 'white'}} useDefault>
+    <Screen styles={{backgroundColor: colors.grey}} useDefault>
       <AppHeader title="Chi tiết nhà vệ sinh" navigateTo="Restroom" />
       <ScrollView style={styles.container}>
         <Card style={styles.card}>
@@ -41,47 +49,21 @@ export default function RestroomDetails() {
 
             <View style={styles.infoRow}>
               <Text variant="labelLarge">Trạng thái:</Text>
-              <Badge
+              <View
                 style={[
+                  styles.badge,
                   {
-                    backgroundColor: getStatusColor(restroom.status),
+                    backgroundColor: getRestroomStatusColor(restroom.status),
                   },
                 ]}>
-                {restroom.status}
-              </Badge>
+                <Text style={styles.badgeText}>{restroom.status}</Text>
+              </View>
             </View>
 
             <View style={styles.infoRow}>
               <Text variant="labelLarge">Khu vực:</Text>
               <Text variant="bodyLarge">
-                {restroom.area?.areaName || 'Không có'}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text variant="labelLarge">Vị trí phòng:</Text>
-              <Text variant="bodyLarge">
-                {restroom.area
-                  ? `${restroom.area.roomBegin} - ${restroom.area.roomEnd}`
-                  : 'Không có'}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text variant="labelLarge">Ngày tạo:</Text>
-              <Text variant="bodyLarge">
-                {restroom.createdAt
-                  ? new Date(restroom.createdAt).toLocaleDateString('vi-VN')
-                  : 'Không có'}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text variant="labelLarge">Cập nhật lần cuối:</Text>
-              <Text variant="bodyLarge">
-                {restroom.updatedAt
-                  ? new Date(restroom.updatedAt).toLocaleDateString('vi-VN')
-                  : 'Không có'}
+                {restroom.areaName || 'Không có thông tin'}
               </Text>
             </View>
 
@@ -102,18 +84,52 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.grey,
   },
   card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    elevation: 2,
     marginBottom: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    textAlign: 'center',
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.secondary1Light,
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minHeight: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   description: {
     marginTop: 16,
@@ -121,5 +137,8 @@ const styles = StyleSheet.create({
   descriptionText: {
     marginTop: 8,
     color: colors.darkLabel,
+    backgroundColor: colors.grey,
+    padding: 16,
+    borderRadius: 12,
   },
 });

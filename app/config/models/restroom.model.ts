@@ -28,12 +28,13 @@ export interface Restroom {
   restroomNumber: string;
   description: string;
   areaId: string;
-  floorId: string;
   status: string;
+  areaName: string;
+  // Legacy fields for backward compatibility
+  floorId?: string;
   createdAt?: string;
   updatedAt?: string;
   area?: Area;
-  // floor?: Floor;
   schedules?: Schedule[];
 }
 

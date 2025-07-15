@@ -32,7 +32,7 @@ export const Profile = () => {
             <Box style={styles.userInfo}>
               <List.Item
                 title={user?.fullName || 'N/A'}
-                description={user?.role || 'N/A'}
+                description={user?.roleName || user?.description || 'N/A'}
                 titleStyle={styles.name}
                 descriptionStyle={styles.role}
               />
@@ -59,9 +59,26 @@ export const Profile = () => {
             />
             <List.Item
               title="Chức vụ"
-              description={user?.position || 'N/A'}
+              description={user?.description || user?.position || 'N/A'}
               left={props => <List.Icon {...props} icon="badge-account" />}
             />
+            <List.Item
+              title="Tên đăng nhập"
+              description={user?.userName || 'N/A'}
+              left={props => <List.Icon {...props} icon="account" />}
+            />
+            <List.Item
+              title="Trạng thái"
+              description={user?.status || 'N/A'}
+              left={props => <List.Icon {...props} icon="account-check" />}
+            />
+            {user?.rating && (
+              <List.Item
+                title="Đánh giá"
+                description={`${user.rating}/5`}
+                left={props => <List.Icon {...props} icon="star" />}
+              />
+            )}
           </List.Section>
         </Card>
 

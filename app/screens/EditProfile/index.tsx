@@ -19,6 +19,7 @@ export default function EditProfile() {
     email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || '',
+    userName: user?.userName || '',
   });
 
   const handleUpdateProfile = async () => {

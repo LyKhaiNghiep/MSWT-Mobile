@@ -66,6 +66,7 @@ export const colors = {
   warningLight: '#FEF1E6', // Using orangeLight for warning background
   error: '#D32F2F', // Using palePinkDark for error
   errorLight: '#F8E6E6', // Using palePink for error background
+  yellow: '#FFD700', // Golden yellow for medium priority
 };
 
 export type Colors = typeof colors;

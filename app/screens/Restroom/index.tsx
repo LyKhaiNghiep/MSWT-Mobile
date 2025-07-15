@@ -1,37 +1,23 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
   Card,
   Text,
   Surface,
-  Badge,
   IconButton,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {Restroom} from '../../config/models/restroom.model';
-import {useRestrooms} from '../../hooks/useRestroom';
+import {useRestrooms, getRestroomStatusColor} from '../../hooks/useRestroom';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 
 export default function RestroomPage() {
   const {restrooms, isLoading} = useRestrooms();
   const navigation = useNavigation<StackNavigation>();
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'đang hoạt động':
-        return colors.success;
-      case 'bảo trì':
-        return colors.warning;
-      case 'ngưng hoạt động':
-        return colors.error;
-      default:
-        return colors.subLabel;
-    }
-  };
 
   const renderItem = ({item}: {item: Restroom}) => (
     <Surface style={styles.surface} elevation={2}>
@@ -47,35 +33,20 @@ export default function RestroomPage() {
               <Text variant="titleLarge" style={styles.title}>
                 NVS{item.restroomNumber}
               </Text>
-              <Badge
+              <View
                 style={[
                   styles.badge,
-                  {backgroundColor: getStatusColor(item.status)},
+                  {backgroundColor: getRestroomStatusColor(item.status)},
                 ]}>
-                {item.status}
-              </Badge>
+                <Text style={styles.badgeText}>{item.status}</Text>
+              </View>
             </View>
 
             <View style={styles.infoContainer}>
-              <Text variant="bodyMedium" style={styles.label}>
-                Vị trí:
-              </Text>
-              <Text variant="bodyLarge" style={styles.value}>
-                {item.description}
+              <Text variant="bodyMedium" style={styles.value}>
+                {item.description || 'Không có mô tả'}
               </Text>
             </View>
-
-            {item.area && (
-              <View style={styles.infoContainer}>
-                <Text variant="bodyMedium" style={styles.label}>
-                  Khu vực:
-                </Text>
-                <Text variant="bodyLarge" style={styles.value}>
-                  {item.area.areaName} (Phòng {item.area.roomBegin} -{' '}
-                  {item.area.roomEnd})
-                </Text>
-              </View>
-            )}
           </View>
 
           <IconButton
@@ -168,7 +139,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minHeight: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   infoContainer: {
     marginTop: 4,

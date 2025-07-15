@@ -29,7 +29,10 @@ export default function Employees() {
     {value: 'Manager', label: 'Quản lý'},
   ];
 
-  const filteredUsers = users?.filter(user => user.role?.roleName === 'Worker');
+  const filteredUsers = users?.filter(user => {
+    const userRoleName = user.roleName || user.role?.roleName;
+    return userRoleName === 'Worker';
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -89,7 +92,9 @@ export default function Employees() {
                 icon="briefcase"
                 style={styles.roleChip}
                 textStyle={styles.roleChipText}>
-                {roles.find(x => x.value === item.role?.roleName)?.label}
+                {item.roleName ||
+                  item.description ||
+                  roles.find(x => x.value === item.role?.roleName)?.label}
               </Chip>
               <IconButton
                 icon="chevron-right"

@@ -40,7 +40,7 @@ export const authService = {
           // Tạm thời dùng credentials để tạo userData, sau đó sẽ update từ API
           const userData = {
             userId: Date.now().toString(),
-            username: credentials.username,
+            userName: credentials.username,
             fullName: credentials.username,
             email: '',
             phone: '',
@@ -50,7 +50,15 @@ export const authService = {
             password: '',
             // Tạm thời set roleId dựa trên username pattern
             roleId: this.guessRoleFromUsername(credentials.username),
-            createdAt: new Date().toISOString(),
+            createAt: new Date().toISOString(),
+            roleName: this.mapRoleIdToRoleName(
+              this.guessRoleFromUsername(credentials.username),
+            ),
+            description: this.mapRoleIdToDescription(
+              this.guessRoleFromUsername(credentials.username),
+            ),
+            rating: null,
+            reasonForLeave: null,
           } as UserData;
 
           // Map role info
@@ -79,7 +87,7 @@ export const authService = {
           // Fallback với Worker role
           const fallbackUserData = {
             userId: Date.now().toString(),
-            username: credentials.username,
+            userName: credentials.username,
             fullName: credentials.username,
             email: '',
             phone: '',
@@ -87,9 +95,14 @@ export const authService = {
             status: 'Hoạt động',
             image: '',
             roleId: 'c2a66975-420d-4961-9edd-d5bdff89be58', // Default Worker
+            createAt: new Date().toISOString(),
+            roleName: 'Worker',
+            description: 'Nhân viên vệ sinh',
+            rating: null,
+            reasonForLeave: null,
+            password: '',
             role: 'Worker',
             position: 'Nhân viên vệ sinh',
-            createdAt: new Date().toISOString(),
           };
           await StorageUtil.setUserData(fallbackUserData);
 
@@ -123,7 +136,7 @@ export const authService = {
         // Xử lý user data từ backend response
         const userData = {
           userId: user.userId,
-          username: user.userName,
+          userName: user.userName,
           fullName: user.fullName,
           email: user.email,
           phone: user.phone,
@@ -131,9 +144,15 @@ export const authService = {
           status: user.status,
           image: user.image,
           roleId: user.roleId, // Lấy roleId từ backend
+          createAt: user.createAt || new Date().toISOString(),
+          roleName: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+          description:
+            user.description || this.mapRoleIdToDescription(user.roleId),
+          rating: user.rating || null,
+          reasonForLeave: user.reasonForLeave || null,
+          password: user.password || '',
           role: this.mapRoleIdToRoleName(user.roleId), // Map roleId thành role name
           position: this.mapRoleIdToPosition(user.roleId), // Map roleId thành position
-          createdAt: user.createdAt,
           // Thêm role object nếu có
           roleObject: user.role || null,
         };
@@ -217,7 +236,7 @@ export const authService = {
       console.log('📝 Attempting registration with backend API...', userData);
 
       const response = await api.post(API_URLS.USER.REGISTER, {
-        userName: userData.username,
+        userName: userData.userName,
         password: userData.password,
         fullName: userData.fullName,
         email: userData.email,
@@ -308,6 +327,17 @@ export const authService = {
       'c2a66975-420d-4961-9edd-d5bdff89be58': 'Nhân viên vệ sinh',
     };
     return positionMap[roleId] || 'Nhân viên vệ sinh';
+  },
+
+  // Helper function to map roleId to description
+  mapRoleIdToDescription(roleId: string) {
+    const descriptionMap: any = {
+      '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75': 'Quản trị hệ thống',
+      '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37': 'Quản lý cấp cao',
+      '7dcd71ae-17c3-4e84-bb9f-dd96fa401976': 'Giám sát viên và sinh',
+      'c2a66975-420d-4961-9edd-d5bdff89be58': 'Nhân viên vệ sinh',
+    };
+    return descriptionMap[roleId] || 'Nhân viên vệ sinh';
   },
 
   // Helper function to map position to roleId

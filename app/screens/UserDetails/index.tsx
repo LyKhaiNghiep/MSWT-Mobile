@@ -46,8 +46,11 @@ export default function UserDetails() {
                   {sepcificUser.fullName}
                 </Text>
                 <Text variant="bodyLarge" style={styles.role}>
-                  {roles.find(r => r.value === sepcificUser.role?.roleName)
-                    ?.label || 'Không có'}
+                  {sepcificUser.roleName ||
+                    sepcificUser.description ||
+                    roles.find(r => r.value === sepcificUser.role?.roleName)
+                      ?.label ||
+                    'Không có'}
                 </Text>
               </View>
             </View>
@@ -56,31 +59,58 @@ export default function UserDetails() {
 
             <List.Section>
               <List.Item
+                title="Tên đăng nhập"
+                description={sepcificUser.userName || 'N/A'}
+                left={props => <List.Icon {...props} icon="account" />}
+              />
+              <List.Item
                 title="Email"
-                description={sepcificUser.email}
+                description={sepcificUser.email || 'N/A'}
                 left={props => <List.Icon {...props} icon="email" />}
               />
               <List.Item
                 title="Số điện thoại"
-                description={sepcificUser.phone}
+                description={sepcificUser.phone || 'N/A'}
                 left={props => <List.Icon {...props} icon="phone" />}
               />
               <List.Item
                 title="Địa chỉ"
-                description={sepcificUser.address}
+                description={sepcificUser.address || 'N/A'}
                 left={props => <List.Icon {...props} icon="map-marker" />}
               />
-
               <List.Item
                 title="Trạng thái"
-                description={sepcificUser.status}
+                description={sepcificUser.status || 'N/A'}
                 left={props => <List.Icon {...props} icon="account-check" />}
               />
               <List.Item
+                title="Chức vụ"
+                description={sepcificUser.description || 'N/A'}
+                left={props => <List.Icon {...props} icon="badge-account" />}
+              />
+              <List.Item
                 title="Ngày tạo"
-                description={sepcificUser.createdAt}
+                description={
+                  sepcificUser.createAt
+                    ? sepcificUser.createAt.split('T')[0]
+                    : 'N/A'
+                }
                 left={props => <List.Icon {...props} icon="calendar" />}
               />
+              {sepcificUser.rating && (
+                <List.Item
+                  title="Đánh giá"
+                  description={`${sepcificUser.rating}/5`}
+                  left={props => <List.Icon {...props} icon="star" />}
+                />
+              )}
+              {sepcificUser.reasonForLeave && (
+                <List.Item
+                  title="Lý do nghỉ"
+                  description={sepcificUser.reasonForLeave}
+                  left={props => <List.Icon {...props} icon="information" />}
+                />
+              )}
             </List.Section>
           </Card.Content>
         </Card>
