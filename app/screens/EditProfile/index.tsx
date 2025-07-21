@@ -1,14 +1,14 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, TextInput, View} from 'react-native';
+import {Button} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {Button} from 'react-native-paper';
-import {InputField} from '../../components/Form';
-import {showSnackbar} from '../../utils/snackbar';
+import {API_URLS} from '../../constants/api-urls';
 import {useAuth} from '../../contexts/AuthContext';
-import {userService} from '../../services/userService';
-import {useNavigation} from '@react-navigation/native';
+import api from '../../services/api';
 import {colors} from '../../theme';
+import {showSnackbar} from '../../utils/snackbar';
 
 export default function EditProfile() {
   const {user} = useAuth();
@@ -29,13 +29,14 @@ export default function EditProfile() {
         return;
       }
 
-      await userService.updateUser(user.userId, {
-        ...user,
-        ...formData,
+      const response = await api.put(API_URLS.USER.UPDATE_PROFILE, {
+        formData,
       });
 
-      showSnackbar?.success('Cập nhật thông tin thành công');
-      navigation.goBack();
+      if (response.data) {
+        showSnackbar?.success('Cập nhật thông tin thành công');
+        navigation.goBack();
+      }
     } catch (error) {
       showSnackbar?.error('Cập nhật thông tin thất bại');
     }
@@ -44,29 +45,30 @@ export default function EditProfile() {
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
       <AppHeader title="Chỉnh sửa thông tin" />
-      <ScrollView style={styles.container}>
-        <InputField
-          label="Họ và tên"
+      <View style={styles.container}>
+        <TextInput
+          placeholder="Họ và tên"
           value={formData.fullName}
           onChangeText={text => setFormData({...formData, fullName: text})}
           style={styles.input}
         />
-        <InputField
-          label="Email"
+        <TextInput
+          placeholder="Email"
           value={formData.email}
           onChangeText={text => setFormData({...formData, email: text})}
           style={styles.input}
           keyboardType="email-address"
         />
-        <InputField
-          label="Số điện thoại"
+        <TextInput
+          placeholder="Số điện thoại"
           value={formData.phone}
           onChangeText={text => setFormData({...formData, phone: text})}
+          secureTextEntry
           style={styles.input}
-          keyboardType="phone-pad"
         />
-        <InputField
-          label="Địa chỉ"
+
+        <TextInput
+          placeholder="Địa chỉ"
           value={formData.address}
           onChangeText={text => setFormData({...formData, address: text})}
           style={styles.input}
@@ -91,7 +93,7 @@ export default function EditProfile() {
             Hủy
           </Button>
         </View>
-      </ScrollView>
+      </View>
     </Screen>
   );
 }
@@ -99,15 +101,23 @@ export default function EditProfile() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    width: '100%',
   },
   input: {
-    marginBottom: 16,
+    height: 48,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: 12,
+    marginBottom: 12,
   },
   button: {
     flex: 1,

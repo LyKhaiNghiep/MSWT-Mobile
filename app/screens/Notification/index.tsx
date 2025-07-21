@@ -1,70 +1,17 @@
 import React, {useState} from 'react';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {FlatList, StyleSheet, View} from 'react-native';
+import {Alert, FlatList, StyleSheet, View} from 'react-native';
 import {Card, SegmentedButtons, Text} from 'react-native-paper';
 import {format} from 'date-fns';
-
-interface Alert {
-  alertId: string;
-  trashBinId: string;
-  timeSend: string;
-  resolvedAt: string | null;
-  userId: string | null;
-  status: string;
-  trashBin: any | null;
-  user: any | null;
-}
-
-const sampleNotifications: Alert[] = [
-  {
-    alertId: 'AL0f33cafa-2a6d-4458-b2a5-6635f2917ac4',
-    trashBinId: 'TB638875466277997005',
-    timeSend: '2024-02-15T09:30:00.000Z',
-    resolvedAt: null,
-    userId: null,
-    status: 'Cần dọn dẹp',
-    trashBin: null,
-    user: null,
-  },
-  {
-    alertId: 'AL638880893772331999',
-    trashBinId: 'TB638875466277997006',
-    timeSend: '2024-02-15T10:15:00.000Z',
-    resolvedAt: '2024-02-15T11:30:00.000Z',
-    userId: 'USER123',
-    status: 'Cần được xử lý',
-    trashBin: null,
-    user: null,
-  },
-  {
-    alertId: 'AL638880893970278281',
-    trashBinId: 'TB638875466277997007',
-    timeSend: '2024-02-15T14:20:00.000Z',
-    resolvedAt: null,
-    userId: null,
-    status: 'Cần được xử lý',
-    trashBin: null,
-    user: null,
-  },
-  {
-    alertId: 'AL638880894123456789',
-    trashBinId: 'TB638875466277997008',
-    timeSend: '2024-02-14T16:45:00.000Z',
-    resolvedAt: '2024-02-14T17:30:00.000Z',
-    userId: 'USER456',
-    status: 'Cần dọn dẹp',
-    trashBin: null,
-    user: null,
-  },
-];
+import {useAlerts} from '../../hooks/useAlert';
+import {AlertModel} from '../../config/models/alert.mode';
 
 export const Notification = () => {
   const [selectedTab, setSelectedTab] = useState('new');
-  const [notifications, setNotifications] =
-    useState<Alert[]>(sampleNotifications); // Replace with actual API call
+  const {alerts: notifications} = useAlerts();
 
-  const renderNotificationItem = ({item}: {item: Alert}) => (
+  const renderNotificationItem = ({item}: {item: AlertModel}) => (
     <Card style={styles.card} key={item.alertId}>
       <Card.Content>
         <Text variant="titleMedium" style={styles.status}>

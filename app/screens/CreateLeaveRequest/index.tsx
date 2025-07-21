@@ -8,6 +8,8 @@ import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {format} from 'date-fns';
 import {colors} from '../../theme';
+import api from '../../services/api';
+import {API_URLS} from '../../constants/api-urls';
 
 export default function CreateLeaveRequest() {
   const navigation = useNavigation();
@@ -23,15 +25,23 @@ export default function CreateLeaveRequest() {
       // Add API call here to submit leave request
       const leaveData = {
         leaveType: parseInt(leaveType, 10),
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: startDate,
+        endDate: endDate,
         reason,
       };
 
-      console.log('Submit leave request:', leaveData);
-      showSnackbar?.success('Tạo đơn xin nghỉ thành công');
-      navigation.goBack();
+      const response = await api.post(API_URLS.LEAVE_REQUEST.CREATE, {
+        leaveData,
+      });
+
+      if (response.data) {
+        console.log('Submit leave request:', leaveData);
+        showSnackbar?.success('Tạo đơn xin nghỉ thành công');
+        navigation.goBack();
+      }
     } catch (error) {
+      console.log('API Response:', error);
+
       showSnackbar?.error('Tạo đơn xin nghỉ thất bại');
     }
   };
@@ -45,8 +55,8 @@ export default function CreateLeaveRequest() {
           onValueChange={setLeaveType}
           buttons={[
             {value: '1', label: 'Nghỉ phép'},
-            {value: '2', label: 'Nghỉ ốm'},
-            {value: '3', label: 'Không lương'},
+            {value: '2', label: 'Nghỉ bệnh'},
+            {value: '3', label: 'Cá nhân'},
           ]}
         />
 

@@ -35,4 +35,6 @@ export type ScreenName =
   | 'LeaveRequest'
   | 'Calendar'
   | 'WorkerReport'
-  | 'Employees';
+  | 'Employees'
+  | 'Sensor'
+  | 'Area';

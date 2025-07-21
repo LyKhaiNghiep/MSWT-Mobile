@@ -3,24 +3,24 @@ import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
-  Card,
-  Text,
-  Surface,
   Badge,
+  Card,
   IconButton,
+  Surface,
+  Text,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {TrashBin} from '../../config/models/trashbin.model';
-import {useTrashBins} from '../../hooks/useTrashbin';
+import {Sensor} from '../../config/models/sensor.model';
+import {useAreas} from '../../hooks/useArea';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
+import {Area} from '../../config/models/restroom.model';
 
-export default function TrashBinPage() {
-  const {trashbins, isLoading} = useTrashBins();
+export default function AreaPage() {
+  const {areas, isLoading} = useAreas();
   const navigation = useNavigation<StackNavigation>();
 
-  console.log('trashbins', trashbins);
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'đang hoạt động':
@@ -34,52 +34,47 @@ export default function TrashBinPage() {
     }
   };
 
-  const renderItem = ({item}: {item: TrashBin}) => (
-    <Surface style={styles.surface} elevation={2}>
+  const renderItem = ({item}: {item: Area}) => (
+    <Surface style={styles.surface} elevation={4}>
       <Card
         style={styles.card}
         mode="elevated"
         onPress={() =>
-          navigation.navigate('TrashDetails' as any, {id: item.trashBinId})
+          navigation.navigate('AreaDetails' as any, {id: item.areaId})
         }>
         <Card.Content style={styles.cardContent}>
           <View style={styles.mainContent}>
             <View style={styles.header}>
               <View style={styles.titleContainer}>
-                <View style={styles.iconContainer}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    {backgroundColor: colors.primary + '10'},
+                  ]}>
                   <IconButton
-                    icon="trash-can"
+                    icon="map-marker-radius"
                     size={24}
                     iconColor={colors.primary}
                   />
                 </View>
-                <View
-                  style={{display: 'flex', flexDirection: 'column', gap: 1}}>
+                <View style={styles.titleWrapper}>
                   <Text variant="titleMedium" style={styles.title}>
-                    {item.trashBinName}
-                  </Text>
-                  <Text variant="bodyMedium" style={{}}>
                     {item.areaName}
                   </Text>
+                  <Text variant="bodySmall" style={styles.subtitle}>
+                    Số phòng: {item.roomBegin.trim()} - {item.roomEnd.trim()}
+                  </Text>
+                  <Badge
+                    style={[
+                      styles.badge,
+                      {backgroundColor: getStatusColor(item.status)},
+                    ]}>
+                    {item.status}
+                  </Badge>
                 </View>
               </View>
-
-              <Badge
-                style={[
-                  styles.badge,
-                  {backgroundColor: getStatusColor(item.status)},
-                ]}>
-                {item.status}
-              </Badge>
             </View>
           </View>
-
-          <IconButton
-            icon="chevron-right"
-            size={24}
-            iconColor={colors.primary}
-            style={styles.chevron}
-          />
         </Card.Content>
       </Card>
     </Surface>
@@ -88,7 +83,7 @@ export default function TrashBinPage() {
   if (isLoading) {
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
-        <AppHeader title="Thùng rác" />
+        <AppHeader title="Khu vực" />
         <View style={[styles.container, styles.centerContent]}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -98,17 +93,17 @@ export default function TrashBinPage() {
 
   return (
     <Screen useDefault>
-      <AppHeader title="Thùng rác" />
+      <AppHeader title="Khu vực" />
       <View style={styles.container}>
         <FlatList
-          data={trashbins}
+          data={areas}
           renderItem={renderItem}
-          keyExtractor={item => item.trashBinId}
+          keyExtractor={item => item.areaId}
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.centerContent}>
               <Text variant="bodyLarge" style={styles.emptyText}>
-                Không có thùng rác nào
+                Không có khu vực nào
               </Text>
             </View>
           }
@@ -149,6 +144,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
+  iconContainer: {
+    borderRadius: 8,
+    padding: 4,
+    marginRight: 12,
+  },
+  titleWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    gap: 2,
+  },
+  subtitle: {
+    color: colors.subLabel,
+  },
   mainContent: {
     flex: 1,
     marginRight: 8,
@@ -162,16 +171,16 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
   },
-  iconContainer: {
-    marginRight: 8,
-  },
+
   title: {
     color: colors.primary,
     fontWeight: '600',
   },
   badge: {
     paddingHorizontal: 8,
+    alignSelf: 'flex-start',
   },
   infoContainer: {
     marginTop: 4,

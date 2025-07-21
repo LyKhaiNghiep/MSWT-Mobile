@@ -28,6 +28,20 @@ export const ManagerHome = () => {
       color: theme.colors.error,
     },
     {
+      id: 'sensor',
+      title: 'Cảm biến',
+      icon: 'signal',
+      route: 'Sensor',
+      color: theme.colors.error,
+    },
+    {
+      id: 'area',
+      title: 'Khu vực',
+      icon: 'map-marker-radius',
+      route: 'Area',
+      color: theme.colors.secondary,
+    },
+    {
       id: 'floor',
       title: 'Tầng',
       icon: 'office-building',
@@ -54,7 +68,12 @@ export const ManagerHome = () => {
     <Screen styles={styles.screen} useDefault>
       <AppHeader showLogo={true} />
 
-      <View style={styles.container}>
+      <Animated.ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        overScrollMode="always"
+        contentContainerStyle={styles.scrollContent}>
         <Text variant="headlineMedium" style={styles.sectionTitle}>
           Danh mục
         </Text>
@@ -92,7 +111,7 @@ export const ManagerHome = () => {
             </Animated.View>
           ))}
         </View>
-      </View>
+      </Animated.ScrollView>
     </Screen>
   );
 };
@@ -117,7 +136,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 16,
+    paddingBottom: 24,
   },
   sectionTitle: {
     marginBottom: 16,

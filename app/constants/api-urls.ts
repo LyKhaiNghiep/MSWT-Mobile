@@ -15,6 +15,7 @@ export const API_URLS = {
     LOGIN: `users/login`, // Backend xử lý login và trả về token
     REGISTER: `users/register`, // Backend xử lý register
     CHANGE_PASSWORD: `users/change-password`, // Backend xử lý change password
+    UPDATE_PROFILE: `users/update-profile`, // Backend xử lý change password
   },
 
   // Floor management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useFloor.ts
@@ -32,6 +33,13 @@ export const API_URLS = {
     CREATE: `trashbins`,
     UPDATE: (id: string) => `trashbins/${id}`,
     DELETE: (id: string) => `trashbins/${id}`,
+  },
+  ALERT: {
+    GET_ALL: `alerts`,
+    GET_BY_ID: (id: string) => `alerts/${id}`,
+    CREATE: `alerts`,
+    UPDATE: (id: string) => `alerts/${id}`,
+    DELETE: (id: string) => `alerts/${id}`,
   },
 
   // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
@@ -100,7 +108,23 @@ export const API_URLS = {
     UPDATE: (id: string) => `assignments/${id}`,
     DELETE: (id: string) => `assignments/${id}`,
   },
+  LEAVE_REQUEST: {
+    GET_ALL: `leaves`,
+    MY_LEAVES: `leaves/my-leaves`,
+    GET_BY_ID: (id: string) => `leaves/${id}`,
+    CREATE: `leaves`,
+    UPDATE: (id: string) => `leaves/${id}`,
+    DELETE: (id: string) => `leaves/${id}`,
+  },
 
+  // TrashBin management endpoints
+  SENSOR: {
+    GET_ALL: `sensors`,
+    GET_BY_ID: (id: string) => `sensors/${id}`,
+    CREATE: `sensors`,
+    UPDATE: (id: string) => `sensors/${id}`,
+    DELETE: (id: string) => `sensors/${id}`,
+  },
   // TrashBin management endpoints
   TRASHBIN: {
     GET_ALL: `trashbins`,

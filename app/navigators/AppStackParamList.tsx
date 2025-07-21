@@ -31,5 +31,9 @@ export type AppStackParamList = {
   Calendar: undefined;
   CreateLeaveRequest: undefined;
   Employees: undefined;
+  Sensor: undefined;
+  SensorDetails: undefined;
+  Area: undefined;
+  AreaDetails: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;

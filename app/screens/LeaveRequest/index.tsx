@@ -2,55 +2,48 @@ import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {Button, Card, Text} from 'react-native-paper';
+import {Button, Card, Text, Badge} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {Leave} from '../../config/models/leave.model';
 import {format} from 'date-fns';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
-const sampleLeaves: Leave[] = [
-  {
-    leaveType: 1,
-    startDate: '2024-02-01T00:00:00.000Z',
-    endDate: '2024-02-03T00:00:00.000Z',
-    reason: 'Nghỉ phép năm 2024',
-  },
-  {
-    leaveType: 2,
-    startDate: '2024-02-10T00:00:00.000Z',
-    endDate: '2024-02-11T00:00:00.000Z',
-    reason: 'Nghỉ ốm để khám bệnh',
-  },
-  {
-    leaveType: 3,
-    startDate: '2024-02-15T00:00:00.000Z',
-    endDate: '2024-02-16T00:00:00.000Z',
-    reason: 'Nghỉ không lương vì việc cá nhân',
-  },
-];
-const getLeaveTypeName = (type: number) => {
-  switch (type) {
-    case 1:
-      return 'Nghỉ phép năm';
-    case 2:
-      return 'Nghỉ ốm';
-    case 3:
-      return 'Nghỉ không lương';
-    default:
-      return 'Khác';
-  }
-};
+import {useLeaveRequest} from '../../hooks/useLeaveRequest';
 
 export default function LeaveRequest() {
   const navigation = useNavigation<StackNavigation>();
-  const [leaves, setLeaves] = React.useState<Leave[]>(sampleLeaves); // This should be replaced with actual API call
+  const {myLeaves: leaves} = useLeaveRequest();
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'đã duyệt':
+        return '#4CAF50';
+      case 'từ chối':
+        return '#F44336';
+      case 'đang chờ duyệt':
+        return '#FFC107';
+      default:
+        return '#757575';
+    }
+  };
 
   const renderLeaveItem = ({item}: {item: Leave}) => (
     <Card
       style={styles.card}
-      onPress={() => navigation.navigate('LeaveDetails')}>
+      onPress={() =>
+        navigation.navigate('LeaveDetails' as any, {id: item.leaveId})
+      }>
       <Card.Content>
-        <Text variant="titleMedium">{getLeaveTypeName(item.leaveType)}</Text>
+        <View style={styles.header}>
+          <Text variant="titleMedium">{item.leaveType}</Text>
+          <Badge
+            style={[
+              styles.badge,
+              {backgroundColor: getStatusColor(item.approvalStatus)},
+            ]}>
+            {item.approvalStatus}
+          </Badge>
+        </View>
         <Text variant="bodyMedium">
           Từ: {format(new Date(item.startDate), 'dd/MM/yyyy')}
         </Text>
@@ -71,7 +64,7 @@ export default function LeaveRequest() {
         <FlatList
           data={leaves}
           renderItem={renderLeaveItem}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={item => item.leaveId}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <Text style={styles.emptyText}>Không có đơn xin nghỉ nào</Text>
@@ -107,5 +100,14 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     marginTop: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  badge: {
+    paddingHorizontal: 8,
   },
 });

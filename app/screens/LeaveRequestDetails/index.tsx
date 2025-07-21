@@ -1,31 +1,19 @@
+import {useRoute} from '@react-navigation/native';
+import {format} from 'date-fns';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
+import {Card, Divider, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {Card, Divider, Text} from 'react-native-paper';
-import {format} from 'date-fns';
-import {Leave} from '../../config/models/leave.model';
-
-const getLeaveTypeName = (type: number) => {
-  switch (type) {
-    case 1:
-      return 'Nghỉ phép năm';
-    case 2:
-      return 'Nghỉ ốm';
-    case 3:
-      return 'Nghỉ không lương';
-    default:
-      return 'Khác';
-  }
-};
+import {useLeaveRequest} from '../../hooks/useLeaveRequest';
 
 const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'approved':
+  switch (status?.toLowerCase()) {
+    case 'đã duyệt':
       return '#4CAF50';
-    case 'rejected':
+    case 'từ chối':
       return '#F44336';
-    case 'pending':
+    case 'đang chờ duyệt':
       return '#FFC107';
     default:
       return '#757575';
@@ -33,35 +21,49 @@ const getStatusColor = (status: string) => {
 };
 
 export default function LeaveRequestDetails() {
-  // This should be replaced with actual API call or route params
-  const leaveRequest: Leave & {status: string} = {
-    leaveType: 1,
-    startDate: new Date().toISOString(),
-    endDate: new Date().toISOString(),
-    reason: 'Nghỉ phép năm 2024',
-    status: 'pending',
-  };
+  const route = useRoute();
+  const {getLeaveById} = useLeaveRequest();
+  const id = (route.params as any).id;
+  const leaveRequest = getLeaveById(id);
+
+  if (!leaveRequest) {
+    return (
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
+        <AppHeader title="Chi tiết đơn" />
+        <View style={[styles.container, styles.centerContent]}>
+          <Text>Không tìm thấy thông tin đơn nghỉ phép</Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
-      <AppHeader title="Chi tiết đơn" />
+      <AppHeader title="Chi tiết đơn" navigateTo="LeaveRequest" />
       <ScrollView style={styles.container}>
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.header}>
-              <Text variant="titleLarge">
-                {getLeaveTypeName(leaveRequest.leaveType)}
-              </Text>
+              <Text variant="titleLarge">{leaveRequest.leaveType}</Text>
               <Text
                 style={[
                   styles.status,
-                  {color: getStatusColor(leaveRequest.status)},
+                  {color: getStatusColor(leaveRequest.approvalStatus)},
                 ]}>
-                {leaveRequest.status === 'approved'
-                  ? 'Đã duyệt'
-                  : leaveRequest.status === 'rejected'
-                  ? 'Từ chối'
-                  : 'Đang chờ'}
+                {leaveRequest.approvalStatus}
+              </Text>
+            </View>
+
+            <Divider style={styles.divider} />
+
+            <View style={styles.infoSection}>
+              <Text variant="titleMedium">Thông tin người gửi</Text>
+              <Text variant="bodyLarge">
+                Mã nhân viên: {leaveRequest.workerId}
+              </Text>
+              <Text variant="bodyLarge">
+                Ngày gửi:{' '}
+                {format(new Date(leaveRequest.requestDate), 'dd/MM/yyyy')}
               </Text>
             </View>
 
@@ -76,6 +78,9 @@ export default function LeaveRequestDetails() {
                 <Text variant="bodyLarge">
                   Đến: {format(new Date(leaveRequest.endDate), 'dd/MM/yyyy')}
                 </Text>
+                <Text variant="bodyLarge">
+                  Tổng số ngày: {leaveRequest.totalDays}
+                </Text>
               </View>
             </View>
 
@@ -88,16 +93,23 @@ export default function LeaveRequestDetails() {
               </Text>
             </View>
 
-            {leaveRequest.status !== 'pending' && (
+            {leaveRequest.approvalStatus !== 'Đang chờ duyệt' && (
               <>
                 <Divider style={styles.divider} />
                 <View style={styles.infoSection}>
-                  <Text variant="titleMedium">Phản hồi</Text>
-                  <Text variant="bodyLarge" style={styles.feedback}>
-                    {leaveRequest.status === 'approved'
-                      ? 'Đơn xin nghỉ của bạn đã được chấp nhận'
-                      : 'Đơn xin nghỉ của bạn đã bị từ chối'}
+                  <Text variant="titleMedium">Thông tin phê duyệt</Text>
+                  <Text variant="bodyLarge">
+                    Người duyệt: {leaveRequest.approvedBy}
                   </Text>
+                  <Text variant="bodyLarge">
+                    Ngày duyệt:{' '}
+                    {format(new Date(leaveRequest.approvalDate!), 'dd/MM/yyyy')}
+                  </Text>
+                  {leaveRequest.note && (
+                    <Text variant="bodyLarge" style={styles.feedback}>
+                      Ghi chú: {leaveRequest.note}
+                    </Text>
+                  )}
                 </View>
               </>
             )}
@@ -112,6 +124,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
     marginBottom: 16,

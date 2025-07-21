@@ -27,6 +27,10 @@ import ChangePassword from '../screens/ChangePassword';
 import Calendar from '../screens/Calendar';
 import CreateLeaveRequest from '../screens/CreateLeaveRequest';
 import Employees from '../screens/Employee';
+import SensorPage from '../screens/Sensor';
+import SensorDetailsPage from '../screens/SensorDetails';
+import AreaPage from '../screens/Area';
+import AreaDetailsPage from '../screens/AreaDetails';
 
 export const AppStack = () => {
   const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -190,6 +194,35 @@ export const AppStack = () => {
           <Stack.Screen
             name="CreateWorkerReport"
             component={CreateWorkerReport}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="Sensor"
+            component={SensorPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="SensorDetails"
+            component={SensorDetailsPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="Area"
+            component={AreaPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="AreaDetails"
+            component={AreaDetailsPage}
             options={{
               animation: 'slide_from_right',
             }}
