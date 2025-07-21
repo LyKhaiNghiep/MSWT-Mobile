@@ -4,7 +4,7 @@ import {AppHeader} from '../../components/AppHeader';
 import {colors} from '../../theme';
 import {Avatar, Button, Card, Divider, List} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
-import {StyleSheet} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigation} from '../../navigators';
 
@@ -17,8 +17,12 @@ export const Profile = () => {
   return (
     <Screen styles={{backgroundColor: colors.grey}} useDefault={false}>
       <AppHeader title="Thông tin cá nhân" />
-
-      <Box style={styles.container}>
+      <Animated.ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        overScrollMode="always"
+        contentContainerStyle={styles.scrollContent}>
         <Card style={styles.card}>
           <Box style={styles.avatarContainer}>
             <Avatar.Image
@@ -114,15 +118,19 @@ export const Profile = () => {
           labelStyle={styles.buttonText}>
           Đăng xuất
         </Button>
-      </Box>
+      </Animated.ScrollView>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 0,
     flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 24,
   },
   card: {
     marginBottom: 20,
