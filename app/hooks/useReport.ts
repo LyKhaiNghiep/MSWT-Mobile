@@ -28,7 +28,6 @@ export interface CreateReportData {
   reportName: string;
   image?: string;
   priority: number; // 1, 2, 3 cho Low, Medium, High
-  reportType: number; // Loại báo cáo
 }
 
 // Update report data interface
@@ -84,6 +83,20 @@ export const getPriorityColor = (priority: string) => {
 export const useReports = () => {
   const {data, error, isLoading, mutate} = useSWRNative<Report[]>(
     API_URLS.REPORT.GET_ALL,
+    swrFetcher,
+  );
+
+  return {
+    reports: data || [],
+    isLoading,
+    isError: error,
+    refresh: () => mutate(),
+  };
+};
+
+export const useWorkerReports = () => {
+  const {data, error, isLoading, mutate} = useSWRNative<Report[]>(
+    API_URLS.REPORT.GET_WITH_ROLE,
     swrFetcher,
   );
 

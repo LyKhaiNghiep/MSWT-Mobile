@@ -62,6 +62,13 @@ export const ManagerHome = () => {
       route: 'User',
       color: theme.colors.primary,
     },
+    {
+      id: 'request',
+      title: 'Yêu cầu',
+      icon: 'message-reply-text',
+      route: 'Request',
+      color: theme.colors.primary,
+    },
   ];
 
   return (

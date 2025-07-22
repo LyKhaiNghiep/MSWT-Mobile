@@ -5,6 +5,7 @@ import {FlatList, Image, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
   Badge,
+  Button,
   Card,
   IconButton,
   Surface,
@@ -12,21 +13,17 @@ import {
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {Report, useReports} from '../../hooks/useReport';
+import {Report, useReports, useWorkerReports} from '../../hooks/useReport';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 import {useAuth} from '../../contexts/AuthContext';
 import {isEmpty} from '../../utils';
 
 export default function WorkerReportPage() {
-  const {reports, isLoading, isError} = useReports();
+  const {reports, isLoading, isError} = useWorkerReports();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
-  const filteredReports =
-    reports?.filter(
-      report =>
-        report.reportType === 'Báo cáo sự cố' && report.userId === user?.userId,
-    ) || [];
+  const filteredReports = reports || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -45,7 +42,9 @@ export default function WorkerReportPage() {
         style={styles.card}
         mode="elevated"
         onPress={() =>
-          navigation.navigate('ReportDetails' as any, {reportId: item.reportId})
+          navigation.navigate('WorkerReportDetails' as any, {
+            reportId: item.reportId,
+          })
         }>
         <View style={styles.cardHeader}>
           <View style={styles.imageContainer}>
@@ -58,8 +57,8 @@ export default function WorkerReportPage() {
               {item.reportName || 'Không có mô tả'}
             </Text>
             <Text style={styles.date}>
-              {item.createdDate
-                ? format(new Date(item.createdDate), 'dd/MM/yyyy')
+              {item.createdAt
+                ? format(new Date(item.createdAt), 'dd/MM/yyyy')
                 : 'N/A'}
             </Text>
             <Badge
@@ -127,12 +126,22 @@ export default function WorkerReportPage() {
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={false}
         />
+        <Button
+          mode="contained"
+          style={styles.button}
+          onPress={() => navigation.navigate('CreateReport')}>
+          Tạo báo cáo
+        </Button>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  button: {
+    marginTop: 16,
+    backgroundColor: colors.mainColor,
+  },
   container: {
     flex: 1,
     padding: 16,

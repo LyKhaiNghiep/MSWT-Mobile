@@ -25,6 +25,7 @@ export type MenuItem = {
 };
 
 export type ScreenName =
+  | 'Notification'
   | 'Report'
   | 'Trash'
   | 'Floor'
@@ -37,4 +38,5 @@ export type ScreenName =
   | 'WorkerReport'
   | 'Employees'
   | 'Sensor'
-  | 'Area';
+  | 'Area'
+  | 'Request';

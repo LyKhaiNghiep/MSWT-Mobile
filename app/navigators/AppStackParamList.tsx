@@ -35,5 +35,11 @@ export type AppStackParamList = {
   SensorDetails: undefined;
   Area: undefined;
   AreaDetails: undefined;
+  NotificationDetails: undefined;
+  Notification: undefined;
+  CreateReport: undefined;
+  Request: undefined;
+  RequestDetails: undefined;
+  CreateRequest: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;
