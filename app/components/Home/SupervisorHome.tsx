@@ -25,9 +25,10 @@ export const SupervisorHome = () => {
       id: 'floor',
       title: 'Xem lịch',
       icon: 'calendar-month-outline',
-      route: 'Calendar',
+      route: 'CalendarSupervisor',
       color: theme.colors.secondary,
     },
+    
     {
       id: 'trash',
       title: 'Thùng rác',
@@ -35,6 +36,7 @@ export const SupervisorHome = () => {
       route: 'Trash',
       color: theme.colors.error,
     },
+
     {
       id: 'user',
       title: 'Nhân viên',

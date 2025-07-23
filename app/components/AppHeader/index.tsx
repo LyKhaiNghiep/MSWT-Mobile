@@ -22,7 +22,13 @@ export const AppHeader = ({
 }: AppHeaderProps) => {
   const navigation = useNavigation<StackNavigation>();
 
-  const handleGoBack = () => navigation.navigate(navigateTo);
+  const handleGoBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate(navigateTo);
+    }
+  };
 
   return (
     <Appbar.Header style={[styles.header, style]}>
