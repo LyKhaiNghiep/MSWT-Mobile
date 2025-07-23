@@ -28,6 +28,7 @@ export interface CreateReportData {
   reportName: string;
   image?: string;
   priority: number; // 1, 2, 3 cho Low, Medium, High
+
 }
 
 // Update report data interface
