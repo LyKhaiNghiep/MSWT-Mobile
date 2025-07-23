@@ -6,7 +6,12 @@ import {useRoute} from '@react-navigation/native';
 import {Text, Card, Badge, Surface, Divider, Avatar} from 'react-native-paper';
 import {colors} from '../../theme';
 import {format} from 'date-fns';
-import {useReports} from '../../hooks/useReport';
+import {
+  useReport,
+  useReports,
+  getReportStatusColor,
+  getPriorityColor,
+} from '../../hooks/useReport';
 
 export default function WorkerReportDetails() {
   const route = useRoute();

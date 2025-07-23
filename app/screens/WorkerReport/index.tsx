@@ -133,12 +133,22 @@ export default function WorkerReportPage() {
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={false}
         />
+        <Button
+          mode="contained"
+          style={styles.button}
+          onPress={() => navigation.navigate('CreateReport')}>
+          Tạo báo cáo
+        </Button>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  button: {
+    marginTop: 16,
+    backgroundColor: colors.mainColor,
+  },
   container: {
     flex: 1,
     padding: 16,

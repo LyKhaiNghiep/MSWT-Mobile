@@ -12,6 +12,7 @@ import {
   Surface,
   Avatar,
   Divider,
+  Button,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
@@ -127,23 +128,14 @@ export default function ReportPage() {
 
   if (isLoading) {
     return (
-      <Screen styles={{backgroundColor: colors.grey}} useDefault>
-        <AppHeader title="Báo cáo" />
-        <View style={[styles.container, styles.centerContent]}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </Screen>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Screen styles={{backgroundColor: colors.grey}} useDefault>
-        <AppHeader title="Báo cáo" />
-        <View style={[styles.container, styles.centerContent]}>
-          <Text style={styles.errorText}>Đã xảy ra lỗi khi tải dữ liệu</Text>
-        </View>
-      </Screen>
+      <View>
+        <Screen styles={{backgroundColor: colors.grey}} useDefault>
+          <AppHeader title="Báo cáo" />
+          <View style={[styles.container, styles.centerContent]}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        </Screen>
+      </View>
     );
   }
 
@@ -177,6 +169,10 @@ export default function ReportPage() {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    marginTop: 16,
+    backgroundColor: colors.mainColor,
+  },
   container: {
     flex: 1,
     padding: 16,

@@ -6,13 +6,21 @@ import {Card, SegmentedButtons, Text} from 'react-native-paper';
 import {format} from 'date-fns';
 import {useAlerts} from '../../hooks/useAlert';
 import {AlertModel} from '../../config/models/alert.mode';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigation} from '../../navigators';
 
 export const Notification = () => {
   const [selectedTab, setSelectedTab] = useState('new');
   const {alerts: notifications} = useAlerts();
+  const navigation = useNavigation<StackNavigation>();
 
   const renderNotificationItem = ({item}: {item: AlertModel}) => (
-    <Card style={styles.card} key={item.alertId}>
+    <Card
+      style={styles.card}
+      key={item.alertId}
+      onPress={() =>
+        navigation.navigate('NotificationDetails' as any, {id: item.alertId})
+      }>
       <Card.Content>
         <Text variant="titleMedium" style={styles.status}>
           {item.status}
@@ -59,6 +67,7 @@ export const Notification = () => {
                 : 'Không có thông báo đã xử lý'}
             </Text>
           }
+          removeClippedSubviews={false}
         />
       </View>
     </Screen>

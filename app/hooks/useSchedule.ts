@@ -1,6 +1,5 @@
 import useSWRNative from '@nandorojo/swr-react-native';
 import {
-  ICreateScheduleRequest,
   IUpdateScheduleRequest,
   Schedule,
 } from '../config/models/schedule.model';
@@ -12,23 +11,6 @@ export function useSchedules() {
     API_URLS.SCHEDULE.GET_ALL,
     swrFetcher,
   );
-
-  const createSchedule = async (newSchedule: ICreateScheduleRequest) => {
-    try {
-      const response = await swrFetcher(API_URLS.SCHEDULE.CREATE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSchedule),
-      });
-      mutate();
-      return response;
-    } catch (error) {
-      console.error('Error creating schedule:', error);
-      throw error;
-    }
-  };
 
   const updateSchedule = async (
     id: string,
@@ -50,25 +32,11 @@ export function useSchedules() {
     }
   };
 
-  const deleteSchedule = async (id: string) => {
-    try {
-      await swrFetcher(API_URLS.SCHEDULE.DELETE(id), {
-        method: 'DELETE',
-      });
-      mutate();
-    } catch (error) {
-      console.error('Error deleting schedule:', error);
-      throw error;
-    }
-  };
-
   return {
     schedules: data ?? [],
     isLoading,
     error,
-    createSchedule,
     updateSchedule,
-    deleteSchedule,
     mutate,
   };
 }

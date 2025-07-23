@@ -32,6 +32,12 @@ import SensorPage from '../screens/Sensor';
 import SensorDetailsPage from '../screens/SensorDetails';
 import AreaPage from '../screens/Area';
 import AreaDetailsPage from '../screens/AreaDetails';
+import NotificationDetails from '../screens/NotificationDetails';
+import CreateReport from '../screens/CreateReport';
+import Request from '../screens/Request';
+import CreateRequest from '../screens/CreateRequest';
+import RequestDetails from '../screens/RequestDetails';
+import MyCalendar from '../screens/Calendar';
 
 export const AppStack = () => {
   const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -58,6 +64,13 @@ export const AppStack = () => {
           <Stack.Screen
             name="Report"
             component={ReportPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="CreateReport"
+            component={CreateReport}
             options={{
               animation: 'slide_from_right',
             }}
@@ -164,7 +177,7 @@ export const AppStack = () => {
 
           <Stack.Screen
             name="Calendar"
-            component={Calendar}
+            component={MyCalendar}
             options={{
               animation: 'slide_from_right',
             }}
@@ -232,6 +245,34 @@ export const AppStack = () => {
           <Stack.Screen
             name="AreaDetails"
             component={AreaDetailsPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="NotificationDetails"
+            component={NotificationDetails}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="Request"
+            component={Request}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="CreateRequest"
+            component={CreateRequest}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="RequestDetails"
+            component={RequestDetails}
             options={{
               animation: 'slide_from_right',
             }}

@@ -117,6 +117,13 @@ export const API_URLS = {
     UPDATE: (id: string) => `leaves/${id}`,
     DELETE: (id: string) => `leaves/${id}`,
   },
+  REQUEST: {
+    GET_ALL: `request`,
+    GET_BY_ID: (id: string) => `request/${id}`,
+    CREATE: `request`,
+    UPDATE: (id: string) => `request/${id}`,
+    DELETE: (id: string) => `request/${id}`,
+  },
 
   // TrashBin management endpoints
   SENSOR: {
