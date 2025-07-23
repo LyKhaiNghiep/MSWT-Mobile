@@ -395,6 +395,13 @@ export const authService = {
   // Helper function to map roleId to role name
   mapRoleIdToRoleName(roleId: string) {
     const roleMap: any = {
+      // New API format - CORRECTED MAPPING
+      RL01: 'Manager', // Quản lý cấp cao
+      RL02: 'Leader', // Quản trị hệ thống
+      RL03: 'Supervisor', // Giám sát viên
+      RL04: 'Worker', // Nhân viên vệ sinh
+
+      // Legacy UUID format (backward compatibility)
       '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75': 'Leader', // Quản trị hệ thống
       '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37': 'Manager', // Quản lý cấp cao
       '7dcd71ae-17c3-4e84-bb9f-dd96fa401976': 'Supervisor', // Giám sát viên và sinh
@@ -406,6 +413,13 @@ export const authService = {
   // Helper function to map roleId to position (Vietnamese)
   mapRoleIdToPosition(roleId: string) {
     const positionMap: any = {
+      // New API format - CORRECTED MAPPING
+      RL01: 'Quản lý cấp cao',
+      RL02: 'Quản trị hệ thống',
+      RL03: 'Giám sát viên',
+      RL04: 'Nhân viên vệ sinh',
+
+      // Legacy UUID format (backward compatibility)
       '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75': 'Quản trị hệ thống',
       '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37': 'Quản lý cấp cao',
       '7dcd71ae-17c3-4e84-bb9f-dd96fa401976': 'Giám sát viên và sinh',
@@ -417,6 +431,13 @@ export const authService = {
   // Helper function to map roleId to description
   mapRoleIdToDescription(roleId: string) {
     const descriptionMap: any = {
+      // New API format - CORRECTED MAPPING
+      RL01: 'Quản lý cấp cao',
+      RL02: 'Quản trị hệ thống',
+      RL03: 'Giám sát viên',
+      RL04: 'Nhân viên vệ sinh',
+
+      // Legacy UUID format (backward compatibility)
       '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75': 'Quản trị hệ thống',
       '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37': 'Quản lý cấp cao',
       '7dcd71ae-17c3-4e84-bb9f-dd96fa401976': 'Giám sát viên và sinh',
@@ -428,12 +449,16 @@ export const authService = {
   // Helper function to map position to roleId
   mapPositionToRoleId(position: string) {
     const roleIdMap: any = {
-      'Quản trị hệ thống': '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75',
-      'Quản lý cấp cao': '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37',
-      'Giám sát viên và sinh': '7dcd71ae-17c3-4e84-bb9f-dd96fa401976',
-      'Nhân viên vệ sinh': 'c2a66975-420d-4961-9edd-d5bdff89be58',
+      // New API format - CORRECTED MAPPING
+      'Quản lý cấp cao': 'RL01',
+      'Quản trị hệ thống': 'RL02',
+      'Giám sát viên': 'RL03',
+      'Nhân viên vệ sinh': 'RL04',
+
+      // Legacy mapping (backward compatibility)
+      'Giám sát viên và sinh': 'RL03',
     };
-    return roleIdMap[position] || 'c2a66975-420d-4961-9edd-d5bdff89be58';
+    return roleIdMap[position] || 'RL04';
   },
 
   // Check if user is authenticated
@@ -445,15 +470,19 @@ export const authService = {
       return false;
     }
 
-    // Additional check: Only Leaders can access this system
+    // Check if user has valid role
     try {
       const user = userData;
-      if (user.role !== 'Leader') {
-        console.log('❌ Authentication failed - User is not a Leader');
+      const validRoles = ['Leader', 'Manager', 'Supervisor', 'Worker'];
+
+      if (!user.role || !validRoles.includes(user.role)) {
+        console.log('❌ Authentication failed - Invalid role:', user.role);
         // Clear invalid user data
         this.logout();
         return false;
       }
+
+      console.log('✅ User authenticated with role:', user.role);
       return true;
     } catch (error) {
       console.error('Error parsing user data:', error);
@@ -481,39 +510,40 @@ export const authService = {
       lowerUsername.includes('admin') ||
       lowerUsername.includes('system')
     ) {
-      return '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75'; // Leader - Quản trị hệ thống
+      return 'RL02'; // Leader - Quản trị hệ thống
     } else if (
       lowerUsername.includes('manager') ||
       lowerUsername.includes('quanly')
     ) {
-      return '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37'; // Manager - Quản lý cấp cao
+      return 'RL01'; // Manager - Quản lý cấp cao
     } else if (
       lowerUsername.includes('supervisor') ||
       lowerUsername.includes('giamsat')
     ) {
-      return '7dcd71ae-17c3-4e84-bb9f-dd96fa401976'; // Supervisor - Giám sát viên
+      return 'RL03'; // Supervisor - Giám sát viên
     } else {
-      return 'c2a66975-420d-4961-9edd-d5bdff89be58'; // Default Worker - Nhân viên vệ sinh
+      return 'RL04'; // Default Worker - Nhân viên vệ sinh
     }
   },
 
   // Helper function to map role name to roleId
   mapRoleNameToRoleId(roleName: string) {
     const roleIdMap: any = {
-      Leader: '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75',
-      Manager: '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37',
-      Supervisor: '7dcd71ae-17c3-4e84-bb9f-dd96fa401976',
-      Worker: 'c2a66975-420d-4961-9edd-d5bdff89be58',
+      // CORRECTED MAPPING
+      Manager: 'RL01',
+      Leader: 'RL02',
+      Supervisor: 'RL03',
+      Worker: 'RL04',
     };
-    return roleIdMap[roleName] || 'c2a66975-420d-4961-9edd-d5bdff89be58';
+    return roleIdMap[roleName] || 'RL04';
   },
 
   // Helper function to map role name to description
   mapRoleNameToDescription(roleName: string) {
     const descriptionMap: any = {
-      Leader: 'Quản trị hệ thống',
       Manager: 'Quản lý cấp cao',
-      Supervisor: 'Giám sát viên và sinh',
+      Leader: 'Quản trị hệ thống',
+      Supervisor: 'Giám sát viên',
       Worker: 'Nhân viên vệ sinh',
     };
     return descriptionMap[roleName] || 'Nhân viên vệ sinh';
@@ -522,9 +552,9 @@ export const authService = {
   // Helper function to map role name to position
   mapRoleNameToPosition(roleName: string) {
     const positionMap: any = {
-      Leader: 'Quản trị hệ thống',
       Manager: 'Quản lý cấp cao',
-      Supervisor: 'Giám sát viên và sinh',
+      Leader: 'Quản trị hệ thống',
+      Supervisor: 'Giám sát viên',
       Worker: 'Nhân viên vệ sinh',
     };
     return positionMap[roleName] || 'Nhân viên vệ sinh';
