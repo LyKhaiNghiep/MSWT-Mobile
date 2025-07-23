@@ -3,6 +3,19 @@ import {UserData} from '../config/models/user.model';
 import {API_URLS} from '../constants/api-urls';
 import {StorageUtil} from '../utils/storage';
 import api from './api';
+import {jwtDecode} from 'jwt-decode';
+
+// JWT payload interface based on the screenshot
+interface JWTPayload {
+  sub: string;
+  jti: string;
+  User_Id: string;
+  Username: string;
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': string;
+  exp: number;
+  iss: string;
+  aud: string;
+}
 
 // Authentication Service - Backend xử lý authentication trong USER endpoints
 export const authService = {
@@ -24,111 +37,147 @@ export const authService = {
         JSON.stringify(response.data, null, 2),
       );
 
-      // Backend trả về token string trực tiếp
+      // Backend trả về JWT token string
       if (response.data && typeof response.data === 'string') {
         const token = response.data;
-        console.log('🔑 Received token:', token.substring(0, 50) + '...');
+        console.log('🔑 Received JWT token:', token.substring(0, 50) + '...');
 
-        // Store token
-        await StorageUtil.setToken(token);
-
-        // Sau khi có token, gọi API để lấy thông tin user hiện tại
         try {
-          console.log('📋 Fetching current user data with token...');
+          // Decode JWT token to get user information
+          const decodedToken = jwtDecode<JWTPayload>(token);
+          console.log('🔓 Decoded JWT payload:', decodedToken);
 
-          // Gọi API để lấy thông tin user (có thể là GET /api/User/profile hoặc tương tự)
-          // Tạm thời dùng credentials để tạo userData, sau đó sẽ update từ API
-          const userData = {
-            userId: Date.now().toString(),
-            userName: credentials.username,
-            fullName: credentials.username,
-            email: '',
-            phone: '',
-            address: '',
-            status: 'Hoạt động',
-            image: '',
-            password: '',
-            // Tạm thời set roleId dựa trên username pattern
-            roleId: this.guessRoleFromUsername(credentials.username),
-            createAt: new Date().toISOString(),
-            roleName: this.mapRoleIdToRoleName(
-              this.guessRoleFromUsername(credentials.username),
-            ),
-            description: this.mapRoleIdToDescription(
-              this.guessRoleFromUsername(credentials.username),
-            ),
-            rating: null,
-            reasonForLeave: null,
-          } as UserData;
+          const userId = decodedToken.User_Id;
+          const username = decodedToken.Username;
+          const role =
+            decodedToken[
+              'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+            ];
 
-          // Map role info
-          userData.role = this.mapRoleIdToRoleName(userData.roleId);
-          userData.position = this.mapRoleIdToPosition(userData.roleId);
+          console.log('📋 Extracted from JWT:', {
+            userId,
+            username,
+            role,
+            exp: new Date(decodedToken.exp * 1000),
+          });
 
-          console.log('✅ Created user data based on username:', userData);
-          console.log('🎭 Guessed role:', userData.role);
-          console.log('💼 Guessed position:', userData.position);
+          // Store token first
+          await StorageUtil.setToken(token);
 
-          await StorageUtil.setUserData(userData);
+          // Fetch full user data using userId from JWT
+          console.log('📋 Fetching user data with userId:', userId);
+          const userResponse = await api.get(API_URLS.USER.GET_BY_ID(userId));
 
-          return {
-            success: true,
-            data: {
-              token,
-              user: userData,
-            },
-          };
-        } catch (userFetchError) {
-          console.error(
-            '⚠️ Could not fetch user data, using fallback:',
-            userFetchError,
-          );
+          console.log('✅ User data API response:', userResponse.data);
 
-          // Fallback với Worker role
-          const fallbackUserData = {
-            userId: Date.now().toString(),
-            userName: credentials.username,
-            fullName: credentials.username,
-            email: '',
-            phone: '',
-            address: '',
-            status: 'Hoạt động',
-            image: '',
-            roleId: 'c2a66975-420d-4961-9edd-d5bdff89be58', // Default Worker
-            createAt: new Date().toISOString(),
-            roleName: 'Worker',
-            description: 'Nhân viên vệ sinh',
-            rating: null,
-            reasonForLeave: null,
-            password: '',
-            role: 'Worker',
-            position: 'Nhân viên vệ sinh',
-          };
-          await StorageUtil.setUserData(fallbackUserData);
+          if (userResponse.data) {
+            const user = userResponse.data;
 
-          return {
-            success: true,
-            data: {
-              token,
-              user: fallbackUserData,
-            },
-          };
+            // Process the user data from API response
+            const userData = {
+              userId: user.userId,
+              userName: user.userName,
+              fullName: user.fullName,
+              email: user.email,
+              phone: user.phone,
+              address: user.address,
+              status: user.status,
+              image: user.image,
+              roleId: user.roleId,
+              createAt: user.createAt || new Date().toISOString(),
+              roleName: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+              description:
+                user.description || this.mapRoleIdToDescription(user.roleId),
+              rating: user.rating || null,
+              reasonForLeave: user.reasonForLeave || null,
+              password: user.password || '',
+              role: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+              position: this.mapRoleIdToPosition(user.roleId),
+            } as UserData;
+
+            console.log('✅ Processed user data:', userData);
+            console.log('🎭 Final role:', userData.role);
+            console.log('💼 Final position:', userData.position);
+
+            await StorageUtil.setUserData(userData);
+
+            return {
+              success: true,
+              data: {
+                token,
+                user: userData,
+              },
+            };
+          } else {
+            throw new Error('No user data returned from API');
+          }
+        } catch (jwtError) {
+          console.error('❌ JWT decoding or user fetching error:', jwtError);
+
+          // Fallback: create basic user data from JWT if API call fails
+          try {
+            const decodedToken = jwtDecode<JWTPayload>(token);
+            const userId = decodedToken.User_Id;
+            const username = decodedToken.Username;
+            const jwtRole =
+              decodedToken[
+                'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+              ];
+
+            const fallbackUserData = {
+              userId: userId,
+              userName: username,
+              fullName: username,
+              email: '',
+              phone: '',
+              address: '',
+              status: 'Hoạt động',
+              image: '',
+              roleId: this.mapRoleNameToRoleId(jwtRole),
+              createAt: new Date().toISOString(),
+              roleName: jwtRole,
+              description: this.mapRoleNameToDescription(jwtRole),
+              rating: null,
+              reasonForLeave: null,
+              password: '',
+              role: jwtRole,
+              position: this.mapRoleNameToPosition(jwtRole),
+            } as UserData;
+
+            console.log(
+              '⚠️ Using fallback user data from JWT:',
+              fallbackUserData,
+            );
+            await StorageUtil.setUserData(fallbackUserData);
+
+            return {
+              success: true,
+              data: {
+                token,
+                user: fallbackUserData,
+              },
+            };
+          } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+            return {
+              success: false,
+              error: 'Không thể xử lý thông tin đăng nhập',
+            };
+          }
         }
       }
-      // Case hiếm: Backend trả về object với token và user
-      else if (response.data && response.data.token && response.data.user) {
-        const {token, user} = response.data;
+      // Legacy case: Backend trả về user object trực tiếp
+      else if (
+        response.data &&
+        typeof response.data === 'object' &&
+        response.data.userId
+      ) {
+        const user = response.data;
 
-        console.log('🔍 Backend user data:', user);
-        console.log('🔍 User object keys:', Object.keys(user));
-        console.log('🎭 User roleId from backend:', user.roleId);
-        console.log('🎭 User role object from backend:', user.role);
+        console.log('🔍 Backend user data (legacy):', user);
 
-        // Kiểm tra xem có role object nested không
-        if (user.role && typeof user.role === 'object') {
-          console.log('🔍 Nested role object:', user.role);
-          console.log('🔍 Nested role keys:', Object.keys(user.role));
-        }
+        // Generate a token for storage (you might want to get this from headers or another endpoint)
+        const token = `user_token_${user.userId}_${Date.now()}`;
 
         // Store token
         await StorageUtil.setToken(token);
@@ -143,7 +192,7 @@ export const authService = {
           address: user.address,
           status: user.status,
           image: user.image,
-          roleId: user.roleId, // Lấy roleId từ backend
+          roleId: user.roleId,
           createAt: user.createAt || new Date().toISOString(),
           roleName: user.roleName || this.mapRoleIdToRoleName(user.roleId),
           description:
@@ -151,19 +200,54 @@ export const authService = {
           rating: user.rating || null,
           reasonForLeave: user.reasonForLeave || null,
           password: user.password || '',
-          role: this.mapRoleIdToRoleName(user.roleId), // Map roleId thành role name
-          position: this.mapRoleIdToPosition(user.roleId), // Map roleId thành position
-          // Thêm role object nếu có
-          roleObject: user.role || null,
+          role: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+          position: this.mapRoleIdToPosition(user.roleId),
+        } as UserData;
+
+        console.log('✅ Processed user data (legacy):', userData);
+
+        await StorageUtil.setUserData(userData);
+
+        return {
+          success: true,
+          data: {
+            token,
+            user: userData,
+          },
+        };
+      }
+      // Legacy case: Backend trả về object với token và user
+      else if (response.data && response.data.token && response.data.user) {
+        const {token, user} = response.data;
+
+        console.log('🔍 Backend user data (legacy token+user):', user);
+
+        // Store token
+        await StorageUtil.setToken(token);
+
+        // Xử lý user data từ backend response
+        const userData = {
+          userId: user.userId,
+          userName: user.userName,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          status: user.status,
+          image: user.image,
+          roleId: user.roleId,
+          createAt: user.createAt || new Date().toISOString(),
+          roleName: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+          description:
+            user.description || this.mapRoleIdToDescription(user.roleId),
+          rating: user.rating || null,
+          reasonForLeave: user.reasonForLeave || null,
+          password: user.password || '',
+          role: user.roleName || this.mapRoleIdToRoleName(user.roleId),
+          position: this.mapRoleIdToPosition(user.roleId),
         };
 
-        // Map role info
-        userData.role = this.mapRoleIdToRoleName(userData.roleId);
-        userData.position = this.mapRoleIdToPosition(userData.roleId);
-
-        console.log('✅ Processed user data:', userData);
-        console.log('🎭 Final role:', userData.role);
-        console.log('💼 Final position:', userData.position);
+        console.log('✅ Processed user data (legacy token+user):', userData);
 
         await StorageUtil.setUserData(userData);
 
@@ -177,7 +261,8 @@ export const authService = {
       } else {
         return {
           success: false,
-          error: 'Phản hồi từ server không hợp lệ - không có token',
+          error:
+            'Phản hồi từ server không hợp lệ - không có dữ liệu người dùng',
         };
       }
     } catch (error: any) {
@@ -410,6 +495,39 @@ export const authService = {
     } else {
       return 'c2a66975-420d-4961-9edd-d5bdff89be58'; // Default Worker - Nhân viên vệ sinh
     }
+  },
+
+  // Helper function to map role name to roleId
+  mapRoleNameToRoleId(roleName: string) {
+    const roleIdMap: any = {
+      Leader: '0ecdd2e4-d5dc-48b4-8006-03e6b4868e75',
+      Manager: '5b7a2bcd-9f5e-4f0e-8e47-2a15bcf85e37',
+      Supervisor: '7dcd71ae-17c3-4e84-bb9f-dd96fa401976',
+      Worker: 'c2a66975-420d-4961-9edd-d5bdff89be58',
+    };
+    return roleIdMap[roleName] || 'c2a66975-420d-4961-9edd-d5bdff89be58';
+  },
+
+  // Helper function to map role name to description
+  mapRoleNameToDescription(roleName: string) {
+    const descriptionMap: any = {
+      Leader: 'Quản trị hệ thống',
+      Manager: 'Quản lý cấp cao',
+      Supervisor: 'Giám sát viên và sinh',
+      Worker: 'Nhân viên vệ sinh',
+    };
+    return descriptionMap[roleName] || 'Nhân viên vệ sinh';
+  },
+
+  // Helper function to map role name to position
+  mapRoleNameToPosition(roleName: string) {
+    const positionMap: any = {
+      Leader: 'Quản trị hệ thống',
+      Manager: 'Quản lý cấp cao',
+      Supervisor: 'Giám sát viên và sinh',
+      Worker: 'Nhân viên vệ sinh',
+    };
+    return positionMap[roleName] || 'Nhân viên vệ sinh';
   },
 };
 

@@ -186,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
   // Check if user has permission (role hierarchy)
   const hasPermission = (requiredRole: string) => {
-    if (!user) return false;
+    if (!user || !user.role) return false;
 
     const roleHierarchy: any = {
       Worker: 1, // Nhân viên vệ sinh
