@@ -17,24 +17,32 @@ import {
   Divider,
   Avatar,
   Badge,
+  IconButton,
+  Portal,
+  Dialog,
+  TextInput,
+  Button,
+  Provider,
 } from 'react-native-paper';
 import {colors} from '../../theme';
 import {format, parseISO, isToday, isTomorrow, isYesterday} from 'date-fns';
 import {vi} from 'date-fns/locale';
 import {useScheduleDetails} from '../../hooks/useScheduleDetails';
 import {useAuth} from '../../contexts/AuthContext';
+import {API_URLS} from '../../constants/api-urls';
+import api from '../../services/api';
+import {Rating} from '../../components/Rating';
+import {RatingDisplay} from '../../components/Rating/RatingDisplay';
 
 export default function CalendarSupervisor() {
   const {user} = useAuth();
-  const userId = user?.userId; // Lấy userId từ user đã đăng nhập
-  const {scheduleDetails, isLoading, error} = useScheduleDetails(userId);
+  const userId = user?.userId;
+  const {scheduleDetails, isLoading, error, mutate} = useScheduleDetails(userId);
+  const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
 
-  // Debug logging
-  console.log('🔍 CalendarSupervisor - user:', user);
-  console.log('🔍 CalendarSupervisor - userId:', userId);
-  console.log('🔍 CalendarSupervisor - scheduleDetails length:', scheduleDetails?.length);
-
-  // Group schedule details by date
   const groupByDate = (schedules: any[]) => {
     const grouped: {[key: string]: any[]} = {};
     schedules.forEach(schedule => {
@@ -79,13 +87,89 @@ export default function CalendarSupervisor() {
   const getScheduleTypeColor = (scheduleType: string) => {
     switch (scheduleType?.toLowerCase()) {
       case 'cleaning':
+      case 'dọn dẹp':
         return colors.primary;
       case 'maintenance':
+      case 'bảo trì':
         return colors.secondary1;
       case 'inspection':
+      case 'kiểm tra':
         return colors.success;
       default:
         return colors.grey;
+    }
+  };
+
+  const getScheduleTypeIcon = (scheduleType: string) => {
+    switch (scheduleType?.toLowerCase()) {
+      case 'cleaning':
+      case 'dọn dẹp':
+        return 'broom';
+      case 'maintenance':
+      case 'bảo trì':
+        return 'wrench';
+      case 'inspection':
+      case 'kiểm tra':
+        return 'magnify';
+      default:
+        return 'calendar';
+    }
+  };
+
+  const handleRate = async () => {
+    if (!selectedSchedule) return;
+
+    try {
+      // Tạo chuỗi rating với format: "rating,comment"
+      const ratingData = `${rating},${comment || ''}`;
+
+      console.log('Selected Schedule:', selectedSchedule);
+      console.log('Rating data:', ratingData);
+      console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
+
+      const response = await api.put(
+        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
+        ratingData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Rating response:', response);
+      
+      // Refresh the schedules list
+      mutate();
+      
+      // Reset state
+      setRatingDialogVisible(false);
+      setSelectedSchedule(null);
+      setRating(0);
+      setComment('');
+
+      // Thông báo thành công
+      Alert.alert(
+        'Thành công',
+        'Đánh giá đã được gửi.',
+        [{text: 'OK'}]
+      );
+    } catch (error: any) {
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      console.error('Error response:', error.response ? JSON.stringify(error.response, null, 2) : 'No response');
+      console.error('Error request:', error.request ? JSON.stringify(error.request, null, 2) : 'No request');
+      console.error('Error config:', error.config ? JSON.stringify(error.config, null, 2) : 'No config');
+      
+      // Optional: show detailed error message to user
+      Alert.alert(
+        'Lỗi',
+        `Không thể đánh giá. Chi tiết: ${
+          error.response?.data?.message || 
+          error.message || 
+          'Lỗi không xác định'
+        }`,
+        [{text: 'OK'}]
+      );
     }
   };
 
@@ -116,118 +200,196 @@ export default function CalendarSupervisor() {
 
   return (
     <Screen styles={{backgroundColor: colors.white}} useDefault>
-      <AppHeader title="Lịch làm việc Supervisor" />
-      <ScrollView 
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {scheduleDetails.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Avatar.Icon 
-              size={80} 
-              icon="calendar-blank" 
-              style={styles.emptyIcon}
-            />
-            <Text style={styles.emptyTitle}>Không có lịch làm việc</Text>
-            <Text style={styles.emptySubtitle}>
-              Hiện tại không có lịch làm việc nào được lên kế hoạch.
-            </Text>
-          </View>
-        ) : (
-          Object.entries(groupedSchedules).map(([date, schedules]) => (
-            <Surface key={date} style={styles.dateSection} elevation={2}>
-              <View style={styles.dateHeader}>
-                <Text style={styles.dateLabel}>{getDateLabel(date)}</Text>
-                <Badge style={styles.scheduleCount}>
-                  {`${schedules.length} lịch`}
-                </Badge>
-              </View>
-              
-              {schedules.map((schedule, index) => (
-                <Card key={schedule.scheduleDetailId} style={styles.scheduleCard}>
-                  <Card.Content style={styles.cardContent}>
-                    <View style={styles.scheduleHeader}>
-                      <View style={styles.timeContainer}>
-                        <Text style={styles.timeText}>
-                          {getTimeRange(schedule.startTime, schedule.endTime)}
-                        </Text>
-                        <Chip 
-                          style={[
-                            styles.typeChip,
-                            {backgroundColor: getScheduleTypeColor(schedule.schedule.scheduleType)}
-                          ]}
-                          textStyle={styles.typeChipText}
-                        >
-                          {schedule.schedule.scheduleType}
-                        </Chip>
-                      </View>
-                      
-                      <Chip 
-                        style={[
-                          styles.statusChip,
-                          {backgroundColor: getStatusColor(schedule.status)}
-                        ]}
-                        textStyle={styles.statusChipText}
-                      >
-                        {schedule.status}
-                      </Chip>
-                    </View>
-
-                    <Divider style={styles.divider} />
-
-                    <View style={styles.scheduleInfo}>
-                      <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Công việc:</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.assignmentName}
-                        </Text>
-                      </View>
-
-                      <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Khu vực:</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.areaName}
-                        </Text>
-                      </View>
-
-                      <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Nhà vệ sinh:</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.schedule.restroomNumber}
-                        </Text>
+      <Provider>
+        <AppHeader title="Lịch làm việc Supervisor" />
+        <ScrollView 
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.contentContainer}
+        >
+          {scheduleDetails.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Avatar.Icon 
+                size={80} 
+                icon="calendar-blank" 
+                style={styles.emptyIcon}
+              />
+              <Text style={styles.emptyTitle}>Không có lịch làm việc</Text>
+              <Text style={styles.emptySubtitle}>
+                Hiện tại không có lịch làm việc nào được lên kế hoạch.
+              </Text>
+            </View>
+          ) :
+            Object.entries(groupedSchedules).map(([date, schedules]) => (
+              <Surface key={date} style={styles.dateSection} elevation={2}>
+                <View style={styles.dateHeader}>
+                  <View style={styles.dateHeaderLeft}>
+                    <IconButton
+                      icon="calendar"
+                      size={24}
+                      iconColor={colors.primary}
+                      style={styles.dateIcon}
+                    />
+                    <Text style={styles.dateLabel}>{getDateLabel(date)}</Text>
+                  </View>
+                  <Badge style={styles.scheduleCount}>
+                    {`${schedules.length} lịch`}
+                  </Badge>
+                </View>
+                
+                {schedules.map((schedule) => (
+                  <Card key={schedule.scheduleDetailId} style={styles.scheduleCard}>
+                    <Card.Content style={styles.cardContent}>
+                      <View style={styles.scheduleHeader}>
+                        <View style={styles.headerLeft}>
+                          <Avatar.Icon 
+                            size={40} 
+                            icon={getScheduleTypeIcon(schedule.schedule.scheduleType)}
+                            style={{
+                              backgroundColor: getScheduleTypeColor(schedule.schedule.scheduleType)
+                            }} 
+                          />
+                          <View style={styles.headerText}>
+                            <Text style={styles.timeText}>
+                              {getTimeRange(schedule.startTime, schedule.endTime)}
+                            </Text>
+                            <View style={styles.chipContainer}>
+                              <Chip 
+                                style={[
+                                  styles.typeChip,
+                                  {backgroundColor: getStatusColor(schedule.status)}
+                                ]}
+                                textStyle={styles.chipText}
+                              >
+                                {schedule.status}
+                              </Chip>
+                              <Chip 
+                                style={[
+                                  styles.typeChip,
+                                  {backgroundColor: getScheduleTypeColor(schedule.schedule.scheduleType)}
+                                ]}
+                                textStyle={styles.chipText}
+                              >
+                                {schedule.schedule.scheduleType}
+                              </Chip>
+                            </View>
+                          </View>
+                        </View>
                       </View>
 
-                      <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Mô tả:</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.description}
-                        </Text>
-                      </View>
+                      <Divider style={styles.divider} />
 
-                      {schedule.schedule.trashBin && (
+                      <View style={styles.infoContainer}>
                         <View style={styles.infoRow}>
-                          <Text style={styles.infoLabel}>Thùng rác:</Text>
+                          <Text style={styles.infoLabel}>Công việc:</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.schedule.trashBin.location}
+                            {schedule.assignmentName}
                           </Text>
                         </View>
-                      )}
 
-                      <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Ngày:</Text>
-                        <Text style={styles.infoValue}>
-                          {format(parseISO(schedule.date), 'dd/MM/yyyy')}
-                        </Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Khu vực:</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.areaName}
+                          </Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Nhà vệ sinh:</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.schedule.restroomNumber}
+                          </Text>
+                        </View>
+
+                        {schedule.workerName && (
+                          <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Nhân viên:</Text>
+                            <View style={styles.workerContainer}>
+                              <Text style={styles.workerName}>
+                                {schedule.workerName}
+                              </Text>
+                              <IconButton
+                                icon="star"
+                                size={20}
+                                iconColor={colors.warning}
+                                onPress={() => {
+                                  setSelectedSchedule(schedule);
+                                  setRatingDialogVisible(true);
+                                }}
+                              />
+                            </View>
+                          </View>
+                        )}
+
+                        {schedule.description && (
+                          <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Mô tả:</Text>
+                            <Text style={styles.infoValue}>
+                              {schedule.description}
+                            </Text>
+                          </View>
+                        )}
+
+                        {schedule.schedule.trashBin && (
+                          <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Thùng rác:</Text>
+                            <Text style={styles.infoValue}>
+                              {schedule.schedule.trashBin.location}
+                            </Text>
+                          </View>
+                        )}
+
+                        {schedule.rating && (
+                          <RatingDisplay
+                            rating={schedule.rating}
+                            comment={schedule.comment}
+                          />
+                        )}
                       </View>
-                    </View>
-                  </Card.Content>
-                </Card>
-              ))}
-            </Surface>
-          ))
-        )}
-      </ScrollView>
+                    </Card.Content>
+                  </Card>
+                ))}
+              </Surface>
+            ))
+          }
+        </ScrollView>
+
+        <Portal>
+          <Dialog
+            visible={ratingDialogVisible}
+            onDismiss={() => {
+              setRatingDialogVisible(false);
+              setSelectedSchedule(null);
+              setRating(0);
+              setComment('');
+            }}
+          >
+            <Dialog.Title>Đánh giá nhân viên</Dialog.Title>
+            <Dialog.Content>
+              <View style={styles.ratingContainer}>
+                <Rating
+                  value={rating}
+                  onValueChange={setRating}
+                  size={30}
+                />
+                <TextInput
+                  mode="outlined"
+                  label="Nhận xét"
+                  value={comment}
+                  onChangeText={setComment}
+                  multiline
+                  numberOfLines={3}
+                  style={styles.commentInput}
+                />
+              </View>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setRatingDialogVisible(false)}>Hủy</Button>
+              <Button onPress={handleRate}>Đánh giá</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </Provider>
     </Screen>
   );
 }
@@ -285,14 +447,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: colors.white,
+    overflow: 'hidden',
   },
   dateHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grey,
+    backgroundColor: colors.secondary2,
+  },
+  dateHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateIcon: {
+    margin: 0,
+    marginRight: 8,
   },
   dateLabel: {
     fontSize: 16,
@@ -316,50 +486,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  timeContainer: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  headerText: {
+    marginLeft: 12,
+    flex: 1,
   },
   timeText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
-    marginRight: 8,
+    marginBottom: 4,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
   },
   typeChip: {
-    height: 24,
-  },
-  typeChipText: {
-    fontSize: 12,
-    color: colors.white,
+    minWidth: 100,
+    height: 28,
   },
   statusChip: {
     height: 24,
   },
-  statusChipText: {
-    fontSize: 12,
+  chipText: {
     color: colors.white,
+    fontSize: 12,
   },
   divider: {
-    marginVertical: 8,
+    marginVertical: 12,
   },
-  scheduleInfo: {
-    gap: 4,
+  infoContainer: {
+    gap: 8,
   },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   infoLabel: {
-    fontSize: 14,
+    width: 100,
     color: colors.grey,
-    fontWeight: '500',
+    fontSize: 14,
   },
   infoValue: {
-    fontSize: 14,
-    color: colors.dark,
     flex: 1,
-    textAlign: 'right',
+    color: colors.primary,
+    fontSize: 14,
+  },
+  workerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondary2,
+    padding: 8,
+    borderRadius: 8,
+  },
+  workerName: {
+    flex: 1,
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  ratingText: {
+    color: colors.warning,
+    marginLeft: 4,
+  },
+  ratingContainer: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  commentInput: {
+    width: '100%',
+    marginTop: 16,
   },
 }); 

@@ -89,6 +89,7 @@ export const API_URLS = {
       `scheduledetails/${scheduleId}/details`,
     UPDATE: (id: string) => `scheduledetails/${id}`,
     DELETE: (id: string) => `scheduledetails/${id}`,
+    RATE: (id: string) => `scheduledetails/scheduledetails/rating/${id}`,
   },
 
   // Shifts management endpoints
