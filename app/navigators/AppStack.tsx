@@ -25,6 +25,7 @@ import LeaveRequest from '../screens/LeaveRequest';
 import EditProfile from '../screens/EditProfile';
 import ChangePassword from '../screens/ChangePassword';
 import Calendar from '../screens/Calendar';
+import CalendarSupervisor from '../screens/CalendarSupervisor';
 import CreateLeaveRequest from '../screens/CreateLeaveRequest';
 import Employees from '../screens/Employee';
 import SensorPage from '../screens/Sensor';
@@ -43,7 +44,7 @@ export const AppStack = () => {
     }
   }, [isFocused]);
 
-  // eslint-disable-next-line curly
+ 
   return (
     <Stack.Navigator
       initialRouteName={user ? 'Home' : 'Login'}
@@ -164,6 +165,14 @@ export const AppStack = () => {
           <Stack.Screen
             name="Calendar"
             component={Calendar}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="CalendarSupervisor"
+            component={CalendarSupervisor}
             options={{
               animation: 'slide_from_right',
             }}

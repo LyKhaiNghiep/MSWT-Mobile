@@ -29,6 +29,7 @@ export type AppStackParamList = {
   LeaveRequest: undefined;
   LeaveRequestDetails: undefined;
   Calendar: undefined;
+  CalendarSupervisor: undefined;
   CreateLeaveRequest: undefined;
   Employees: undefined;
   Sensor: undefined;
