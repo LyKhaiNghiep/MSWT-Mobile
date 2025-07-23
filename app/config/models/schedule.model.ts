@@ -19,6 +19,8 @@ export interface Schedule {
   status?: string;
   areaRestrooms: any[];
   areaTrashBins: any[];
+
+
 }
 
 export interface IUpdateScheduleRequest {

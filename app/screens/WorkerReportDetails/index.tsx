@@ -3,7 +3,15 @@ import {View, StyleSheet, Image, ScrollView} from 'react-native';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useRoute} from '@react-navigation/native';
-import {Text, Card, Badge, Surface, Divider, Avatar} from 'react-native-paper';
+import {
+  Text,
+  Card,
+  Badge,
+  ActivityIndicator,
+  Surface,
+  Divider,
+  Avatar,
+} from 'react-native-paper';
 import {colors} from '../../theme';
 import {format} from 'date-fns';
 import {
@@ -15,73 +23,182 @@ import {
 
 export default function WorkerReportDetails() {
   const route = useRoute();
+
+  const reportId = (route.params as any).reportId;
+  const {report, isLoading, isError} = useReport(reportId);
   const {reports} = useReports();
-  const reportId = (route.params as any)?.reportId;
-  const report = reports?.find(r => r.reportId === reportId);
 
-  if (!report) return null;
+  // Get userName from reports list if not available in individual report
+  const reportFromList = reports.find(r => r.reportId === reportId);
+  const userName = report?.userName || reportFromList?.userName;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Đã gửi':
-        return colors.success;
-      case 'Đang xử lý':
-        return colors.warning;
-      default:
-        return colors.error;
-    }
-  };
+  // Debug log to check if userName is available
+  console.log('Report data:', report);
+  console.log('Report from list:', reportFromList);
+  console.log('Final userName:', userName);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Thấp':
-        return colors.success;
-      case 'Trung bình':
-      case 'Trung Bình':
-        return colors.yellow;
-      case 'Cao':
-        return colors.error;
-      default:
-        return colors.subLabel;
-    }
-  };
+  if (isLoading) {
+    return (
+      <Screen styles={{backgroundColor: colors.grey}} useDefault>
+        <AppHeader title="Chi tiết báo cáo" navigateTo="WorkerReport" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (isError || !report) {
+    return (
+      <Screen styles={{backgroundColor: colors.grey}} useDefault>
+        <AppHeader title="Chi tiết báo cáo" navigateTo="WorkerReport" />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Không thể tải thông tin báo cáo</Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
-    <Screen styles={{backgroundColor: colors.white}} useDefault>
-      <AppHeader title="Chi tiết báo cáo" />
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Surface style={styles.surfaceContainer} elevation={2}>
-          <Card style={styles.card} mode="elevated">
+    <Screen styles={{backgroundColor: colors.grey}} useDefault>
+      <AppHeader title="Chi tiết báo cáo" navigateTo="WorkerReport" />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header Card */}
+        <Surface style={styles.headerCard} elevation={1}>
+          <Card style={styles.card}>
             <Card.Content style={styles.cardContent}>
-              <View style={styles.headerRow}>
-                <Avatar.Icon size={56} icon="file-document-outline" style={styles.avatar} />
-                <View style={styles.headerInfo}>
-                  <Text variant="titleLarge" style={styles.reportName}>{report.reportName}</Text>
-                  <Text style={styles.createdBy}>Bởi: {report.userName}</Text>
-                  <Text style={styles.createdDate}>{report.createdAt ? format(new Date(report.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}</Text>
+              <View style={styles.headerSection}>
+                <View style={styles.headerLeft}>
+                  <Avatar.Icon
+                    size={56}
+                    icon="file-document-outline"
+                    style={[
+                      styles.avatar,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}
+                  />
+                  <View style={styles.headerInfo}>
+                    <Text variant="headlineSmall" style={styles.reportName}>
+                      {report.reportName}
+                    </Text>
+                    <Text variant="bodyMedium" style={styles.createdBy}>
+                      Tạo bởi: {userName || 'Không rõ'}
+                    </Text>
+                    <Text variant="bodySmall" style={styles.createdDate}>
+                      {format(new Date(report.createdAt), 'dd/MM/yyyy HH:mm')}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.headerRight}>
+                  <Badge
+                    style={[
+                      styles.statusBadge,
+                      {backgroundColor: getReportStatusColor(report.status)},
+                    ]}
+                    size={24}>
+                    {report.status}
+                  </Badge>
                 </View>
               </View>
-              <View style={styles.statusRow}>
-                <Badge style={[styles.statusBadge, {backgroundColor: getStatusColor(report.status)}]} size={28}>{report.status}</Badge>
-              </View>
-              <View style={styles.priorityRow}>
-                <View style={[styles.priorityChip, {borderColor: getPriorityColor(report.priority)}]}>
-                  <Text style={[styles.priorityText, {color: getPriorityColor(report.priority)}]}>{report.priority}</Text>
+            </Card.Content>
+          </Card>
+        </Surface>
+
+        {/* Report Image */}
+        {report.image && (
+          <Surface style={styles.imageCard} elevation={1}>
+            <Card style={styles.card}>
+              <Card.Content style={styles.imageContent}>
+                <Image
+                  source={{uri: report.image}}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              </Card.Content>
+            </Card>
+          </Surface>
+        )}
+
+        {/* Details Card */}
+        <Surface style={styles.detailsCard} elevation={1}>
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Thông tin chi tiết
+              </Text>
+
+              <View style={styles.detailsGrid}>
+                <View style={styles.detailItem}>
+                  <Text variant="labelMedium" style={styles.label}>
+                    Loại báo cáo:
+                  </Text>
+                  <View style={styles.typeChip}>
+                    <Text style={styles.typeText}>{report.reportType}</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.typeRow}>
-                <View style={styles.typeChip}>
-                  <Text style={styles.typeText}>{report.reportType}</Text>
+
+                <View style={styles.detailItem}>
+                  <Text variant="labelMedium" style={styles.label}>
+                    Mức độ ưu tiên:
+                  </Text>
+                  <View
+                    style={[
+                      styles.priorityChip,
+                      {borderColor: getPriorityColor(report.priority)},
+                    ]}>
+                    <Text
+                      style={[
+                        styles.priorityText,
+                        {color: getPriorityColor(report.priority)},
+                      ]}>
+                      {report.priority}
+                    </Text>
+                  </View>
                 </View>
+
+                <View style={styles.detailItem}>
+                  <Text variant="labelMedium" style={styles.label}>
+                    Trạng thái:
+                  </Text>
+                  <Badge
+                    style={[
+                      styles.statusBadge,
+                      {backgroundColor: getReportStatusColor(report.status)},
+                    ]}
+                    size={24}>
+                    {report.status}
+                  </Badge>
+                </View>
+
+                <View style={styles.detailItem}>
+                  <Text variant="labelMedium" style={styles.label}>
+                    Ngày tạo:
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.value}>
+                    {format(new Date(report.createdAt), 'dd/MM/yyyy HH:mm')}
+                  </Text>
+                </View>
+
+                {report.resolvedAt && (
+                  <View style={styles.detailItem}>
+                    <Text variant="labelMedium" style={styles.label}>
+                      Ngày giải quyết:
+                    </Text>
+                    <Text variant="bodyMedium" style={styles.value}>
+                      {format(new Date(report.resolvedAt), 'dd/MM/yyyy HH:mm')}
+                    </Text>
+                  </View>
+                )}
               </View>
+
               <Divider style={styles.divider} />
-              <Text style={styles.label}>Mô tả</Text>
-              <Text style={styles.description}>{report.description || 'Không có mô tả'}</Text>
-              {report.image && (
-                <View style={styles.imageContainer}>
-                  <Image source={{uri: report.image}} style={styles.image} resizeMode="cover" />
-                </View>
-              )}
+
+              <Text variant="labelMedium" style={styles.label}>
+                Mô tả chi tiết:
+              </Text>
+              <Text variant="bodyMedium" style={styles.description}>
+                {report.description || 'Không có mô tả'}
+              </Text>
             </Card.Content>
           </Card>
         </Surface>
@@ -92,128 +209,165 @@ export default function WorkerReportDetails() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.grey,
   },
-  surfaceContainer: {
-    borderRadius: 14,
-    overflow: 'hidden',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  headerCard: {
+    borderRadius: 16,
+    marginBottom: 16,
     backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+  imageCard: {
+    borderRadius: 16,
+    marginBottom: 16,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+  detailsCard: {
+    borderRadius: 16,
+    marginBottom: 16,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 16,
+    elevation: 0,
   },
   cardContent: {
-    paddingTop: 12,
-    paddingBottom: 16,
+    padding: 20,
   },
-  headerRow: {
+  imageContent: {
+    padding: 0,
+  },
+  headerSection: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    flex: 1,
   },
   avatar: {
-    backgroundColor: colors.secondary1Light,
     marginRight: 16,
   },
   headerInfo: {
     flex: 1,
   },
   reportName: {
-    fontWeight: 'bold',
+    fontWeight: '700',
+    marginBottom: 8,
     color: colors.darkLabel,
-    fontSize: 18,
-    marginBottom: 2,
   },
   createdBy: {
-    color: colors.subLabel,
-    fontSize: 13,
-    marginBottom: 1,
+    color: colors.primary,
+    marginBottom: 4,
   },
   createdDate: {
     color: colors.subLabel,
-    fontSize: 13,
   },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 8,
+  headerRight: {
+    alignItems: 'flex-end',
   },
   statusBadge: {
-    borderRadius: 6,
-    marginRight: 10,
-    fontSize: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    minWidth: 48,
-    textAlign: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  priorityRow: {
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    marginBottom: 16,
+    color: colors.darkLabel,
+  },
+  detailsGrid: {
+    gap: 16,
+  },
+  detailItem: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+
+
+
   },
-  priorityChip: {
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.subLabel,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    marginRight: 10,
-    minWidth: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+  label: {
+    fontWeight: '600',
+    color: colors.darkLabel,
+    flex: 1,
   },
-  priorityText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  typeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
+  value: {
+    color: colors.darkLabel,
+    textAlign: 'right',
+    flex: 1,
   },
   typeChip: {
-    backgroundColor: colors.secondary1Light,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    minWidth: 48,
+    height: 32,
+    backgroundColor: colors.primary + '10',
+    borderColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   typeText: {
-    fontSize: 14,
     color: colors.primary,
+    fontSize: 12,
     fontWeight: '500',
     textAlign: 'center',
   },
-  divider: {
-    marginVertical: 12,
+  priorityChip: {
+    height: 32,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-  label: {
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 4,
-    fontSize: 15,
+  priorityText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  divider: {
+    marginVertical: 20,
   },
   description: {
-    fontSize: 15,
     color: colors.darkLabel,
-    marginBottom: 12,
-  },
-  imageContainer: {
-    alignItems: 'center',
+    lineHeight: 22,
     marginTop: 8,
+    backgroundColor: colors.grey,
+    padding: 16,
+    borderRadius: 12,
   },
-  image: {
-    width: 220,
-    height: 160,
-    borderRadius: 10,
-    backgroundColor: colors.secondary1Light,
-  },
-}); 
+});
