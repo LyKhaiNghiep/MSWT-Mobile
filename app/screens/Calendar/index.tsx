@@ -22,6 +22,7 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useSchedules} from '../../hooks/useSchedule';
 import {Schedule} from '../../config/models/schedule.model';
+import {Calendar} from 'react-native-calendars';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
 import {API_URLS} from '../../constants/api-urls';
@@ -379,24 +380,24 @@ export default function MyCalendar() {
           )}
 
           {selectedTab === 'schedule' && (
-            <CalendarStrip
-              style={styles.calendar}
-              calendarHeaderStyle={styles.calendarHeader}
-              dateNumberStyle={styles.dateNumber}
-              dateNameStyle={styles.dateName}
-              highlightDateNumberStyle={styles.highlightDateNumber}
-              highlightDateNameStyle={styles.highlightDateName}
-              disabledDateNameStyle={styles.disabledDateName}
-              disabledDateNumberStyle={styles.disabledDateNumber}
-              iconContainer={styles.iconContainer}
-              calendarColor={colors.white}
-              calendarHeaderFormat="MMMM YYYY"
-              dateFormat="YYYY-MM-DD"
-              selectedDate={moment(selectedDate)}
-              onDateSelected={date => setSelectedDate(date.format('YYYY-MM-DD'))}
-              markedDates={markedDates}
-              scrollable
-              useIsoWeekday={false}
+            <Calendar
+              current={selectedDate}
+              onDayPress={(day: any) => setSelectedDate(day.dateString)}
+              markedDates={{
+                ...markedDates,
+
+                [selectedDate]: {
+                  selected: true,
+                  marked: markedDates[selectedDate]?.marked!,
+                  dotColor: markedDates[selectedDate]?.dotColor,
+                },
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#FF4B2B',
+                todayTextColor: '#FF4B2B',
+                dotColor: '#FF4B2B',
+                arrowColor: '#FF4B2B',
+              }}
             />
           )}
 
