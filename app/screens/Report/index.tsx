@@ -12,13 +12,12 @@ import {
   Surface,
   Avatar,
   Divider,
-  Button,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {
-  Report,
-  useReports,
+  ReportWithRole,
+  useManagerReports,
   getReportStatusColor,
   getPriorityColor,
 } from '../../hooks/useReport';
@@ -31,7 +30,7 @@ const REPORT_TYPES = [
 ];
 
 export default function ReportPage() {
-  const {reports, isLoading, isError} = useReports();
+  const {reports, isLoading} = useManagerReports();
   const [selectedType, setSelectedType] = useState('incident');
   const navigation = useNavigation<StackNavigation>();
 
@@ -42,7 +41,7 @@ export default function ReportPage() {
         : report.reportType === 'Báo cáo nhân viên',
     ) || [];
 
-  const renderItem = ({item}: {item: Report}) => (
+  const renderItem = ({item}: {item: ReportWithRole}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
       <Card
         style={styles.card}
@@ -72,7 +71,9 @@ export default function ReportPage() {
                   Bởi: {item.userName}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdDate}>
-                  {format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm')}
+                  {item.date
+                    ? format(new Date(item.date), 'dd/MM/yyyy HH:mm')
+                    : 'N/A'}
                 </Text>
               </View>
             </View>

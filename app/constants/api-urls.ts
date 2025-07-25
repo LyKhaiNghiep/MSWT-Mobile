@@ -146,6 +146,7 @@ export const API_URLS = {
   REPORT: {
     GET_ALL: `reports`, // GET /api/reports - Báo cáo tổng
     GET_WITH_ROLE: `reports/with-role`, // GET /api/reports/with-role - Filter theo role
+    GET_WITH_LEADER_ROLE: `reports/with-leader-role`, // GET /api/reports/with-leader-role - Reports for manager
     GET_BY_ID: (id: string) => `reports/${id}`,
     CREATE: `reports`,
     CREATE_LEADER: `reports/leader`, // POST /api/reports/leader - Tạo báo cáo cho Leader

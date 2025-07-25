@@ -18,7 +18,18 @@ export interface Report {
   userName: string; // The one who created the report
 }
 
-export interface ReportWithRole extends Report {
+export interface ReportWithRole {
+  reportId: string;
+  reportName: string;
+  description: string;
+  status: string;
+  priority: string;
+  reportType: string;
+  userId: string;
+  date: string | null; // Changed from createdAt to date, can be null
+  image?: string | null;
+  userName: string;
+  fullName: string;
   roleName: string;
 }
 
@@ -28,7 +39,6 @@ export interface CreateReportData {
   reportName: string;
   image?: string;
   priority: number; // 1, 2, 3 cho Low, Medium, High
-
 }
 
 // Update report data interface
@@ -98,6 +108,21 @@ export const useReports = () => {
 export const useWorkerReports = () => {
   const {data, error, isLoading, mutate} = useSWRNative<Report[]>(
     API_URLS.REPORT.GET_WITH_ROLE,
+    swrFetcher,
+  );
+
+  return {
+    reports: data || [],
+    isLoading,
+    isError: error,
+    refresh: () => mutate(),
+  };
+};
+
+// Hook to get reports for manager (with leader role)
+export const useManagerReports = () => {
+  const {data, error, isLoading, mutate} = useSWRNative<ReportWithRole[]>(
+    API_URLS.REPORT.GET_WITH_LEADER_ROLE,
     swrFetcher,
   );
 

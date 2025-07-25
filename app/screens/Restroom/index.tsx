@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useState, useMemo} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
@@ -7,17 +7,68 @@ import {
   Text,
   Surface,
   IconButton,
+  Menu,
+  Button,
+  Provider,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {Restroom} from '../../config/models/restroom.model';
 import {useRestrooms, getRestroomStatusColor} from '../../hooks/useRestroom';
+import {useFloors} from '../../hooks/useFloor';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 
 export default function RestroomPage() {
   const {restrooms, isLoading} = useRestrooms();
+  const {floors} = useFloors();
   const navigation = useNavigation<StackNavigation>();
+  const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  // Extract floor number from restroom number (first digit)
+  const getFloorFromRestroomNumber = (restroomNumber: string): number => {
+    if (restroomNumber.length >= 1) {
+      return parseInt(restroomNumber.charAt(0), 10);
+    }
+    return 0;
+  };
+
+  // Get floor name based on floor number
+  const getFloorName = (floorNumber: number): string => {
+    if (floorNumber === 0) return 'Tầng trệt';
+    return `Tầng ${floorNumber}`;
+  };
+
+  // Filter restrooms based on selected floor
+  const filteredRestrooms = useMemo(() => {
+    if (selectedFloor === null) return restrooms || [];
+
+    return (restrooms || []).filter(restroom => {
+      const floorNumber = getFloorFromRestroomNumber(restroom.restroomNumber);
+      return floorNumber === selectedFloor;
+    });
+  }, [restrooms, selectedFloor]);
+
+  // Create floor options for dropdown - get floors from API
+  const floorOptions = useMemo(() => {
+    const sortedFloors = (floors || []).sort(
+      (a, b) => a.floorNumber - b.floorNumber,
+    );
+
+    return [
+      {label: 'Tất cả tầng', value: null},
+      ...sortedFloors.map(floor => ({
+        label: getFloorName(floor.floorNumber),
+        value: floor.floorNumber,
+      })),
+    ];
+  }, [floors]);
+
+  const getSelectedFloorLabel = () => {
+    if (selectedFloor === null) return 'Tất cả tầng';
+    return getFloorName(selectedFloor);
+  };
 
   const renderItem = ({item}: {item: Restroom}) => (
     <Surface style={styles.surface} elevation={2}>
@@ -72,26 +123,56 @@ export default function RestroomPage() {
   }
 
   return (
-    <Screen useDefault>
-      <AppHeader title="Nhà vệ sinh" />
-      <View style={styles.container}>
-        <FlatList
-          data={restrooms}
-          renderItem={renderItem}
-          keyExtractor={item => item.restroomId}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
-            <View style={styles.centerContent}>
-              <Text variant="bodyLarge" style={styles.emptyText}>
-                Không có nhà vệ sinh nào
-              </Text>
-            </View>
-          }
-          removeClippedSubviews={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      </View>
-    </Screen>
+    <Provider>
+      <Screen useDefault>
+        <AppHeader title="Nhà vệ sinh" />
+        <View style={styles.container}>
+          {/* Floor Filter Dropdown */}
+          <View style={styles.filterContainer}>
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <Button
+                  mode="outlined"
+                  onPress={() => setMenuVisible(true)}
+                  style={styles.filterButton}>
+                  {getSelectedFloorLabel()}
+                </Button>
+              }>
+              {floorOptions.map(option => (
+                <Menu.Item
+                  key={option.value?.toString() || 'all'}
+                  onPress={() => {
+                    setSelectedFloor(option.value);
+                    setMenuVisible(false);
+                  }}
+                  title={option.label}
+                />
+              ))}
+            </Menu>
+          </View>
+
+          <FlatList
+            data={filteredRestrooms}
+            renderItem={renderItem}
+            keyExtractor={item => item.restroomId}
+            contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={
+              <View style={styles.centerContent}>
+                <Text variant="bodyLarge" style={styles.emptyText}>
+                  {selectedFloor !== null
+                    ? 'Tầng này hiện chưa có nhà vệ sinh'
+                    : 'Không có nhà vệ sinh nào'}
+                </Text>
+              </View>
+            }
+            removeClippedSubviews={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          />
+        </View>
+      </Screen>
+    </Provider>
   );
 }
 
@@ -104,6 +185,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterButton: {
+    backgroundColor: colors.white,
+    borderColor: colors.primary,
+    borderWidth: 1,
   },
   listContainer: {
     flexGrow: 1,
