@@ -15,7 +15,7 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useSchedules} from '../../hooks/useSchedule';
 import {Schedule} from '../../config/models/schedule.model';
-
+import {Calendar} from 'react-native-calendars';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
 
@@ -230,9 +230,25 @@ export default function MyCalendar() {
           )}
 
           {selectedTab === 'schedule' && (
-            <View style={styles.calendarPlaceholder}>
-              <Text>Calendar view not available</Text>
-            </View>
+            <Calendar
+              current={selectedDate}
+              onDayPress={(day: any) => setSelectedDate(day.dateString)}
+              markedDates={{
+                ...markedDates,
+
+                [selectedDate]: {
+                  selected: true,
+                  marked: markedDates[selectedDate]?.marked!,
+                  dotColor: markedDates[selectedDate]?.dotColor,
+                },
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#FF4B2B',
+                todayTextColor: '#FF4B2B',
+                dotColor: '#FF4B2B',
+                arrowColor: '#FF4B2B',
+              }}
+            />
           )}
 
           <FlatList
