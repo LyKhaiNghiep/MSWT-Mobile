@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {FlatList, StyleSheet, View} from 'react-native';
+import {FlatList, StyleSheet, View, Alert} from 'react-native';
 import {
   Card,
   Divider,
@@ -8,6 +8,13 @@ import {
   Menu,
   Button,
   Provider,
+  Badge,
+  Avatar,
+  Chip,
+  IconButton,
+  Portal,
+  Dialog,
+  TextInput,
 } from 'react-native-paper';
 import CalendarStrip from 'react-native-calendar-strip';
 import moment from 'moment';
@@ -18,9 +25,21 @@ import {Schedule} from '../../config/models/schedule.model';
 import {Calendar} from 'react-native-calendars';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
+import {API_URLS} from '../../constants/api-urls';
+import api from '../../services/api';
+import {Rating} from '../../components/Rating';
+import {RatingDisplay} from '../../components/Rating/RatingDisplay';
+
+// Add description to Schedule type
+type ExtendedSchedule = Schedule & {
+  description?: string;
+  workerName?: string;
+  rating?: number;
+  comment?: string;
+};
 
 export default function MyCalendar() {
-  const {schedules, isLoading} = useSchedules();
+  const {schedules, isLoading, mutate} = useSchedules();
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
@@ -30,6 +49,10 @@ export default function MyCalendar() {
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
   const [timeRange, setTimeRange] = useState('current-month');
   const [status, setStatus] = useState('Đã hoàn thành');
+  const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<ExtendedSchedule | null>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
 
   const timeRangeOptions = [
     {label: 'Hôm qua', value: 'yesterday'},
@@ -41,7 +64,7 @@ export default function MyCalendar() {
     {label: 'Tất cả', value: 'all'},
   ];
 
-  const statusOptopns = [
+  const statusOptions = [
     {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
     {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
   ];
@@ -51,12 +74,23 @@ export default function MyCalendar() {
     return option ? option.label : 'Chọn thời gian';
   };
 
-  const getStausLabel = () => {
-    const option = statusOptopns.find(opt => opt.value === status);
+  const getStatusLabel = () => {
+    const option = statusOptions.find(opt => opt.value === status);
     return option ? option.label : 'Chọn trạng thái';
   };
 
-  const filteredSchedules = schedules.filter(schedule => {
+  const getStatusColor = (scheduleStatus: string) => {
+    switch (scheduleStatus?.toLowerCase()) {
+      case 'đã hoàn thành':
+        return colors.success;
+      case 'bỏ lỡ':
+        return colors.error;
+      default:
+        return colors.grey;
+    }
+  };
+
+  const filteredSchedules = schedules.filter((schedule: ExtendedSchedule) => {
     const scheduleDate = moment(schedule.startDate);
     const today = moment().startOf('day');
 
@@ -68,7 +102,6 @@ export default function MyCalendar() {
       return scheduleDate.isSameOrAfter(today);
     }
 
-    // Xử lý lọc theo khoảng thời gian cho tab 'schedule'
     let matchesTimeRange = false;
     switch (timeRange) {
       case 'yesterday':
@@ -121,41 +154,165 @@ export default function MyCalendar() {
     return matchesTimeRange && matchesStatus;
   });
 
-  const renderScheduleItem = ({item}: {item: Schedule}) => (
+  const handleRate = async () => {
+    if (!selectedSchedule) return;
+
+    try {
+      // Tạo chuỗi rating với format: "rating,comment"
+      const ratingData = `${rating},${comment || ''}`;
+
+      console.log('Selected Schedule:', selectedSchedule);
+      console.log('Rating data:', ratingData);
+      console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleId));
+
+      const response = await api.put(
+        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleId), 
+        ratingData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Rating response:', response);
+      
+      // Refresh the schedules list
+      mutate();
+      
+      // Reset state
+      setRatingDialogVisible(false);
+      setSelectedSchedule(null);
+      setRating(0);
+      setComment('');
+
+      // Thông báo thành công
+      Alert.alert(
+        'Thành công',
+        'Đánh giá đã được gửi.',
+        [{text: 'OK'}]
+      );
+    } catch (error: any) {
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      console.error('Error response:', error.response ? JSON.stringify(error.response, null, 2) : 'No response');
+      console.error('Error request:', error.request ? JSON.stringify(error.request, null, 2) : 'No request');
+      console.error('Error config:', error.config ? JSON.stringify(error.config, null, 2) : 'No config');
+      
+      // Optional: show detailed error message to user
+      Alert.alert(
+        'Lỗi',
+        `Không thể đánh giá. Chi tiết: ${
+          error.response?.data?.message || 
+          error.message || 
+          'Lỗi không xác định'
+        }`,
+        [{text: 'OK'}]
+      );
+    }
+  };
+
+  const renderScheduleItem = ({item}: {item: ExtendedSchedule}) => (
     <Card style={styles.card} mode="outlined">
       <Card.Content>
         <View style={styles.header}>
-          <Text variant="titleMedium">{item.scheduleName}</Text>
-          <View style={[styles.statusBadge]}>
-            <Text>Đã hoàn thành</Text>
+          <View style={styles.headerLeft}>
+            <Avatar.Icon 
+              size={40} 
+              icon={item.scheduleType === 'Dọn dẹp' ? 'broom' : 'trash-can'} 
+              style={{backgroundColor: colors.primary}} 
+            />
+            <View style={styles.headerText}>
+              <Text variant="titleMedium" style={styles.title}>
+                {item.scheduleName}
+              </Text>
+              <View style={styles.chipContainer}>
+                <Chip 
+                  style={[
+                    styles.typeChip,
+                    {backgroundColor: getStatusColor(item.status || 'Đã hoàn thành')}
+                  ]}
+                  textStyle={styles.chipText}
+                >
+                  {item.status || 'Đã hoàn thành'}
+                </Chip>
+                <Chip 
+                  style={[
+                    styles.typeChip,
+                    {backgroundColor: item.scheduleType === 'Dọn dẹp' ? colors.primary : colors.secondary1}
+                  ]}
+                  textStyle={styles.chipText}
+                >
+                  {item.scheduleType}
+                </Chip>
+              </View>
+            </View>
           </View>
         </View>
         <Divider style={styles.divider} />
         <View style={styles.content}>
-          <Text>
-            Thời gian: {moment(item.startDate).format('HH:mm')} -{' '}
-            {moment(item.endDate).format('HH:mm')}
-          </Text>
-          <Text>
-            Địa điểm: {item.areaName} - {item.restroomNumber || 'N/A'}
-          </Text>
-          <Text>Loại công việc: {item.scheduleType}</Text>
+          <View style={styles.infoRow}>
+            <Text variant="bodyMedium" style={styles.label}>Thời gian:</Text>
+            <Text variant="bodyMedium" style={styles.value}>
+              {moment(item.startDate).format('HH:mm')} - {moment(item.endDate).format('HH:mm')}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text variant="bodyMedium" style={styles.label}>Địa điểm:</Text>
+            <Text variant="bodyMedium" style={styles.value}>
+              {item.areaName} - {item.restroomNumber || 'N/A'}
+            </Text>
+          </View>
+          {item.workerName && (
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={styles.label}>Nhân viên:</Text>
+              <View style={styles.workerContainer}>
+                <Text variant="bodyMedium" style={styles.workerName}>
+                  {item.workerName}
+                </Text>
+                <IconButton
+                  icon="star"
+                  size={20}
+                  iconColor={colors.warning}
+                  onPress={() => {
+                    setSelectedSchedule(item);
+                    setRatingDialogVisible(true);
+                  }}
+                />
+              </View>
+            </View>
+          )}
+          {item.description && (
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={styles.label}>Mô tả:</Text>
+              <Text variant="bodyMedium" style={styles.value}>
+                {item.description}
+              </Text>
+            </View>
+          )}
+          {item.rating && (
+            <RatingDisplay
+              rating={item.rating}
+              comment={item.comment}
+            />
+          )}
         </View>
       </Card.Content>
     </Card>
   );
+
   const markedDates = schedules.reduce((acc, schedule) => {
     const date = moment(schedule.startDate).format('YYYY-MM-DD');
     return {
       ...acc,
       [date]: {
         marked: true,
-        dotColor: '#FF4B2B',
+        dotColor: colors.primary,
       },
     };
   }, {});
+
   return (
-    <Screen styles={{backgroundColor: 'white'}} useDefault>
+    <Screen styles={{backgroundColor: colors.white}} useDefault>
       <Provider>
         <AppHeader title="Lịch làm việc" />
         <View style={styles.container}>
@@ -171,15 +328,7 @@ export default function MyCalendar() {
           />
 
           {selectedTab === 'history' && (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: 20,
-                width: 'auto',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
+            <View style={styles.filterContainer}>
               <Menu
                 visible={menuVisible}
                 onDismiss={() => setMenuVisible(false)}
@@ -187,7 +336,8 @@ export default function MyCalendar() {
                   <Button
                     mode="outlined"
                     onPress={() => setMenuVisible(true)}
-                    style={styles.timeRangeButton}>
+                    style={styles.filterButton}
+                    icon="calendar">
                     {getTimeRangeLabel()}
                   </Button>
                 }>
@@ -210,15 +360,15 @@ export default function MyCalendar() {
                   <Button
                     mode="outlined"
                     onPress={() => setMenuStatusVisible(true)}
-                    style={styles.timeRangeButton}>
-                    {getStausLabel()}
+                    style={styles.filterButton}
+                    icon="filter-variant">
+                    {getStatusLabel()}
                   </Button>
                 }>
-                {statusOptopns.map(option => (
+                {statusOptions.map(option => (
                   <Menu.Item
                     key={option.value}
                     onPress={() => {
-                      // TODO: set status
                       setStatus(option.value);
                       setMenuStatusVisible(false);
                     }}
@@ -256,31 +406,61 @@ export default function MyCalendar() {
             renderItem={renderScheduleItem}
             keyExtractor={item => item.scheduleId}
             ListEmptyComponent={
-              <View style={styles.centerContent}>
+              <View style={styles.emptyContainer}>
+                <Avatar.Icon 
+                  size={80} 
+                  icon="calendar-blank" 
+                  style={styles.emptyIcon}
+                />
                 <Text style={styles.emptyText}>Không có lịch nào</Text>
               </View>
             }
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
-            removeClippedSubviews={false}
           />
         </View>
+
+        <Portal>
+          <Dialog
+            visible={ratingDialogVisible}
+            onDismiss={() => {
+              setRatingDialogVisible(false);
+              setSelectedSchedule(null);
+              setRating(0);
+              setComment('');
+            }}
+          >
+            <Dialog.Title>Đánh giá nhân viên</Dialog.Title>
+            <Dialog.Content>
+              <View style={styles.ratingContainer}>
+                <Rating
+                  value={rating}
+                  onValueChange={setRating}
+                  size={30}
+                />
+                <TextInput
+                  mode="outlined"
+                  label="Nhận xét"
+                  value={comment}
+                  onChangeText={setComment}
+                  multiline
+                  numberOfLines={3}
+                  style={styles.commentInput}
+                />
+              </View>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setRatingDialogVisible(false)}>Hủy</Button>
+              <Button onPress={handleRate}>Đánh giá</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
       </Provider>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContent: {
-    marginTop: 26,
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: colors.subLabel,
-    fontSize: 16,
-  },
   container: {
     flex: 1,
     padding: 16,
@@ -288,41 +468,48 @@ const styles = StyleSheet.create({
   tabs: {
     marginBottom: 16,
   },
-  statusFilter: {
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  filterButton: {
+    flex: 1,
+    marginHorizontal: 4,
   },
   calendar: {
     height: 100,
     marginBottom: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingVertical: 10,
+    backgroundColor: colors.white,
   },
   calendarHeader: {
-    color: '#000',
+    color: colors.primary,
     fontSize: 14,
+    fontWeight: 'bold',
   },
   dateNumber: {
-    color: '#000',
+    color: colors.primary, // Use primary color instead of text
     fontSize: 14,
   },
   dateName: {
-    color: '#000',
+    color: colors.primary, // Use primary color instead of text  
     fontSize: 12,
   },
   highlightDateNumber: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 14,
   },
   highlightDateName: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 12,
   },
   disabledDateName: {
-    color: '#ccc',
+    color: colors.grey,
     fontSize: 12,
   },
   disabledDateNumber: {
-    color: '#ccc',
+    color: colors.grey,
     fontSize: 14,
   },
   iconContainer: {
@@ -330,39 +517,104 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 12,
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  title: {
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    color: colors.grey,
+  },
   statusBadge: {
-    backgroundColor: '#E8F5E9',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
   },
   divider: {
     marginVertical: 12,
   },
   content: {
-    gap: 4,
+    gap: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  label: {
+    width: 100,
+    color: colors.grey,
+  },
+  value: {
+    flex: 1,
+    color: colors.primary, // Use primary color instead of text
   },
   list: {
-    paddingBottom: 16,
+    flexGrow: 1,
   },
-  timeRangeButton: {
-    marginBottom: 16,
-    width: '100%',
-    minWidth: 170,
-    alignSelf: 'stretch',
-  },
-  calendarPlaceholder: {
-    height: 200,
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyIcon: {
     backgroundColor: colors.grey,
-    borderRadius: 8,
     marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.grey,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  typeChip: {
+    minWidth: 100,
+    height: 28,
+  },
+  chipText: {
+    color: colors.white,
+    fontSize: 12,
+  },
+  workerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondary2,
+    padding: 8,
+    borderRadius: 8,
+  },
+  workerName: {
+    flex: 1,
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  ratingText: {
+    color: colors.warning,
+    marginLeft: 4,
+  },
+  ratingContainer: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  commentInput: {
+    width: '100%',
+    marginTop: 16,
   },
 });
