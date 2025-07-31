@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {format} from 'date-fns';
-import React from 'react';
+import React, {useState} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
@@ -12,6 +12,7 @@ import {
   Text,
   Avatar,
   Divider,
+  SegmentedButtons,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
@@ -29,8 +30,17 @@ export default function WorkerReportPage() {
   const {reports, isLoading, isError} = useWorkerReports();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
-  const filteredReports =
-    reports.filter(x => x.userName === user?.userName) || [];
+  const [selectedTab, setSelectedTab] = useState('sent');
+
+  const userReports = reports.filter(x => x.userName === user?.userName) || [];
+  const filteredReports = userReports.filter(report => {
+    if (selectedTab === 'sent') {
+      return report.status === 'Đã gửi';
+    } else if (selectedTab === 'processed') {
+      return report.status === 'Đã xử lý';
+    }
+    return true;
+  });
 
   const renderItem = ({item}: {item: Report}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
@@ -148,6 +158,23 @@ export default function WorkerReportPage() {
     <Screen styles={{backgroundColor: colors.grey}} useDefault>
       <AppHeader title="Báo cáo" />
       <View style={styles.container}>
+        <SegmentedButtons
+          value={selectedTab}
+          onValueChange={setSelectedTab}
+          buttons={[
+            {
+              value: 'sent',
+              label: 'Đã gửi',
+              icon: 'send',
+            },
+            {
+              value: 'processed',
+              label: 'Đã xử lý',
+              icon: 'check-circle',
+            },
+          ]}
+          style={styles.segmentedButtons}
+        />
         <FlatList
           data={filteredReports}
           renderItem={renderItem}
@@ -156,7 +183,11 @@ export default function WorkerReportPage() {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <View style={styles.centerContent}>
-              <Text style={styles.emptyText}>Không có báo cáo nào</Text>
+              <Text style={styles.emptyText}>
+                {selectedTab === 'sent'
+                  ? 'Không có báo cáo đã gửi'
+                  : 'Không có báo cáo đã xử lý'}
+              </Text>
             </View>
           }
           showsVerticalScrollIndicator={false}
@@ -304,5 +335,8 @@ const styles = StyleSheet.create({
     color: colors.subLabel,
     fontSize: 16,
     textAlign: 'center',
+  },
+  segmentedButtons: {
+    marginBottom: 16,
   },
 });
