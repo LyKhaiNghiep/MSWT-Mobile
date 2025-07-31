@@ -29,7 +29,8 @@ export default function WorkerReportPage() {
   const {reports, isLoading, isError} = useWorkerReports();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
-  const filteredReports = reports || [];
+  const filteredReports =
+    reports.filter(x => x.userName === user?.userName) || [];
 
   const renderItem = ({item}: {item: Report}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>

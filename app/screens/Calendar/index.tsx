@@ -31,6 +31,43 @@ export default function MyCalendar() {
   const [timeRange, setTimeRange] = useState('current-month');
   const [status, setStatus] = useState('Đã hoàn thành');
 
+  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
+  const [selectedYear, setSelectedYear] = useState(moment().year());
+  const [monthMenuVisible, setMonthMenuVisible] = useState(false);
+  const [yearMenuVisible, setYearMenuVisible] = useState(false);
+
+  const months = [
+    {label: 'Tháng 1', value: 1},
+    {label: 'Tháng 2', value: 2},
+    {label: 'Tháng 3', value: 3},
+    {label: 'Tháng 4', value: 4},
+    {label: 'Tháng 5', value: 5},
+    {label: 'Tháng 6', value: 6},
+    {label: 'Tháng 7', value: 7},
+    {label: 'Tháng 8', value: 8},
+    {label: 'Tháng 9', value: 9},
+    {label: 'Tháng 10', value: 10},
+    {label: 'Tháng 11', value: 11},
+    {label: 'Tháng 12', value: 12},
+  ];
+
+  // Danh sách năm (từ 2020 đến năm hiện tại + 2)
+  const currentYear = moment().year();
+  const years = [];
+  for (let year = 2020; year <= currentYear + 2; year++) {
+    years.push({label: `Năm ${year}`, value: year});
+  }
+
+  const getMonthLabel = () => {
+    const month = months.find(m => m.value === selectedMonth);
+    return month ? month.label : 'Chọn tháng';
+  };
+
+  const getYearLabel = () => {
+    const year = years.find(y => y.value === selectedYear);
+    return year ? year.label : 'Chọn năm';
+  };
+
   const timeRangeOptions = [
     {label: 'Hôm qua', value: 'yesterday'},
     {label: 'Tuần hiện tại', value: 'current-week'},
@@ -69,41 +106,9 @@ export default function MyCalendar() {
     }
 
     // Xử lý lọc theo khoảng thời gian cho tab 'schedule'
-    let matchesTimeRange = false;
-    switch (timeRange) {
-      case 'yesterday':
-        matchesTimeRange = scheduleDate.isSame(
-          today.clone().subtract(1, 'day'),
-          'day',
-        );
-        break;
-      case 'current-week':
-        matchesTimeRange = scheduleDate.isSame(today, 'week');
-        break;
-      case 'last-week':
-        matchesTimeRange = scheduleDate.isSame(
-          today.clone().subtract(1, 'week'),
-          'week',
-        );
-        break;
-      case 'current-month':
-        matchesTimeRange = scheduleDate.isSame(today, 'month');
-        break;
-      case 'last-month':
-        matchesTimeRange = scheduleDate.isSame(
-          today.clone().subtract(1, 'month'),
-          'month',
-        );
-        break;
-      case 'current-year':
-        matchesTimeRange = scheduleDate.isSame(today, 'year');
-        break;
-      case 'all':
-        matchesTimeRange = true;
-        break;
-      default:
-        matchesTimeRange = true;
-    }
+    let matchesTimeRange =
+      scheduleDate.month() + 1 === selectedMonth &&
+      scheduleDate.year() === selectedYear;
 
     let matchesStatus = false;
     switch (status) {
@@ -171,61 +176,87 @@ export default function MyCalendar() {
           />
 
           {selectedTab === 'history' && (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: 20,
-                width: 'auto',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-              <Menu
-                visible={menuVisible}
-                onDismiss={() => setMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setMenuVisible(true)}
-                    style={styles.timeRangeButton}>
-                    {getTimeRangeLabel()}
-                  </Button>
-                }>
-                {timeRangeOptions.map(option => (
-                  <Menu.Item
-                    key={option.value}
-                    onPress={() => {
-                      setTimeRange(option.value);
-                      setMenuVisible(false);
-                    }}
-                    title={option.label}
-                  />
-                ))}
-              </Menu>
+            <View>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 20,
+                  width: 'auto',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Menu
+                  visible={monthMenuVisible}
+                  onDismiss={() => setMonthMenuVisible(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setMonthMenuVisible(true)}
+                      style={styles.timeRangeButton}>
+                      {getMonthLabel()}
+                    </Button>
+                  }>
+                  {months.map(month => (
+                    <Menu.Item
+                      key={month.value}
+                      onPress={() => {
+                        setSelectedMonth(month.value);
+                        setMonthMenuVisible(false);
+                      }}
+                      title={month.label}
+                    />
+                  ))}
+                </Menu>
 
-              <Menu
-                visible={menuStatusVisible}
-                onDismiss={() => setMenuStatusVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setMenuStatusVisible(true)}
-                    style={styles.timeRangeButton}>
-                    {getStausLabel()}
-                  </Button>
-                }>
-                {statusOptopns.map(option => (
-                  <Menu.Item
-                    key={option.value}
-                    onPress={() => {
-                      // TODO: set status
-                      setStatus(option.value);
-                      setMenuStatusVisible(false);
-                    }}
-                    title={option.label}
-                  />
-                ))}
-              </Menu>
+                <Menu
+                  visible={yearMenuVisible}
+                  onDismiss={() => setYearMenuVisible(false)}
+                  anchor={
+                    <Button
+                      style={styles.timeRangeButton}
+                      mode="outlined"
+                      onPress={() => setYearMenuVisible(true)}>
+                      {getYearLabel()}
+                    </Button>
+                  }>
+                  {years.map(year => (
+                    <Menu.Item
+                      key={year.value}
+                      onPress={() => {
+                        setSelectedYear(year.value);
+                        setYearMenuVisible(false);
+                      }}
+                      title={year.label}
+                    />
+                  ))}
+                </Menu>
+              </View>
+              <View>
+                <Menu
+                  visible={menuStatusVisible}
+                  onDismiss={() => setMenuStatusVisible(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setMenuStatusVisible(true)}
+                      style={styles.timeRangeButton}>
+                      {getStausLabel()}
+                    </Button>
+                  }>
+                  {statusOptopns.map(option => (
+                    <Menu.Item
+                      key={option.value}
+                      onPress={() => {
+                        // TODO: set status
+                        setStatus(option.value);
+                        setMenuStatusVisible(false);
+                      }}
+                      title={option.label}
+                    />
+                  ))}
+                </Menu>
+              </View>
             </View>
           )}
 
