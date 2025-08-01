@@ -5,12 +5,15 @@ import {
 } from '../config/models/schedule.model';
 import {API_URLS} from '../constants/api-urls';
 import {swrFetcher} from '../utils/swr-fetcher';
+import {ScheduleDetails} from '../config/models/scheduleDetails.model';
 
-export function useSchedules() {
-  const {data, error, isLoading, mutate} = useSWRNative<Schedule[]>(
-    API_URLS.SCHEDULE.GET_ALL,
+export function useSchedules(userId: string | undefined) {
+  const {data, error, isLoading, mutate} = useSWRNative<ScheduleDetails[]>(
+    API_URLS.SCHEDULE_DETAILS.GET_BY_USER_ID(userId!),
     swrFetcher,
   );
+
+  console.log('data', data);
 
   const updateSchedule = async (
     id: string,

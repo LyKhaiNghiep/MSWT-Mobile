@@ -13,7 +13,7 @@ export default function TrashBinDetails() {
   const {trashbins} = useTrashBins();
   const id = (route.params as any).id;
   const trashbin = trashbins?.find(r => r.trashBinId === id);
-
+  console.log('trashbin', trashbin);
   if (!trashbin) return null;
 
   return (

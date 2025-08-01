@@ -1,34 +1,36 @@
+import moment from 'moment';
 import React, {useState} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
+import {Calendar} from 'react-native-calendars';
 import {
+  Button,
   Card,
   Divider,
+  Menu,
+  Provider,
   SegmentedButtons,
   Text,
-  Menu,
-  Button,
-  Provider,
 } from 'react-native-paper';
-import CalendarStrip from 'react-native-calendar-strip';
-import moment from 'moment';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {useSchedules} from '../../hooks/useSchedule';
+import UpcomingCalendar from '../../components/Calendar/Upcoming';
 import {Schedule} from '../../config/models/schedule.model';
-import {Calendar} from 'react-native-calendars';
+import {useSchedules} from '../../hooks/useSchedule';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
+import {useScheduleDetails} from '../../hooks';
+import {useAuth} from '../../contexts/AuthContext';
 
 export default function MyCalendar() {
-  const {schedules, isLoading} = useSchedules();
+  const {user} = useAuth();
+  console.log('userId', user?.userId);
+  const {schedules} = useSchedules(user?.userId);
+
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
   const [selectedTab, setSelectedTab] = useState('upcoming');
-  const [filterStatus, setFilterStatus] = useState('current-month');
-  const [menuVisible, setMenuVisible] = useState(false);
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [timeRange, setTimeRange] = useState('current-month');
   const [status, setStatus] = useState('Đã hoàn thành');
 
   const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
@@ -68,25 +70,10 @@ export default function MyCalendar() {
     return year ? year.label : 'Chọn năm';
   };
 
-  const timeRangeOptions = [
-    {label: 'Hôm qua', value: 'yesterday'},
-    {label: 'Tuần hiện tại', value: 'current-week'},
-    {label: 'Tuần trước', value: 'last-week'},
-    {label: 'Tháng hiện tại', value: 'current-month'},
-    {label: 'Tháng trước', value: 'last-month'},
-    {label: 'Năm hiện tại', value: 'current-year'},
-    {label: 'Tất cả', value: 'all'},
-  ];
-
   const statusOptopns = [
     {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
     {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
   ];
-
-  const getTimeRangeLabel = () => {
-    const option = timeRangeOptions.find(opt => opt.value === timeRange);
-    return option ? option.label : 'Chọn thời gian';
-  };
 
   const getStausLabel = () => {
     const option = statusOptopns.find(opt => opt.value === status);
@@ -94,7 +81,7 @@ export default function MyCalendar() {
   };
 
   const filteredSchedules = schedules.filter(schedule => {
-    const scheduleDate = moment(schedule.startDate);
+    const scheduleDate = moment(schedule.date);
     const today = moment().startOf('day');
 
     if (selectedTab === 'upcoming') {
@@ -150,7 +137,7 @@ export default function MyCalendar() {
     </Card>
   );
   const markedDates = schedules.reduce((acc, schedule) => {
-    const date = moment(schedule.startDate).format('YYYY-MM-DD');
+    const date = moment(schedule.date).format('YYYY-MM-DD');
     return {
       ...acc,
       [date]: {
@@ -174,6 +161,8 @@ export default function MyCalendar() {
             ]}
             style={styles.tabs}
           />
+
+          {selectedTab === 'upcoming' && <UpcomingCalendar />}
 
           {selectedTab === 'history' && (
             <View>
@@ -257,6 +246,20 @@ export default function MyCalendar() {
                   ))}
                 </Menu>
               </View>
+
+              <FlatList
+                data={filteredSchedules}
+                renderItem={renderScheduleItem}
+                keyExtractor={item => item.scheduleId}
+                ListEmptyComponent={
+                  <View style={styles.centerContent}>
+                    <Text style={styles.emptyText}>Không có lịch nào</Text>
+                  </View>
+                }
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+                removeClippedSubviews={false}
+              />
             </View>
           )}
 
@@ -281,20 +284,6 @@ export default function MyCalendar() {
               }}
             />
           )}
-
-          <FlatList
-            data={filteredSchedules}
-            renderItem={renderScheduleItem}
-            keyExtractor={item => item.scheduleId}
-            ListEmptyComponent={
-              <View style={styles.centerContent}>
-                <Text style={styles.emptyText}>Không có lịch nào</Text>
-              </View>
-            }
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-            removeClippedSubviews={false}
-          />
         </View>
       </Provider>
     </Screen>
