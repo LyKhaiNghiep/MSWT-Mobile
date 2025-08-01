@@ -9,17 +9,22 @@ import {useAuth} from '../../contexts/AuthContext';
 import api from '../../services/api';
 import {colors} from '../../theme';
 import {showSnackbar} from '../../utils/snackbar';
+import {useAccounts} from '../../hooks/useAccounts';
 
 export default function EditProfile() {
   const {user} = useAuth();
+
+  const {users} = useAccounts();
+  const sepcificUser = users?.find(u => u.userName === user?.userName);
+
   const navigation = useNavigation();
 
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
-    userName: user?.userName || '',
+    fullName: sepcificUser?.fullName || '',
+    email: sepcificUser?.email || '',
+    phone: sepcificUser?.phone || '',
+    address: sepcificUser?.address || '',
+    userName: sepcificUser?.userName || '',
   });
 
   const handleUpdateProfile = async () => {
@@ -63,7 +68,6 @@ export default function EditProfile() {
           placeholder="Số điện thoại"
           value={formData.phone}
           onChangeText={text => setFormData({...formData, phone: text})}
-          secureTextEntry
           style={styles.input}
         />
 

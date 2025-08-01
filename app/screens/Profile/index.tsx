@@ -7,9 +7,14 @@ import {useAuth} from '../../contexts/AuthContext';
 import {Animated, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigation} from '../../navigators';
+import {useAccounts} from '../../hooks/useAccounts';
 
 export const Profile = () => {
   const {user, logout} = useAuth();
+
+  const {users} = useAccounts();
+  const sepcificUser = users?.find(u => u.userName === user?.userName);
+
   const navigation = useNavigation<StackNavigation>();
   const handleChangePassword = () => navigation.navigate('ChangePassword');
   const handleEditProfile = () => navigation.navigate('EditProfile');
@@ -29,14 +34,16 @@ export const Profile = () => {
               size={80}
               source={
                 user?.image
-                  ? {uri: user?.image}
+                  ? {uri: sepcificUser?.image}
                   : require('../../assets/images/avatar-default.svg')
               }
             />
             <Box style={styles.userInfo}>
               <List.Item
-                title={user?.fullName || 'N/A'}
-                description={user?.roleName || user?.description || 'N/A'}
+                title={sepcificUser?.fullName || 'N/A'}
+                description={
+                  sepcificUser?.roleName || sepcificUser?.description || 'N/A'
+                }
                 titleStyle={styles.name}
                 descriptionStyle={styles.role}
               />
@@ -48,32 +55,34 @@ export const Profile = () => {
           <List.Section>
             <List.Item
               title="Email"
-              description={user?.email || 'N/A'}
+              description={sepcificUser?.email || 'N/A'}
               left={props => <List.Icon {...props} icon="email" />}
             />
             <List.Item
               title="Số điện thoại"
-              description={user?.phone || 'N/A'}
+              description={sepcificUser?.phone || 'N/A'}
               left={props => <List.Icon {...props} icon="phone" />}
             />
             <List.Item
               title="Địa chỉ"
-              description={user?.address || 'N/A'}
+              description={sepcificUser?.address || 'N/A'}
               left={props => <List.Icon {...props} icon="map-marker" />}
             />
             <List.Item
               title="Chức vụ"
-              description={user?.description || user?.position || 'N/A'}
+              description={
+                sepcificUser?.description || sepcificUser?.position || 'N/A'
+              }
               left={props => <List.Icon {...props} icon="badge-account" />}
             />
             <List.Item
               title="Tên đăng nhập"
-              description={user?.userName || 'N/A'}
+              description={sepcificUser?.userName || 'N/A'}
               left={props => <List.Icon {...props} icon="account" />}
             />
             <List.Item
               title="Trạng thái"
-              description={user?.status || 'N/A'}
+              description={sepcificUser?.status || 'N/A'}
               left={props => <List.Icon {...props} icon="account-check" />}
             />
             {user?.rating && (

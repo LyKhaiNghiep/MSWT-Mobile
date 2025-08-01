@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {format} from 'date-fns';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {
   ActivityIndicator,
@@ -27,7 +27,7 @@ import {colors} from '../../theme';
 import {useAuth} from '../../contexts/AuthContext';
 
 export default function WorkerReportPage() {
-  const {reports, isLoading, isError} = useWorkerReports();
+  const {reports, isLoading, isError, refresh} = useWorkerReports();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
   const [selectedTab, setSelectedTab] = useState('sent');
@@ -41,6 +41,10 @@ export default function WorkerReportPage() {
     }
     return true;
   });
+
+  useEffect(() => {
+    refresh();
+  }, []);
 
   const renderItem = ({item}: {item: Report}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
