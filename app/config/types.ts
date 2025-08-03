@@ -39,4 +39,5 @@ export type ScreenName =
   | 'Employees'
   | 'Sensor'
   | 'Area'
-  | 'Request';
+  | 'Request'
+  | 'CheckInOut';

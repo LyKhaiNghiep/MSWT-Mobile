@@ -38,6 +38,7 @@ import Request from '../screens/Request';
 import CreateRequest from '../screens/CreateRequest';
 import RequestDetails from '../screens/RequestDetails';
 import MyCalendar from '../screens/Calendar';
+import CheckInOutPage from '../screens/CheckInOut';
 
 export const AppStack = () => {
   const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -50,7 +51,6 @@ export const AppStack = () => {
     }
   }, [isFocused]);
 
- 
   return (
     <Stack.Navigator
       initialRouteName={user ? 'Home' : 'Login'}
@@ -64,6 +64,14 @@ export const AppStack = () => {
           <Stack.Screen
             name="Report"
             component={ReportPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+
+          <Stack.Screen
+            name="CheckInOut"
+            component={CheckInOutPage}
             options={{
               animation: 'slide_from_right',
             }}

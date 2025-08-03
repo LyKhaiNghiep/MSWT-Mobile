@@ -51,6 +51,14 @@ export const API_URLS = {
     DELETE: (id: string) => `areas/${id}`,
   },
 
+  // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
+  CHECK_IN_OUT: {
+    GET_ALL: `attendanceRecord/all`,
+    MY: `attendanceRecord/my-records`,
+    CHECK_IN: `attendanceRecord/checkin`,
+    CHECK_OUT: `attendanceRecord/checkout`,
+  },
+
   // Shift management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong shifts.ts
   SHIFT: {
     GET_ALL: `shifts`,
