@@ -28,7 +28,8 @@ export default function CheckInOutPage() {
   const {data, isLoading, mutate} = useCheckInOut();
   const [currentTime, setCurrentTime] = useState(moment());
   const [selectedTab, setSelectedTab] = useState('today');
-
+  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
+  const [selectedYear, setSelectedYear] = useState(moment().year());
   // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,17 +38,13 @@ export default function CheckInOutPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const isWithinWorkHours = useMemo(() => {
-    const hour = currentTime.hour();
-    return hour >= 8 && hour < 16;
-  }, [currentTime]);
-
   const handleCheckIn = async () => {
     try {
       await api.post(API_URLS.CHECK_IN_OUT.CHECK_IN);
+
       mutate();
-    } catch (error) {
-      showSnackbar.error('Check in thất bại. Vui lòng thử lại.');
+    } catch (error: any) {
+      showSnackbar.error(error);
     }
   };
 
@@ -55,61 +52,25 @@ export default function CheckInOutPage() {
     try {
       await api.post(API_URLS.CHECK_IN_OUT.CHECK_OUT);
       mutate();
-    } catch (error) {
-      console.log('error', error);
-      showSnackbar.error('Check out thất bại. Vui lòng thử lại.');
+    } catch (error: any) {
+      showSnackbar.error(error);
     }
+  };
+  const getShiftFromTime = (time: string) => {
+    const hour = moment(time).hour();
+    if (hour >= 5 && hour < 12) return 1;
+    if (hour >= 13 && hour < 21) return 2;
+    return 0;
   };
 
   const renderAttendanceStatus = () => {
-    if (!isWithinWorkHours) {
-      return (
-        <View style={styles.messageContainer}>
-          <Text variant="titleMedium" style={styles.message}>
-            Thời gian điểm danh hôm nay (8:00 - 16:00) đã kết thúc
-          </Text>
-        </View>
-      );
-    }
-
-    if (todayData.length === 0) {
-      return (
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={handleCheckIn}
-            style={styles.button}>
-            Check In
-          </Button>
-        </View>
-      );
-    }
-
-    const latestRecord = todayData[todayData.length - 1];
-    if (!latestRecord.checkOutTime) {
-      return (
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={handleCheckOut}
-            style={styles.button}>
-            Check Out
-          </Button>
-        </View>
-      );
-    }
-
     return (
-      <View style={styles.messageContainer}>
-        <Text variant="titleMedium" style={styles.message}>
-          Bạn đã hoàn thành điểm danh hôm nay{' '}
-        </Text>
+      <View style={styles.shiftsContainer}>
+        {renderShiftStatus(1)}
+        {renderShiftStatus(2)}
       </View>
     );
   };
-
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
-  const [selectedYear, setSelectedYear] = useState(moment().year());
 
   const todayData = useMemo(() => {
     if (!data) return [];
@@ -133,72 +94,80 @@ export default function CheckInOutPage() {
     });
   }, [data, selectedMonth, selectedYear]);
 
-  const renderItem = ({item}: {item: CheckInOut}) => (
-    <Surface style={styles.surface} elevation={4}>
-      <Card style={styles.card} mode="elevated">
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.mainContent}>
-            <View style={styles.header}>
-              <View style={styles.titleContainer}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    {backgroundColor: colors.primary + '15'},
-                  ]}>
-                  <IconButton
-                    icon="account-clock"
-                    size={28}
-                    iconColor={colors.primary}
-                  />
-                </View>
-                <View style={styles.titleWrapper}>
-                  <View style={styles.timeRow}>
+  const renderItem = ({item}: {item: CheckInOut}) => {
+    const shiftNumber = getShiftFromTime(item.checkInTime);
+    const shiftTime = shiftNumber === 1 ? '5:00 - 13:00' : '13:00 - 21:00';
+
+    return (
+      <Surface style={styles.surface} elevation={4}>
+        <Card style={styles.card} mode="elevated">
+          <Card.Content style={styles.cardContent}>
+            <View style={styles.mainContent}>
+              <View style={styles.header}>
+                <View style={styles.titleContainer}>
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      {backgroundColor: colors.primary + '15'},
+                    ]}>
                     <IconButton
-                      icon="login"
-                      size={16}
-                      iconColor={colors.success}
-                      style={styles.smallIcon}
+                      icon="account-clock"
+                      size={28}
+                      iconColor={colors.primary}
                     />
-                    <Text
-                      variant="bodySmall"
-                      style={[styles.subtitle, styles.timeText]}>
-                      {format(new Date(item.checkInTime), 'HH:mm:ss')}
-                    </Text>
                   </View>
-                  {item.checkOutTime && (
+                  <View style={styles.titleWrapper}>
+                    <Text variant="titleMedium" style={styles.shiftIndicator}>
+                      Ca {shiftNumber} ({shiftTime})
+                    </Text>
                     <View style={styles.timeRow}>
                       <IconButton
-                        icon="logout"
+                        icon="login"
                         size={16}
-                        iconColor={colors.error}
+                        iconColor={colors.success}
                         style={styles.smallIcon}
                       />
                       <Text
                         variant="bodySmall"
                         style={[styles.subtitle, styles.timeText]}>
-                        {format(new Date(item.checkOutTime), 'HH:mm:ss')}
+                        {format(new Date(item.checkInTime), 'HH:mm:ss')}
                       </Text>
                     </View>
-                  )}
-                  <Badge
-                    style={[
-                      styles.badge,
-                      {
-                        backgroundColor: item.checkOutTime
-                          ? colors.success
-                          : colors.warning,
-                      },
-                    ]}>
-                    {item.status}
-                  </Badge>
+                    {item.checkOutTime && (
+                      <View style={styles.timeRow}>
+                        <IconButton
+                          icon="logout"
+                          size={16}
+                          iconColor={colors.error}
+                          style={styles.smallIcon}
+                        />
+                        <Text
+                          variant="bodySmall"
+                          style={[styles.subtitle, styles.timeText]}>
+                          {format(new Date(item.checkOutTime), 'HH:mm:ss')}
+                        </Text>
+                      </View>
+                    )}
+                    <Badge
+                      style={[
+                        styles.badge,
+                        {
+                          backgroundColor: item.checkOutTime
+                            ? colors.success
+                            : colors.warning,
+                        },
+                      ]}>
+                      {item.status}
+                    </Badge>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        </Card.Content>
-      </Card>
-    </Surface>
-  );
+          </Card.Content>
+        </Card>
+      </Surface>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -214,6 +183,88 @@ export default function CheckInOutPage() {
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
+  const isWithinShiftOne = useMemo(() => {
+    const hour = currentTime.hour();
+    return hour >= 5 && hour < 12;
+  }, [currentTime]);
+
+  const isWithinShiftTwo = useMemo(() => {
+    const hour = currentTime.hour();
+    return hour >= 13 && hour < 21;
+  }, [currentTime]);
+
+  const getShiftRecords = (shiftNumber: number) => {
+    return todayData.filter(record => {
+      const checkInHour = moment(record.checkInTime).hour();
+      if (shiftNumber === 1) return checkInHour >= 5 && checkInHour < 12;
+      if (shiftNumber === 2) return checkInHour >= 13 && checkInHour < 21;
+      return false;
+    });
+  };
+
+  const renderShiftStatus = (shiftNumber: number) => {
+    const shiftRecords = getShiftRecords(shiftNumber);
+    const isWithinShift =
+      shiftNumber === 1 ? isWithinShiftOne : isWithinShiftTwo;
+    const shiftTime = shiftNumber === 1 ? '5:00 - 13:00' : '13:00 - 21:00';
+
+    // if (!isWithinShift) {
+    //   return (
+    //     <View style={styles.shiftContainer}>
+    //       <Text variant="titleMedium" style={styles.shiftTitle}>
+    //         Ca {shiftNumber} ({shiftTime})
+    //       </Text>
+    //       <Text style={styles.message}>
+    //         {moment().hour() < (shiftNumber === 1 ? 5 : 13)
+    //           ? 'Chưa đến giờ điểm danh'
+    //           : 'Đã hết giờ điểm danh'}
+    //       </Text>
+    //     </View>
+    //   );
+    // }
+
+    if (shiftRecords.length === 0) {
+      return (
+        <View style={styles.shiftContainer}>
+          <Text variant="titleMedium" style={styles.shiftTitle}>
+            Ca {shiftNumber} ({shiftTime})
+          </Text>
+          <Button
+            mode="contained"
+            onPress={handleCheckIn}
+            style={styles.button}>
+            Check In
+          </Button>
+        </View>
+      );
+    }
+
+    const latestRecord = shiftRecords[shiftRecords.length - 1];
+    if (!latestRecord.checkOutTime) {
+      return (
+        <View style={styles.shiftContainer}>
+          <Text variant="titleMedium" style={styles.shiftTitle}>
+            Ca {shiftNumber} ({shiftTime})
+          </Text>
+          <Button
+            mode="contained"
+            onPress={handleCheckOut}
+            style={styles.button}>
+            Check Out
+          </Button>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.shiftContainer}>
+        <Text variant="titleMedium" style={styles.shiftTitle}>
+          Ca {shiftNumber} ({shiftTime})
+        </Text>
+        <Text style={styles.message}>Đã hoàn thành điểm danh</Text>
+      </View>
+    );
+  };
 
   const markedDates = useMemo(() => {
     if (!data) return {};
@@ -306,6 +357,11 @@ export default function CheckInOutPage() {
                                   />
                                 </View>
                                 <View style={styles.titleWrapper}>
+                                  <Text
+                                    variant="titleMedium"
+                                    style={styles.shiftIndicator}>
+                                    Ca {getShiftFromTime(record.checkInTime)}
+                                  </Text>
                                   <View style={styles.timeRow}>
                                     <IconButton
                                       icon="login"
@@ -420,6 +476,35 @@ export default function CheckInOutPage() {
 }
 
 const styles = StyleSheet.create({
+  shiftsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  shiftContainer: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  shiftTitle: {
+    color: colors.primary,
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+
+  shiftIndicator: {
+    color: colors.primary,
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  message: {
+    textAlign: 'center',
+    color: 'red',
+  },
   detailsContainer: {
     padding: 16,
     gap: 8,
@@ -474,17 +559,12 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  message: {
-    textAlign: 'center',
-    color: colors.secondary1,
-  },
+
   buttonContainer: {
     padding: 20,
     alignItems: 'center',
   },
-  button: {
-    width: 200,
-  },
+  button: {},
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',

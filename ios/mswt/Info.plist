@@ -46,6 +46,8 @@
 	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone permission description</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>$(PRODUCT_NAME) needs access to your photo library to update your profile picture.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>MontserratAlternates-Bold.ttf</string>

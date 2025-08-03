@@ -51,6 +51,8 @@ export const API_URLS = {
     DELETE: (id: string) => `areas/${id}`,
   },
 
+  CLOUDINARY: `Cloudinary/upload`,
+
   // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
   CHECK_IN_OUT: {
     GET_ALL: `attendanceRecord/all`,
