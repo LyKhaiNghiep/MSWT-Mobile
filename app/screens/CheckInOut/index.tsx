@@ -30,6 +30,62 @@ export default function CheckInOutPage() {
   const [selectedTab, setSelectedTab] = useState('today');
   const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
   const [selectedYear, setSelectedYear] = useState(moment().year());
+  // Move selectedDate hook to the top
+  const [selectedDate, setSelectedDate] = useState(
+    moment().format('YYYY-MM-DD'),
+  );
+
+  // Move all useMemo hooks to the top as well
+  const todayData = useMemo(() => {
+    if (!data) return [];
+    const today = moment().format('YYYY-MM-DD');
+    return data.filter(item => {
+      const itemDate = moment(item.createdAt || item.attendanceDate).format(
+        'YYYY-MM-DD',
+      );
+      return itemDate === today;
+    });
+  }, [data]);
+
+  const historyData = useMemo(() => {
+    if (!data) return [];
+    return data.filter(item => {
+      const date = new Date(item.createdAt || item.attendanceDate);
+      return (
+        date.getMonth() + 1 === selectedMonth &&
+        date.getFullYear() === selectedYear
+      );
+    });
+  }, [data, selectedMonth, selectedYear]);
+
+  const markedDates = useMemo(() => {
+    if (!data) return {};
+    return data.reduce((acc, record) => {
+      const date = moment(record.createdAt || record.attendanceDate).format(
+        'YYYY-MM-DD',
+      );
+      return {
+        ...acc,
+        [date]: {
+          marked: true,
+          dotColor: colors.primary,
+          selected: date === selectedDate,
+          selectedColor: colors.primary,
+        },
+      };
+    }, {});
+  }, [data, selectedDate]);
+
+  const selectedDateRecords = useMemo(() => {
+    if (!data) return [];
+    return data.filter(record => {
+      const recordDate = moment(
+        record.createdAt || record.attendanceDate,
+      ).format('YYYY-MM-DD');
+      return recordDate === selectedDate;
+    });
+  }, [data, selectedDate]);
+
   // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -71,28 +127,6 @@ export default function CheckInOutPage() {
       </View>
     );
   };
-
-  const todayData = useMemo(() => {
-    if (!data) return [];
-    const today = moment().format('YYYY-MM-DD');
-    return data.filter(item => {
-      const itemDate = moment(item.createdAt || item.attendanceDate).format(
-        'YYYY-MM-DD',
-      );
-      return itemDate === today;
-    });
-  }, [data]);
-
-  const historyData = useMemo(() => {
-    if (!data) return [];
-    return data.filter(item => {
-      const date = new Date(item.createdAt || item.attendanceDate);
-      return (
-        date.getMonth() + 1 === selectedMonth &&
-        date.getFullYear() === selectedYear
-      );
-    });
-  }, [data, selectedMonth, selectedYear]);
 
   const renderItem = ({item}: {item: CheckInOut}) => {
     const shiftNumber = getShiftFromTime(item.checkInTime);
@@ -180,19 +214,6 @@ export default function CheckInOutPage() {
     );
   }
 
-  const [selectedDate, setSelectedDate] = useState(
-    moment().format('YYYY-MM-DD'),
-  );
-  const isWithinShiftOne = useMemo(() => {
-    const hour = currentTime.hour();
-    return hour >= 5 && hour < 12;
-  }, [currentTime]);
-
-  const isWithinShiftTwo = useMemo(() => {
-    const hour = currentTime.hour();
-    return hour >= 13 && hour < 21;
-  }, [currentTime]);
-
   const getShiftRecords = (shiftNumber: number) => {
     return todayData.filter(record => {
       const checkInHour = moment(record.checkInTime).hour();
@@ -204,8 +225,6 @@ export default function CheckInOutPage() {
 
   const renderShiftStatus = (shiftNumber: number) => {
     const shiftRecords = getShiftRecords(shiftNumber);
-    const isWithinShift =
-      shiftNumber === 1 ? isWithinShiftOne : isWithinShiftTwo;
     const shiftTime = shiftNumber === 1 ? '5:00 - 13:00' : '13:00 - 21:00';
 
     // if (!isWithinShift) {
@@ -265,34 +284,6 @@ export default function CheckInOutPage() {
       </View>
     );
   };
-
-  const markedDates = useMemo(() => {
-    if (!data) return {};
-    return data.reduce((acc, record) => {
-      const date = moment(record.createdAt || record.attendanceDate).format(
-        'YYYY-MM-DD',
-      );
-      return {
-        ...acc,
-        [date]: {
-          marked: true,
-          dotColor: colors.primary,
-          selected: date === selectedDate,
-          selectedColor: colors.primary,
-        },
-      };
-    }, {});
-  }, [data, selectedDate]);
-
-  const selectedDateRecords = useMemo(() => {
-    if (!data) return [];
-    return data.filter(record => {
-      const recordDate = moment(
-        record.createdAt || record.attendanceDate,
-      ).format('YYYY-MM-DD');
-      return recordDate === selectedDate;
-    });
-  }, [data, selectedDate]);
 
   return (
     <Screen useDefault>
