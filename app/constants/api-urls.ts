@@ -147,6 +147,7 @@ export const API_URLS = {
   // TrashBin management endpoints
   TRASHBIN: {
     GET_ALL: `trashbins`,
+    GET_ALL_WITH_SENSORS: `trashbins/with-sensors`,
     GET_BY_ID: (id: string) => `trashbins/${id}`,
     CREATE: `trashbins`,
     UPDATE: (id: string) => `trashbins/${id}`,

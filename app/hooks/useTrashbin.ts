@@ -11,8 +11,15 @@ export function useTrashBins() {
     swrFetcher,
   );
 
+  const {
+    data: trashbins2,
+    error: error2,
+    isLoading: isLoading2,
+  } = useSWRNative<any>(API_URLS.TRASHBIN.GET_ALL_WITH_SENSORS, swrFetcher);
+
   return {
     trashbins: data ?? [],
+    trashbins2: (trashbins2?.data ?? []) as TrashBin[],
     isLoading,
     error,
   };
