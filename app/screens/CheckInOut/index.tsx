@@ -45,7 +45,6 @@ export default function CheckInOutPage() {
   const handleCheckIn = async () => {
     try {
       await api.post(API_URLS.CHECK_IN_OUT.CHECK_IN);
-      // Refresh data after check-in
       mutate();
     } catch (error) {
       showSnackbar.error('Check in thất bại. Vui lòng thử lại.');
@@ -55,9 +54,9 @@ export default function CheckInOutPage() {
   const handleCheckOut = async () => {
     try {
       await api.post(API_URLS.CHECK_IN_OUT.CHECK_OUT);
-      // Refresh data after check-out
       mutate();
     } catch (error) {
+      console.log('error', error);
       showSnackbar.error('Check out thất bại. Vui lòng thử lại.');
     }
   };
