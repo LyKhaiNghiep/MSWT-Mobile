@@ -30,11 +30,15 @@ export default function CheckInOutPage() {
   const [selectedTab, setSelectedTab] = useState('today');
   const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
   const [selectedYear, setSelectedYear] = useState(moment().year());
+<<<<<<< Updated upstream
   // Move selectedDate hook to the top
+=======
+>>>>>>> Stashed changes
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
 
+<<<<<<< Updated upstream
   // Move all useMemo hooks to the top as well
   const todayData = useMemo(() => {
     if (!data) return [];
@@ -86,6 +90,8 @@ export default function CheckInOutPage() {
     });
   }, [data, selectedDate]);
 
+=======
+>>>>>>> Stashed changes
   // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -214,6 +220,19 @@ export default function CheckInOutPage() {
     );
   }
 
+<<<<<<< Updated upstream
+=======
+  const isWithinShiftOne = useMemo(() => {
+    const hour = currentTime.hour();
+    return hour >= 5 && hour < 12;
+  }, [currentTime]);
+
+  const isWithinShiftTwo = useMemo(() => {
+    const hour = currentTime.hour();
+    return hour >= 13 && hour < 21;
+  }, [currentTime]);
+
+>>>>>>> Stashed changes
   const getShiftRecords = (shiftNumber: number) => {
     return todayData.filter(record => {
       const checkInHour = moment(record.checkInTime).hour();

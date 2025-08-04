@@ -49,13 +49,17 @@ export default function ReportPage() {
         <View style={styles.rightContent}>
           <Text style={styles.title}>Tầng {item.floorNumber}</Text>
           <View style={styles.statusContainer}>
-            <View
+            <Text
               style={[
-                styles.statusDot,
-                {backgroundColor: getStatusColor(item.status)},
-              ]}
-            />
-            <Text style={[styles.status, {color: getStatusColor(item.status)}]}>
+                styles.status,
+                {
+                  backgroundColor: getStatusColor(item.status),
+                  width: 100,
+                  textAlign: 'center',
+                  color: 'white',
+                  borderRadius: 10,
+                },
+              ]}>
               {item.status}
             </Text>
           </View>
