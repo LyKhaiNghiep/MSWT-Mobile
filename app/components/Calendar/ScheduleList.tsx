@@ -57,14 +57,14 @@ export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
       setIsUploading(true);
       try {
         const formData = new FormData();
-        formData.append('image', {
+        formData.append('evidenceImage', {
           uri: result.assets[0].uri,
           type: result.assets[0].type,
           name: result.assets[0].fileName || 'image.jpg',
         });
 
         const response = await api.put(
-          API_URLS.SCHEDULE_DETAILS.UPDATE(scheduleDetailId),
+          API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
           formData,
           {
             headers: {
@@ -149,20 +149,7 @@ export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
         return null;
     }
   };
-  const handleComplete = async (
-    scheduleDetailId: string,
-    imageUrl?: string,
-  ) => {
-    try {
-      await api.put(API_URLS.SCHEDULE_DETAILS.UPDATE(scheduleDetailId), {
-        imageUrl: imageUrl,
-      });
-      showSnackbar?.success('Đã cập nhật trạng thái');
-      onUpdate?.();
-    } catch (error) {
-      showSnackbar?.error('Cập nhật trạng thái thất bại');
-    }
-  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {groupedSchedules?.map(({date, schedules}) => (

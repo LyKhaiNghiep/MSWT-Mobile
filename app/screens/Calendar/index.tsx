@@ -59,14 +59,15 @@ export default function MyCalendar() {
   );
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Tất cả');
+  const [status, setStatus] = useState('Chưa hoàn thành');
 
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
-  const [selectedYear, setSelectedYear] = useState(moment().year());
+  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
+  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
   const [monthMenuVisible, setMonthMenuVisible] = useState(false);
   const [yearMenuVisible, setYearMenuVisible] = useState(false);
 
-  const months = [
+  const months: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
     {label: 'Tháng 1', value: 1},
     {label: 'Tháng 2', value: 2},
     {label: 'Tháng 3', value: 3},
@@ -83,7 +84,9 @@ export default function MyCalendar() {
 
   // Danh sách năm (từ 2020 đến năm hiện tại + 2)
   const currentYear = moment().year();
-  const years: any[] = [];
+  const years: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
+  ];
   for (let year = 2020; year <= currentYear + 2; year++) {
     years.push({label: `Năm ${year}`, value: year});
   }
@@ -99,11 +102,8 @@ export default function MyCalendar() {
   };
 
   const statusOptopns = [
-    {label: 'Tất cả', value: 'Tất cả'},
-    {label: 'Sắp tới', value: 'Sắp tới'},
-    {label: 'Đang làm', value: 'Đang làm'},
-    {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
-    {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
+    {label: 'Hoàn thành', value: 'Hoàn thành'},
+    {label: 'Chưa hoàn thành', value: 'Chưa hoàn thành'},
   ];
 
   const getStausLabel = () => {
@@ -123,33 +123,41 @@ export default function MyCalendar() {
       return scheduleDate.isSameOrAfter(today);
     }
 
-    // Xử lý lọc theo khoảng thời gian cho tab 'schedule'
-    let matchesTimeRange =
-      scheduleDate.month() + 1 === selectedMonth &&
-      scheduleDate.year() === selectedYear;
+    if (selectedTab === 'history') {
+      // Xử lý lọc theo khoảng thời gian cho tab 'history'
+      let matchesTimeRange = true;
+      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
+      }
+      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.year() === selectedYear;
+      }
 
-    let matchesStatus = false;
-    switch (status) {
-      case 'Tất cả':
-        matchesStatus = true;
-        break;
-      case 'Sắp tới':
-        matchesStatus = schedule.status === 'Sắp tới';
-        break;
-      case 'Đang làm':
-        matchesStatus = schedule.status === 'Đang làm';
-        break;
-      case 'Đã hoàn thành':
-        matchesStatus = schedule.status === 'Đã hoàn thành';
-        break;
-      case 'Bỏ lỡ':
-        matchesStatus = schedule.status === 'Bỏ lỡ';
-        break;
-      default:
-        matchesStatus = true;
+      let matchesStatus = false;
+      const lowerStatus = schedule.status?.toLowerCase();
+
+      switch (status) {
+        case 'Hoàn thành':
+          // Check for completed status (handle different cases)
+          matchesStatus =
+            lowerStatus === 'đã hoàn thành' ||
+            lowerStatus === 'hoàn thành' ||
+            lowerStatus === 'completed';
+          break;
+        case 'Chưa hoàn thành':
+          // Show only items with "Chưa hoàn thành" status
+          matchesStatus = lowerStatus === 'chưa hoàn thành';
+          break;
+        default:
+          matchesStatus = true;
+      }
+
+      return matchesTimeRange && matchesStatus;
     }
 
-    return matchesTimeRange && matchesStatus;
+    return true;
   });
 
   const markedDates = schedules.reduce((acc, schedule) => {

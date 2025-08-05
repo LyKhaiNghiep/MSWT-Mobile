@@ -11,6 +11,7 @@ export const API_URLS = {
     CREATE: `users`,
     UPDATE: (id: string) => `users/${id}`,
     UPDATE_STATUS: (id: string) => `users/update-status/${id}`,
+    UPDATE_AVATAR: (id: string) => `users/${id}/avatar`,
     DELETE: (id: string) => `users/${id}`,
     LOGIN: `users/login`, // Backend xử lý login và trả về token
     REGISTER: `users/register`, // Backend xử lý register
@@ -99,6 +100,8 @@ export const API_URLS = {
     CREATE_FOR_SCHEDULE: (scheduleId: string) =>
       `scheduledetails/${scheduleId}/details`,
     UPDATE: (id: string) => `scheduledetails/${id}`,
+    UPDATE_STATUS: (id: string) =>
+      `scheduledetails/schedule-details/${id}/status`,
     DELETE: (id: string) => `scheduledetails/${id}`,
     RATE: (id: string) => `scheduledetails/scheduledetails/rating/${id}`,
   },

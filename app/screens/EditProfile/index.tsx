@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -17,6 +17,7 @@ import {useAccounts} from '../../hooks/useAccounts';
 import api from '../../services/api';
 import {colors} from '../../theme';
 import {showSnackbar} from '../../utils/snackbar';
+import {mutate} from 'swr';
 
 export default function EditProfile() {
   const {user} = useAuth();
@@ -36,6 +37,22 @@ export default function EditProfile() {
   });
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false);
+
+  // Sync formData with loaded user data (but not during avatar upload)
+  useEffect(() => {
+    if (sepcificUser && !isAvatarUpdating) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: sepcificUser.fullName || '',
+        email: sepcificUser.email || '',
+        phone: sepcificUser.phone || '',
+        address: sepcificUser.address || '',
+        userName: sepcificUser.userName || '',
+        image: sepcificUser.image || '',
+      }));
+    }
+  }, [sepcificUser, isAvatarUpdating]);
 
   const handleImagePick = async () => {
     const result = await launchImageLibrary({
@@ -45,29 +62,71 @@ export default function EditProfile() {
 
     if (result.assets && result.assets[0]) {
       setIsUploading(true);
+      setIsAvatarUpdating(true);
       try {
-        const formData = new FormData();
-        formData.append('file', {
+        if (!user?.userId) {
+          showSnackbar?.error('Không tìm thấy thông tin người dùng');
+          return;
+        }
+
+        const uploadFormData = new FormData();
+        uploadFormData.append('avatarFile', {
           uri: result.assets[0].uri,
           type: result.assets[0].type,
-          name: result.assets[0].fileName || 'image.jpg',
+          name: result.assets[0].fileName || 'avatar.jpg',
         });
 
-        const response = await api.post(API_URLS.CLOUDINARY, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
+        const response = await api.put(
+          API_URLS.USER.UPDATE_AVATAR(user.userId),
+          uploadFormData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
           },
-        });
+        );
 
-        if (response.data?.url) {
-          setFormData(prev => ({
-            ...prev,
-            image: response.data.url,
-          }));
-          showSnackbar?.success('Tải ảnh lên thành công');
+        if (response.status === 200) {
+          // Handle different possible response formats
+          const avatarUrl =
+            response.data?.avatarUrl ||
+            response.data?.image ||
+            response.data?.data?.image ||
+            response.data?.user?.image;
+
+          // Add cache busting to prevent image caching
+          const cacheBustedUrl = avatarUrl
+            ? `${avatarUrl}?t=${Date.now()}`
+            : null;
+
+          if (cacheBustedUrl) {
+            setFormData(prev => ({
+              ...prev,
+              image: cacheBustedUrl,
+            }));
+            console.log(
+              'Avatar updated with cache-busted URL:',
+              cacheBustedUrl,
+            );
+          } else {
+            // If no avatar URL in response, force refresh user data
+            console.log('No avatar URL in response, refreshing user data...');
+          }
+
+          // Invalidate SWR cache to refresh user data across the app
+          await mutate('users-all');
+
+          showSnackbar?.success('Cập nhật ảnh đại diện thành công');
+
+          // Wait a bit before allowing sync to resume to prevent race conditions
+          setTimeout(() => {
+            setIsAvatarUpdating(false);
+          }, 2000);
         }
       } catch (error) {
-        showSnackbar?.error('Tải ảnh lên thất bại');
+        console.error('Avatar upload error:', error);
+        showSnackbar?.error('Cập nhật ảnh đại diện thất bại');
+        setIsAvatarUpdating(false);
       } finally {
         setIsUploading(false);
       }
@@ -105,7 +164,15 @@ export default function EditProfile() {
               <ActivityIndicator size="large" color={colors.mainColor} />
             ) : (
               <>
-                <Avatar.Image size={100} source={{uri: formData.image}} />
+                <Avatar.Image
+                  size={100}
+                  key={formData.image} // Force re-render when image URL changes
+                  source={
+                    formData.image
+                      ? {uri: formData.image}
+                      : require('../../assets/images/avatar-default.svg')
+                  }
+                />
                 <Text style={styles.changePhotoText}>Thay đổi ảnh</Text>
               </>
             )}
