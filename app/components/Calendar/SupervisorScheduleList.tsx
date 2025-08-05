@@ -1,7 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View, Alert} from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {ScrollView, StyleSheet, View, Image} from 'react-native';
 import {
   Button,
   Card,
@@ -28,11 +27,12 @@ interface IProps {
 }
 
 export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IProps) {
-  const [isUploading, setIsUploading] = useState(false);
   const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleDetails | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [imageDialogVisible, setImageDialogVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>('');
 
   const groupByDate = (schedules: ScheduleDetails[]) => {
     const grouped: {[key: string]: any[]} = {};
@@ -56,52 +56,20 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
     }),
   );
 
-  const handleImagePick = async (scheduleDetailId: string) => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-
-    if (result.assets && result.assets[0]) {
-      setIsUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append('evidenceImage', {
-          uri: result.assets[0].uri,
-          type: result.assets[0].type,
-          name: result.assets[0].fileName || 'image.jpg',
-        });
-
-        const response = await api.put(
-          API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          },
-        );
-
-        if (response.status === 200) {
-          showSnackbar?.success('Đã cập nhật trạng thái');
-          onUpdate?.();
-        }
-      } catch (error) {
-        showSnackbar?.error('Cập nhật trạng thái thất bại');
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
-
   const handleRate = async () => {
     if (!selectedSchedule) return;
 
     try {
-      // Tạo chuỗi rating với format: "rating,comment"
-      const ratingData = `${rating},${comment || ''}`;
+      // Sử dụng format API mới theo Swagger documentation
+      const ratingData = {
+        scheduleDetailId: selectedSchedule.scheduleDetailId,
+        ratingvalue: rating,
+        comment: comment || '',
+      };
 
-      const response = await api.put(
+      console.log('Rating data:', ratingData);
+
+      const response = await api.post(
         API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
         ratingData,
         {
@@ -110,6 +78,8 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
           },
         }
       );
+
+      console.log('Rating response:', response);
 
       if (response.status === 200) {
         showSnackbar?.success('Đánh giá đã được gửi');
@@ -122,12 +92,18 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
         setComment('');
       }
     } catch (error: any) {
+      console.error('Error rating:', error);
       showSnackbar?.error('Không thể đánh giá. Vui lòng thử lại');
     }
   };
 
   const getTimeRange = (startTime: string, endTime: string) => {
     return `${startTime} - ${endTime}`;
+  };
+
+  const handleViewImage = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setImageDialogVisible(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -177,45 +153,47 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
     }
   };
 
-  const renderActionButton = (schedule: ScheduleDetails) => {
-    switch (schedule.status?.toLowerCase()) {
-      case 'đang làm':
-        return (
-          <Button
-            mode="contained-tonal"
-            onPress={() => handleImagePick(schedule.scheduleDetailId)}
-            loading={isUploading}>
-            Đánh dấu hoàn thành
-          </Button>
-        );
-      default:
-        return null;
-    }
-  };
-
   const renderSupervisorActions = (schedule: ScheduleDetails) => {
     if (!schedule.workerId) return null;
 
     return (
       <View style={styles.supervisorActions}>
-        <View style={styles.workerInfo}>
+        {/* Worker Info Row - Luôn hiển thị */}
+        <View style={styles.workerRow}>
           <Text style={styles.workerLabel}>Nhân viên: {schedule.workerId}</Text>
-          {schedule.rating && (
+          <View style={styles.actionButtons}>
+            <IconButton
+              icon="star"
+              size={20}
+              iconColor={colors.warning}
+              onPress={() => {
+                setSelectedSchedule(schedule);
+                setRatingDialogVisible(true);
+              }}
+            />
+            {schedule.evidenceImage && (
+              <Button
+                mode="outlined"
+                icon="image"
+                onPress={() => handleViewImage(schedule.evidenceImage!)}
+                style={styles.evidenceImageButton}
+                compact
+              >
+                ảnh
+              </Button>
+            )}
+          </View>
+        </View>
+        
+        {/* Rating Display - Hiển thị riêng biệt */}
+        {schedule.rating && (
+          <View style={styles.ratingDisplayContainer}>
             <RatingDisplay
               rating={schedule.rating}
               comment=""
             />
-          )}
-        </View>
-        <IconButton
-          icon="star"
-          size={20}
-          iconColor={colors.warning}
-          onPress={() => {
-            setSelectedSchedule(schedule);
-            setRatingDialogVisible(true);
-          }}
-        />
+          </View>
+        )}
       </View>
     );
   };
@@ -335,7 +313,6 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                         </View>
                       )}
                       {renderSupervisorActions(schedule)}
-                      {renderActionButton(schedule)}
                     </View>
                   </View>
                 </Card.Content>
@@ -377,6 +354,29 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
           <Dialog.Actions>
             <Button onPress={() => setRatingDialogVisible(false)}>Hủy</Button>
             <Button onPress={handleRate}>Đánh giá</Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        {/* Image Display Dialog */}
+        <Dialog
+          visible={imageDialogVisible}
+          onDismiss={() => {
+            setImageDialogVisible(false);
+            setSelectedImage('');
+          }}
+        >
+          <Dialog.Title>Ảnh chứng minh</Dialog.Title>
+          <Dialog.Content>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.evidenceImage}
+                resizeMode="contain"
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setImageDialogVisible(false)}>Đóng</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -519,6 +519,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
     marginBottom: 4,
+    fontFamily: 'WorkSans-SemiBold',
+  },
+  workerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginLeft: 2,
   },
   workerItem: {
     flexDirection: 'row',
@@ -728,5 +735,31 @@ const styles = StyleSheet.create({
   completeButton: {
     marginTop: 16,
     backgroundColor: colors.success,
+  },
+  evidenceImageContainer: {
+    marginTop: 12,
+  },
+  evidenceImageButton: {
+    borderRadius: 8,
+    height: 32,
+    paddingHorizontal: 8,
+  },
+  imageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 200,
+  },
+  evidenceImage: {
+    width: '100%',
+    height: 300,
+    borderRadius: 8,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingDisplayContainer: {
+    marginTop: 8,
   },
 }); 

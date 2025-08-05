@@ -179,14 +179,18 @@ export default function CalendarSupervisor() {
     if (!selectedSchedule) return;
 
     try {
-      // Tạo chuỗi rating với format: "rating,comment"
-      const ratingData = `${rating},${comment || ''}`;
+      // Sử dụng format API mới theo Swagger documentation
+      const ratingData = {
+        scheduleDetailId: selectedSchedule.scheduleDetailId,
+        ratingvalue: rating,
+        comment: comment || '',
+      };
 
       console.log('Selected Schedule:', selectedSchedule);
       console.log('Rating data:', ratingData);
       console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
 
-      const response = await api.put(
+      const response = await api.post(
         API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
         ratingData,
         {

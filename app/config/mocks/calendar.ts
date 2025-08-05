@@ -10,7 +10,7 @@ const sampleScheduleDetails: ScheduleDetails[] = [
     date: '2024-01-15',
     status: 'Completed',
     supervisorId: 'SUP001',
-    rating: 4.5,
+    rating: 5,
     workerId: 'WORKER001',
     evidenceImage: 'https://example.com/evidence1.jpg',
     startTime: '08:00:00',
