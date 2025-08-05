@@ -22,9 +22,11 @@ export default function UpcomingCalendar() {
   const {user} = useAuth();
   const userId = user?.userId;
   const {schedules, isLoading, error} = useSchedules(userId);
-  const scheduleDetails = schedules.filter(
-    x => x.date >= moment().format('YYYY-MM-DD'),
-  );
+  const scheduleDetails = schedules
+    .filter(
+      x => x.date >= moment().format('YYYY-MM-DD') && x.status === 'Sắp tới',
+    )
+    .sort((a, b) => moment(a.date).diff(moment(b.date))); // Sort by date ascending (closest first)
 
   const groupByDate = (schedules: ScheduleDetails[]) => {
     const grouped: {[key: string]: any[]} = {};
@@ -35,18 +37,28 @@ export default function UpcomingCalendar() {
       }
       grouped[date].push(schedule);
     });
+
+    // Sort schedules within each date by start time
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) => {
+        const timeA = moment(a.startTime, 'HH:mm:ss');
+        const timeB = moment(b.startTime, 'HH:mm:ss');
+        return timeA.diff(timeB);
+      });
+    });
+
     return grouped;
   };
 
   const groupedSchedulesObject = groupByDate(scheduleDetails);
 
-  // Convert object to array format for easier rendering
-  const groupedSchedules = Object.entries(groupedSchedulesObject).map(
-    ([date, schedules]) => ({
+  // Convert object to array format for easier rendering and sort by date
+  const groupedSchedules = Object.entries(groupedSchedulesObject)
+    .map(([date, schedules]) => ({
       date,
       schedules,
-    }),
-  );
+    }))
+    .sort((a, b) => moment(a.date).diff(moment(b.date))); // Sort groups by date ascending
 
   const getTimeRange = (startTime: string, endTime: string) => {
     return `${startTime} - ${endTime}`;
@@ -155,7 +167,9 @@ export default function UpcomingCalendar() {
         </Surface>
       )}
 
-      {!isLoading && !error && <ScheduleList scheduleDetails={schedules} />}
+      {!isLoading && !error && (
+        <ScheduleList scheduleDetails={scheduleDetails} />
+      )}
     </ScrollView>
   );
 }
