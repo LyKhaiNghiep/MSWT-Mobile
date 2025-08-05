@@ -1,11 +1,10 @@
+import {format, parseISO} from 'date-fns';
 import moment from 'moment';
 import React, {useState} from 'react';
-import {FlatList, StyleSheet, View, Alert} from 'react-native';
-import {Calendar} from 'react-native-calendars';
+import {ScrollView, StyleSheet, View, Alert} from 'react-native';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 import {
   Button,
-  Card,
-  Divider,
   Menu,
   Provider,
   SegmentedButtons,
@@ -18,7 +17,7 @@ import {
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import UpcomingCalendar from '../../components/Calendar/Upcoming';
+import {SupervisorScheduleList, UpcomingCalendar} from '../../components/Calendar';
 import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
 import {useScheduleDetails} from '../../hooks/useScheduleDetails';
 import {colors} from '../../theme';
@@ -28,6 +27,44 @@ import {API_URLS} from '../../constants/api-urls';
 import api from '../../services/api';
 import {Rating} from '../../components/Rating';
 import {RatingDisplay} from '../../components/Rating/RatingDisplay';
+
+// Configure Vietnamese locale
+LocaleConfig.locales['vi'] = {
+  monthNames: [
+    'Tháng 1',
+    'Tháng 2',
+    'Tháng 3',
+    'Tháng 4',
+    'Tháng 5',
+    'Tháng 6',
+    'Tháng 7',
+    'Tháng 8',
+    'Tháng 9',
+    'Tháng 10',
+    'Tháng 11',
+    'Tháng 12',
+  ],
+  monthNamesShort: [
+    'Th1',
+    'Th2',
+    'Th3',
+    'Th4',
+    'Th5',
+    'Th6',
+    'Th7',
+    'Th8',
+    'Th9',
+    'Th10',
+    'Th11',
+    'Th12',
+  ],
+  dayNames: ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+  dayNamesShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+  today: 'Hôm nay',
+};
+
+// Set default locale
+LocaleConfig.defaultLocale = 'vi';
 
 export default function CalendarSupervisor() {
   const {user} = useAuth();
@@ -45,12 +82,13 @@ export default function CalendarSupervisor() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
 
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
-  const [selectedYear, setSelectedYear] = useState(moment().year());
+  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
+  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
   const [monthMenuVisible, setMonthMenuVisible] = useState(false);
   const [yearMenuVisible, setYearMenuVisible] = useState(false);
 
-  const months = [
+  const months: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
     {label: 'Tháng 1', value: 1},
     {label: 'Tháng 2', value: 2},
     {label: 'Tháng 3', value: 3},
@@ -67,7 +105,9 @@ export default function CalendarSupervisor() {
 
   // Danh sách năm (từ 2020 đến năm hiện tại + 2)
   const currentYear = moment().year();
-  const years: {label: string; value: number}[] = [];
+  const years: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
+  ];
   for (let year = 2020; year <= currentYear + 2; year++) {
     years.push({label: `Năm ${year}`, value: year});
   }
@@ -104,25 +144,35 @@ export default function CalendarSupervisor() {
       return scheduleDate.isSameOrAfter(today);
     }
 
-    // Xử lý lọc theo khoảng thời gian cho tab 'schedule'
-    let matchesTimeRange =
-      scheduleDate.month() + 1 === selectedMonth &&
-      scheduleDate.year() === selectedYear;
+    if (selectedTab === 'history') {
+      // Xử lý lọc theo khoảng thời gian cho tab 'history'
+      let matchesTimeRange = true;
+      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
+      }
+      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.year() === selectedYear;
+      }
 
-    let matchesStatus = false;
-    switch (status) {
-      case 'Đã hoàn thành':
-        matchesStatus =
-          schedule.status === 'Đã hoàn thành' || isEmpty(schedule.status);
-        break;
-      case 'Bỏ lỡ':
-        matchesStatus = schedule.status === 'Bỏ lỡ';
-        break;
-      default:
-        matchesStatus = true;
+      let matchesStatus = false;
+      switch (status) {
+        case 'Đã hoàn thành':
+          matchesStatus =
+            schedule.status === 'Đã hoàn thành' || isEmpty(schedule.status);
+          break;
+        case 'Bỏ lỡ':
+          matchesStatus = schedule.status === 'Bỏ lỡ';
+          break;
+        default:
+          matchesStatus = true;
+      }
+
+      return matchesTimeRange && matchesStatus;
     }
 
-    return matchesTimeRange && matchesStatus;
+    return true;
   });
 
   const handleRate = async () => {
@@ -182,50 +232,7 @@ export default function CalendarSupervisor() {
     }
   };
 
-  const renderScheduleItem = ({item}: {item: ScheduleDetails}) => (
-    <Card style={styles.card} mode="outlined">
-      <Card.Content>
-        <View style={styles.header}>
-          <Text variant="titleMedium">{item.assignmentName}</Text>
-          <View style={[styles.statusBadge]}>
-            <Text>Đã hoàn thành</Text>
-          </View>
-        </View>
-        <Divider style={styles.divider} />
-        <View style={styles.content}>
-          <Text>
-            Thời gian: {item.startTime} - {item.endTime}
-          </Text>
-          <Text>
-            Địa điểm: {item.areaName} - {item.schedule.restroomNumber || 'N/A'}
-          </Text>
-          <Text>Loại công việc: {item.schedule.scheduleType}</Text>
-          {item.workerId && (
-            <View style={styles.workerRow}>
-              <Text>Nhân viên: {item.workerId}</Text>
-              <IconButton
-                icon="star"
-                size={20}
-                iconColor={colors.warning}
-                onPress={() => {
-                  setSelectedSchedule(item);
-                  setRatingDialogVisible(true);
-                }}
-              />
-            </View>
-          )}
-          {item.rating && (
-            <RatingDisplay
-              rating={item.rating}
-              comment=""
-            />
-          )}
-        </View>
-      </Card.Content>
-    </Card>
-  );
-
-  const markedDates: {[key: string]: {marked: boolean; dotColor: string}} = scheduleDetails.reduce((acc, schedule) => {
+  const markedDates = scheduleDetails.reduce((acc, schedule) => {
     const date = moment(schedule.date).format('YYYY-MM-DD');
     return {
       ...acc,
@@ -234,7 +241,7 @@ export default function CalendarSupervisor() {
         dotColor: '#FF4B2B',
       },
     };
-  }, {} as {[key: string]: {marked: boolean; dotColor: string}});
+  }, {});
 
   if (isLoading) {
     return (
@@ -361,43 +368,44 @@ export default function CalendarSupervisor() {
                   ))}
                 </Menu>
               </View>
-
-              <FlatList
-                data={filteredSchedules}
-                renderItem={renderScheduleItem}
-                keyExtractor={item => item.scheduleDetailId}
-                ListEmptyComponent={
-                  <View style={styles.centerContent}>
-                    <Text style={styles.emptyText}>Không có lịch nào</Text>
-                  </View>
-                }
-                contentContainerStyle={styles.list}
-                showsVerticalScrollIndicator={false}
-                removeClippedSubviews={false}
-              />
+              <SupervisorScheduleList scheduleDetails={filteredSchedules} onUpdate={mutate} />
             </View>
           )}
 
           {selectedTab === 'schedule' && (
-            <Calendar
-              current={selectedDate}
-              onDayPress={(day: any) => setSelectedDate(day.dateString)}
-              markedDates={{
-                ...markedDates,
+            <ScrollView>
+              <Calendar
+                current={selectedDate}
+                onDayPress={(day: any) => {
+                  console.log('dateString', day.dateString);
+                  setSelectedDate(day.dateString);
+                }}
+                markedDates={{
+                  ...markedDates,
 
-                [selectedDate]: {
-                  selected: true,
-                  marked: markedDates[selectedDate]?.marked!,
-                  dotColor: markedDates[selectedDate]?.dotColor,
-                },
-              }}
-              theme={{
-                selectedDayBackgroundColor: '#FF4B2B',
-                todayTextColor: '#FF4B2B',
-                dotColor: '#FF4B2B',
-                arrowColor: '#FF4B2B',
-              }}
-            />
+                  [selectedDate]: {
+                    selected: true,
+                    marked: (markedDates as any)[selectedDate]?.marked!,
+                    dotColor: (markedDates as any)[selectedDate]?.dotColor,
+                  },
+                }}
+                theme={{
+                  selectedDayBackgroundColor: '#FF4B2B',
+                  todayTextColor: '#FF4B2B',
+                  dotColor: '#FF4B2B',
+                  arrowColor: '#FF4B2B',
+                }}
+              />
+              <View style={{marginTop: 10}}>
+                <SupervisorScheduleList
+                  scheduleDetails={scheduleDetails.filter(
+                    x =>
+                      format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
+                  )}
+                  onUpdate={mutate}
+                />
+              </View>
+            </ScrollView>
           )}
         </View>
 
