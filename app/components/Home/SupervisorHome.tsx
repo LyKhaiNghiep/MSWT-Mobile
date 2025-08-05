@@ -30,6 +30,14 @@ export const SupervisorHome = () => {
     },
     
     {
+      id: 'checkInOut',
+      title: 'Check In/Out',
+      icon: 'clock-outline',
+      route: 'CheckInOut',
+      color: 'green',
+    },
+
+    {
       id: 'trash',
       title: 'Thùng rác',
       icon: 'delete-outline',
