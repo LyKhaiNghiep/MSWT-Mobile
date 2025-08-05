@@ -1,120 +1,179 @@
-import React, {useState, useEffect} from 'react';
+import {format, parseISO} from 'date-fns';
+import moment from 'moment';
+import React, {useState} from 'react';
+import {ScrollView, StyleSheet, View, Alert} from 'react-native';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import {Screen} from '../../components';
-import {AppHeader} from '../../components/AppHeader';
-import {
+  Button,
+  Menu,
+  Provider,
+  SegmentedButtons,
   Text,
-  Card,
-  Surface,
-  ActivityIndicator,
-  Chip,
-  Divider,
-  Avatar,
-  Badge,
   IconButton,
   Portal,
   Dialog,
   TextInput,
-  Button,
-  Provider,
+  ActivityIndicator,
 } from 'react-native-paper';
-import {colors} from '../../theme';
-import {format, parseISO, isToday, isTomorrow, isYesterday} from 'date-fns';
-import {vi} from 'date-fns/locale';
+import {Screen} from '../../components';
+import {AppHeader} from '../../components/AppHeader';
+import {SupervisorScheduleList, UpcomingCalendar} from '../../components/Calendar';
+import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
 import {useScheduleDetails} from '../../hooks/useScheduleDetails';
+import {colors} from '../../theme';
+import {isEmpty} from '../../utils';
 import {useAuth} from '../../contexts/AuthContext';
 import {API_URLS} from '../../constants/api-urls';
 import api from '../../services/api';
 import {Rating} from '../../components/Rating';
 import {RatingDisplay} from '../../components/Rating/RatingDisplay';
 
+// Configure Vietnamese locale
+LocaleConfig.locales['vi'] = {
+  monthNames: [
+    'Tháng 1',
+    'Tháng 2',
+    'Tháng 3',
+    'Tháng 4',
+    'Tháng 5',
+    'Tháng 6',
+    'Tháng 7',
+    'Tháng 8',
+    'Tháng 9',
+    'Tháng 10',
+    'Tháng 11',
+    'Tháng 12',
+  ],
+  monthNamesShort: [
+    'Th1',
+    'Th2',
+    'Th3',
+    'Th4',
+    'Th5',
+    'Th6',
+    'Th7',
+    'Th8',
+    'Th9',
+    'Th10',
+    'Th11',
+    'Th12',
+  ],
+  dayNames: ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+  dayNamesShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+  today: 'Hôm nay',
+};
+
+// Set default locale
+LocaleConfig.defaultLocale = 'vi';
+
 export default function CalendarSupervisor() {
   const {user} = useAuth();
   const userId = user?.userId;
   const {scheduleDetails, isLoading, error, mutate} = useScheduleDetails(userId);
+
+  const [selectedDate, setSelectedDate] = useState(
+    moment().format('YYYY-MM-DD'),
+  );
+  const [selectedTab, setSelectedTab] = useState('upcoming');
+  const [menuStatusVisible, setMenuStatusVisible] = useState(false);
+  const [status, setStatus] = useState('Đã hoàn thành');
   const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
 
-  const groupByDate = (schedules: any[]) => {
-    const grouped: {[key: string]: any[]} = {};
-    schedules.forEach(schedule => {
-      const date = format(parseISO(schedule.date), 'yyyy-MM-dd');
-      if (!grouped[date]) {
-        grouped[date] = [];
+  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
+  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
+  const [monthMenuVisible, setMonthMenuVisible] = useState(false);
+  const [yearMenuVisible, setYearMenuVisible] = useState(false);
+
+  const months: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
+    {label: 'Tháng 1', value: 1},
+    {label: 'Tháng 2', value: 2},
+    {label: 'Tháng 3', value: 3},
+    {label: 'Tháng 4', value: 4},
+    {label: 'Tháng 5', value: 5},
+    {label: 'Tháng 6', value: 6},
+    {label: 'Tháng 7', value: 7},
+    {label: 'Tháng 8', value: 8},
+    {label: 'Tháng 9', value: 9},
+    {label: 'Tháng 10', value: 10},
+    {label: 'Tháng 11', value: 11},
+    {label: 'Tháng 12', value: 12},
+  ];
+
+  // Danh sách năm (từ 2020 đến năm hiện tại + 2)
+  const currentYear = moment().year();
+  const years: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
+  ];
+  for (let year = 2020; year <= currentYear + 2; year++) {
+    years.push({label: `Năm ${year}`, value: year});
+  }
+
+  const getMonthLabel = () => {
+    const month = months.find(m => m.value === selectedMonth);
+    return month ? month.label : 'Chọn tháng';
+  };
+
+  const getYearLabel = () => {
+    const year = years.find(y => y.value === selectedYear);
+    return year ? year.label : 'Chọn năm';
+  };
+
+  const statusOptopns = [
+    {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
+    {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
+  ];
+
+  const getStausLabel = () => {
+    const option = statusOptopns.find(opt => opt.value === status);
+    return option ? option.label : 'Chọn trạng thái';
+  };
+
+  const filteredSchedules = scheduleDetails.filter(schedule => {
+    const scheduleDate = moment(schedule.date);
+    const today = moment().startOf('day');
+
+    if (selectedTab === 'upcoming') {
+      return scheduleDate.isSameOrAfter(today);
+    }
+
+    if (selectedTab === 'schedule') {
+      return scheduleDate.isSameOrAfter(today);
+    }
+
+    if (selectedTab === 'history') {
+      // Xử lý lọc theo khoảng thời gian cho tab 'history'
+      let matchesTimeRange = true;
+      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
       }
-      grouped[date].push(schedule);
-    });
-    return grouped;
-  };
+      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.year() === selectedYear;
+      }
 
-  const groupedSchedules = groupByDate(scheduleDetails);
+      let matchesStatus = false;
+      switch (status) {
+        case 'Đã hoàn thành':
+          matchesStatus =
+            schedule.status === 'Đã hoàn thành' || isEmpty(schedule.status);
+          break;
+        case 'Bỏ lỡ':
+          matchesStatus = schedule.status === 'Bỏ lỡ';
+          break;
+        default:
+          matchesStatus = true;
+      }
 
-  const getDateLabel = (dateString: string) => {
-    const date = parseISO(dateString);
-    if (isToday(date)) return 'Hôm nay';
-    if (isTomorrow(date)) return 'Ngày mai';
-    if (isYesterday(date)) return 'Hôm qua';
-    return format(date, 'EEEE, dd/MM/yyyy', {locale: vi});
-  };
-
-  const getTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hoạt động':
-        return colors.success;
-      case 'pending':
-      case 'chờ':
-        return colors.warning;
-      case 'completed':
-      case 'hoàn thành':
-        return colors.primary;
-      default:
-        return colors.grey;
+      return matchesTimeRange && matchesStatus;
     }
-  };
 
-  const getScheduleTypeColor = (scheduleType: string) => {
-    switch (scheduleType?.toLowerCase()) {
-      case 'cleaning':
-      case 'dọn dẹp':
-        return colors.primary;
-      case 'maintenance':
-      case 'bảo trì':
-        return colors.secondary1;
-      case 'inspection':
-      case 'kiểm tra':
-        return colors.success;
-      default:
-        return colors.grey;
-    }
-  };
-
-  const getScheduleTypeIcon = (scheduleType: string) => {
-    switch (scheduleType?.toLowerCase()) {
-      case 'cleaning':
-      case 'dọn dẹp':
-        return 'broom';
-      case 'maintenance':
-      case 'bảo trì':
-        return 'wrench';
-      case 'inspection':
-      case 'kiểm tra':
-        return 'magnify';
-      default:
-        return 'calendar';
-    }
-  };
+    return true;
+  });
 
   const handleRate = async () => {
     if (!selectedSchedule) return;
@@ -173,9 +232,20 @@ export default function CalendarSupervisor() {
     }
   };
 
+  const markedDates = scheduleDetails.reduce((acc, schedule) => {
+    const date = moment(schedule.date).format('YYYY-MM-DD');
+    return {
+      ...acc,
+      [date]: {
+        marked: true,
+        dotColor: '#FF4B2B',
+      },
+    };
+  }, {});
+
   if (isLoading) {
     return (
-      <Screen styles={{backgroundColor: colors.white}} useDefault>
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
         <AppHeader title="Lịch làm việc Supervisor" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -187,7 +257,7 @@ export default function CalendarSupervisor() {
 
   if (error) {
     return (
-      <Screen styles={{backgroundColor: colors.white}} useDefault>
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
         <AppHeader title="Lịch làm việc Supervisor" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
@@ -199,160 +269,145 @@ export default function CalendarSupervisor() {
   }
 
   return (
-    <Screen styles={{backgroundColor: colors.white}} useDefault>
+    <Screen styles={{backgroundColor: 'white'}} useDefault>
       <Provider>
         <AppHeader title="Lịch làm việc Supervisor" />
-        <ScrollView 
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.contentContainer}
-        >
-          {scheduleDetails.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Avatar.Icon 
-                size={80} 
-                icon="calendar-blank" 
-                style={styles.emptyIcon}
-              />
-              <Text style={styles.emptyTitle}>Không có lịch làm việc</Text>
-              <Text style={styles.emptySubtitle}>
-                Hiện tại không có lịch làm việc nào được lên kế hoạch.
-              </Text>
-            </View>
-          ) :
-            Object.entries(groupedSchedules).map(([date, schedules]) => (
-              <Surface key={date} style={styles.dateSection} elevation={2}>
-                <View style={styles.dateHeader}>
-                  <View style={styles.dateHeaderLeft}>
-                    <IconButton
-                      icon="calendar"
-                      size={24}
-                      iconColor={colors.primary}
-                      style={styles.dateIcon}
+        <View style={styles.container}>
+          <SegmentedButtons
+            value={selectedTab}
+            onValueChange={setSelectedTab}
+            buttons={[
+              {value: 'upcoming', label: 'Sắp đến'},
+              {value: 'schedule', label: 'Lịch'},
+              {value: 'history', label: 'Lịch sử'},
+            ]}
+            style={styles.tabs}
+          />
+
+          {selectedTab === 'upcoming' && <UpcomingCalendar />}
+
+          {selectedTab === 'history' && (
+            <View>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 20,
+                  width: 'auto',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Menu
+                  visible={monthMenuVisible}
+                  onDismiss={() => setMonthMenuVisible(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setMonthMenuVisible(true)}
+                      style={styles.timeRangeButton}>
+                      {getMonthLabel()}
+                    </Button>
+                  }>
+                  {months.map(month => (
+                    <Menu.Item
+                      key={month.value}
+                      onPress={() => {
+                        setSelectedMonth(month.value);
+                        setMonthMenuVisible(false);
+                      }}
+                      title={month.label}
                     />
-                    <Text style={styles.dateLabel}>{getDateLabel(date)}</Text>
-                  </View>
-                  <Badge style={styles.scheduleCount}>
-                    {`${schedules.length} lịch`}
-                  </Badge>
-                </View>
-                
-                {schedules.map((schedule) => (
-                  <Card key={schedule.scheduleDetailId} style={styles.scheduleCard}>
-                    <Card.Content style={styles.cardContent}>
-                      <View style={styles.scheduleHeader}>
-                        <View style={styles.headerLeft}>
-                          <Avatar.Icon 
-                            size={40} 
-                            icon={getScheduleTypeIcon(schedule.schedule.scheduleType)}
-                            style={{
-                              backgroundColor: getScheduleTypeColor(schedule.schedule.scheduleType)
-                            }} 
-                          />
-                          <View style={styles.headerText}>
-                            <Text style={styles.timeText}>
-                              {getTimeRange(schedule.startTime, schedule.endTime)}
-                            </Text>
-                            <View style={styles.chipContainer}>
-                              <Chip 
-                                style={[
-                                  styles.typeChip,
-                                  {backgroundColor: getStatusColor(schedule.status)}
-                                ]}
-                                textStyle={styles.chipText}
-                              >
-                                {schedule.status}
-                              </Chip>
-                              <Chip 
-                                style={[
-                                  styles.typeChip,
-                                  {backgroundColor: getScheduleTypeColor(schedule.schedule.scheduleType)}
-                                ]}
-                                textStyle={styles.chipText}
-                              >
-                                {schedule.schedule.scheduleType}
-                              </Chip>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
+                  ))}
+                </Menu>
 
-                      <Divider style={styles.divider} />
+                <Menu
+                  visible={yearMenuVisible}
+                  onDismiss={() => setYearMenuVisible(false)}
+                  anchor={
+                    <Button
+                      style={styles.timeRangeButton}
+                      mode="outlined"
+                      onPress={() => setYearMenuVisible(true)}>
+                      {getYearLabel()}
+                    </Button>
+                  }>
+                  {years.map(year => (
+                    <Menu.Item
+                      key={year.value}
+                      onPress={() => {
+                        setSelectedYear(year.value);
+                        setYearMenuVisible(false);
+                      }}
+                      title={year.label}
+                    />
+                  ))}
+                </Menu>
+              </View>
+              <View>
+                <Menu
+                  visible={menuStatusVisible}
+                  onDismiss={() => setMenuStatusVisible(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setMenuStatusVisible(true)}
+                      style={styles.timeRangeButton}>
+                      {getStausLabel()}
+                    </Button>
+                  }>
+                  {statusOptopns.map(option => (
+                    <Menu.Item
+                      key={option.value}
+                      onPress={() => {
+                        // TODO: set status
+                        setStatus(option.value);
+                        setMenuStatusVisible(false);
+                      }}
+                      title={option.label}
+                    />
+                  ))}
+                </Menu>
+              </View>
+              <SupervisorScheduleList scheduleDetails={filteredSchedules} onUpdate={mutate} />
+            </View>
+          )}
 
-                      <View style={styles.infoContainer}>
-                        <View style={styles.infoRow}>
-                          <Text style={styles.infoLabel}>Công việc:</Text>
-                          <Text style={styles.infoValue}>
-                            {schedule.assignmentName}
-                          </Text>
-                        </View>
+          {selectedTab === 'schedule' && (
+            <ScrollView>
+              <Calendar
+                current={selectedDate}
+                onDayPress={(day: any) => {
+                  console.log('dateString', day.dateString);
+                  setSelectedDate(day.dateString);
+                }}
+                markedDates={{
+                  ...markedDates,
 
-                        <View style={styles.infoRow}>
-                          <Text style={styles.infoLabel}>Khu vực:</Text>
-                          <Text style={styles.infoValue}>
-                            {schedule.areaName}
-                          </Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                          <Text style={styles.infoLabel}>Nhà vệ sinh:</Text>
-                          <Text style={styles.infoValue}>
-                            {schedule.schedule.restroomNumber}
-                          </Text>
-                        </View>
-
-                        {schedule.workerName && (
-                          <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Nhân viên:</Text>
-                            <View style={styles.workerContainer}>
-                              <Text style={styles.workerName}>
-                                {schedule.workerName}
-                              </Text>
-                              <IconButton
-                                icon="star"
-                                size={20}
-                                iconColor={colors.warning}
-                                onPress={() => {
-                                  setSelectedSchedule(schedule);
-                                  setRatingDialogVisible(true);
-                                }}
-                              />
-                            </View>
-                          </View>
-                        )}
-
-                        {schedule.description && (
-                          <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Mô tả:</Text>
-                            <Text style={styles.infoValue}>
-                              {schedule.description}
-                            </Text>
-                          </View>
-                        )}
-
-                        {schedule.schedule.trashBin && (
-                          <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Thùng rác:</Text>
-                            <Text style={styles.infoValue}>
-                              {schedule.schedule.trashBin.location}
-                            </Text>
-                          </View>
-                        )}
-
-                        {schedule.rating && (
-                          <RatingDisplay
-                            rating={schedule.rating}
-                            comment={schedule.comment}
-                          />
-                        )}
-                      </View>
-                    </Card.Content>
-                  </Card>
-                ))}
-              </Surface>
-            ))
-          }
-        </ScrollView>
+                  [selectedDate]: {
+                    selected: true,
+                    marked: (markedDates as any)[selectedDate]?.marked!,
+                    dotColor: (markedDates as any)[selectedDate]?.dotColor,
+                  },
+                }}
+                theme={{
+                  selectedDayBackgroundColor: '#FF4B2B',
+                  todayTextColor: '#FF4B2B',
+                  dotColor: '#FF4B2B',
+                  arrowColor: '#FF4B2B',
+                }}
+              />
+              <View style={{marginTop: 10}}>
+                <SupervisorScheduleList
+                  scheduleDetails={scheduleDetails.filter(
+                    x =>
+                      format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
+                  )}
+                  onUpdate={mutate}
+                />
+              </View>
+            </ScrollView>
+          )}
+        </View>
 
         <Portal>
           <Dialog
@@ -395,11 +450,104 @@ export default function CalendarSupervisor() {
 }
 
 const styles = StyleSheet.create({
+  centerContent: {
+    marginTop: 26,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: colors.subLabel,
+    fontSize: 16,
+  },
   container: {
     flex: 1,
-  },
-  contentContainer: {
     padding: 16,
+  },
+  tabs: {
+    marginBottom: 16,
+  },
+  statusFilter: {
+    marginBottom: 16,
+  },
+  calendar: {
+    height: 100,
+    marginBottom: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  calendarHeader: {
+    color: '#000',
+    fontSize: 14,
+  },
+  dateNumber: {
+    color: '#000',
+    fontSize: 14,
+  },
+  dateName: {
+    color: '#000',
+    fontSize: 12,
+  },
+  highlightDateNumber: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  highlightDateName: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  disabledDateName: {
+    color: '#ccc',
+    fontSize: 12,
+  },
+  disabledDateNumber: {
+    color: '#ccc',
+    fontSize: 14,
+  },
+  iconContainer: {
+    flex: 0.1,
+  },
+  card: {
+    marginBottom: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  divider: {
+    marginVertical: 12,
+  },
+  content: {
+    gap: 4,
+  },
+  workerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  list: {
+    paddingBottom: 16,
+  },
+  timeRangeButton: {
+    marginBottom: 16,
+    width: '100%',
+    minWidth: 170,
+    alignSelf: 'stretch',
+  },
+  calendarPlaceholder: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.grey,
+    borderRadius: 8,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -421,138 +569,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.error,
     textAlign: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    backgroundColor: colors.grey,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.grey,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: colors.grey,
-    textAlign: 'center',
-  },
-  dateSection: {
-    marginBottom: 16,
-    borderRadius: 12,
-    backgroundColor: colors.white,
-    overflow: 'hidden',
-  },
-  dateHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.secondary2,
-  },
-  dateHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateIcon: {
-    margin: 0,
-    marginRight: 8,
-  },
-  dateLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  scheduleCount: {
-    backgroundColor: colors.primary,
-  },
-  scheduleCard: {
-    margin: 8,
-    marginBottom: 8,
-    elevation: 1,
-  },
-  cardContent: {
-    padding: 12,
-  },
-  scheduleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  headerText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  timeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 4,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  typeChip: {
-    minWidth: 100,
-    height: 28,
-  },
-  statusChip: {
-    height: 24,
-  },
-  chipText: {
-    color: colors.white,
-    fontSize: 12,
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  infoContainer: {
-    gap: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  infoLabel: {
-    width: 100,
-    color: colors.grey,
-    fontSize: 14,
-  },
-  infoValue: {
-    flex: 1,
-    color: colors.primary,
-    fontSize: 14,
-  },
-  workerContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.secondary2,
-    padding: 8,
-    borderRadius: 8,
-  },
-  workerName: {
-    flex: 1,
-    color: colors.primary,
-    fontWeight: 'bold',
-  },
-  ratingText: {
-    color: colors.warning,
-    marginLeft: 4,
   },
   ratingContainer: {
     alignItems: 'center',
