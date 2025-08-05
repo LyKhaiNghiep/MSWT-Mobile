@@ -1,29 +1,57 @@
+import {format, parseISO} from 'date-fns';
 import moment from 'moment';
 import React, {useState} from 'react';
-import {FlatList, StyleSheet, View} from 'react-native';
-import {Calendar} from 'react-native-calendars';
-import {
-  Button,
-  Card,
-  Divider,
-  Menu,
-  Provider,
-  SegmentedButtons,
-  Text,
-} from 'react-native-paper';
+import {ScrollView, StyleSheet, View} from 'react-native';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Button, Menu, Provider, SegmentedButtons} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
+import ScheduleList from '../../components/Calendar/ScheduleList';
 import UpcomingCalendar from '../../components/Calendar/Upcoming';
-import {Schedule} from '../../config/models/schedule.model';
+import {useAuth} from '../../contexts/AuthContext';
 import {useSchedules} from '../../hooks/useSchedule';
 import {colors} from '../../theme';
-import {isEmpty} from '../../utils';
-import {useScheduleDetails} from '../../hooks';
-import {useAuth} from '../../contexts/AuthContext';
+
+// Configure Vietnamese locale
+LocaleConfig.locales['vi'] = {
+  monthNames: [
+    'Tháng 1',
+    'Tháng 2',
+    'Tháng 3',
+    'Tháng 4',
+    'Tháng 5',
+    'Tháng 6',
+    'Tháng 7',
+    'Tháng 8',
+    'Tháng 9',
+    'Tháng 10',
+    'Tháng 11',
+    'Tháng 12',
+  ],
+  monthNamesShort: [
+    'Th1',
+    'Th2',
+    'Th3',
+    'Th4',
+    'Th5',
+    'Th6',
+    'Th7',
+    'Th8',
+    'Th9',
+    'Th10',
+    'Th11',
+    'Th12',
+  ],
+  dayNames: ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+  dayNamesShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+  today: 'Hôm nay',
+};
+
+// Set default locale
+LocaleConfig.defaultLocale = 'vi';
 
 export default function MyCalendar() {
   const {user} = useAuth();
-  console.log('userId', user?.userId);
   const {schedules} = useSchedules(user?.userId);
 
   const [selectedDate, setSelectedDate] = useState(
@@ -31,14 +59,15 @@ export default function MyCalendar() {
   );
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Đã hoàn thành');
+  const [status, setStatus] = useState('Chưa hoàn thành');
 
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
-  const [selectedYear, setSelectedYear] = useState(moment().year());
+  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
+  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
   const [monthMenuVisible, setMonthMenuVisible] = useState(false);
   const [yearMenuVisible, setYearMenuVisible] = useState(false);
 
-  const months = [
+  const months: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
     {label: 'Tháng 1', value: 1},
     {label: 'Tháng 2', value: 2},
     {label: 'Tháng 3', value: 3},
@@ -55,7 +84,9 @@ export default function MyCalendar() {
 
   // Danh sách năm (từ 2020 đến năm hiện tại + 2)
   const currentYear = moment().year();
-  const years = [];
+  const years: {label: string; value: string | number}[] = [
+    {label: 'Tất cả', value: 'all'},
+  ];
   for (let year = 2020; year <= currentYear + 2; year++) {
     years.push({label: `Năm ${year}`, value: year});
   }
@@ -71,8 +102,8 @@ export default function MyCalendar() {
   };
 
   const statusOptopns = [
-    {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
-    {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
+    {label: 'Hoàn thành', value: 'Hoàn thành'},
+    {label: 'Chưa hoàn thành', value: 'Chưa hoàn thành'},
   ];
 
   const getStausLabel = () => {
@@ -92,50 +123,43 @@ export default function MyCalendar() {
       return scheduleDate.isSameOrAfter(today);
     }
 
-    // Xử lý lọc theo khoảng thời gian cho tab 'schedule'
-    let matchesTimeRange =
-      scheduleDate.month() + 1 === selectedMonth &&
-      scheduleDate.year() === selectedYear;
+    if (selectedTab === 'history') {
+      // Xử lý lọc theo khoảng thời gian cho tab 'history'
+      let matchesTimeRange = true;
+      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
+      }
+      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
+        matchesTimeRange =
+          matchesTimeRange && scheduleDate.year() === selectedYear;
+      }
 
-    let matchesStatus = false;
-    switch (status) {
-      case 'Đã hoàn thành':
-        matchesStatus =
-          schedule.status === 'Đã hoàn thành' || isEmpty(schedule.status);
-        break;
-      case 'Bỏ lỡ':
-        matchesStatus = schedule.status === 'Bỏ lỡ';
-        break;
-      default:
-        matchesStatus = true;
+      let matchesStatus = false;
+      const lowerStatus = schedule.status?.toLowerCase();
+
+      switch (status) {
+        case 'Hoàn thành':
+          // Check for completed status (handle different cases)
+          matchesStatus =
+            lowerStatus === 'đã hoàn thành' ||
+            lowerStatus === 'hoàn thành' ||
+            lowerStatus === 'completed';
+          break;
+        case 'Chưa hoàn thành':
+          // Show only items with "Chưa hoàn thành" status
+          matchesStatus = lowerStatus === 'chưa hoàn thành';
+          break;
+        default:
+          matchesStatus = true;
+      }
+
+      return matchesTimeRange && matchesStatus;
     }
 
-    return matchesTimeRange && matchesStatus;
+    return true;
   });
 
-  const renderScheduleItem = ({item}: {item: Schedule}) => (
-    <Card style={styles.card} mode="outlined">
-      <Card.Content>
-        <View style={styles.header}>
-          <Text variant="titleMedium">{item.scheduleName}</Text>
-          <View style={[styles.statusBadge]}>
-            <Text>Đã hoàn thành</Text>
-          </View>
-        </View>
-        <Divider style={styles.divider} />
-        <View style={styles.content}>
-          <Text>
-            Thời gian: {moment(item.startDate).format('HH:mm')} -{' '}
-            {moment(item.endDate).format('HH:mm')}
-          </Text>
-          <Text>
-            Địa điểm: {item.areaName} - {item.restroomNumber || 'N/A'}
-          </Text>
-          <Text>Loại công việc: {item.scheduleType}</Text>
-        </View>
-      </Card.Content>
-    </Card>
-  );
   const markedDates = schedules.reduce((acc, schedule) => {
     const date = moment(schedule.date).format('YYYY-MM-DD');
     return {
@@ -246,43 +270,43 @@ export default function MyCalendar() {
                   ))}
                 </Menu>
               </View>
-
-              <FlatList
-                data={filteredSchedules}
-                renderItem={renderScheduleItem}
-                keyExtractor={item => item.scheduleId}
-                ListEmptyComponent={
-                  <View style={styles.centerContent}>
-                    <Text style={styles.emptyText}>Không có lịch nào</Text>
-                  </View>
-                }
-                contentContainerStyle={styles.list}
-                showsVerticalScrollIndicator={false}
-                removeClippedSubviews={false}
-              />
+              <ScheduleList scheduleDetails={filteredSchedules} />
             </View>
           )}
 
           {selectedTab === 'schedule' && (
-            <Calendar
-              current={selectedDate}
-              onDayPress={(day: any) => setSelectedDate(day.dateString)}
-              markedDates={{
-                ...markedDates,
+            <ScrollView>
+              <Calendar
+                current={selectedDate}
+                onDayPress={(day: any) => {
+                  console.log('dateString', day.dateString);
+                  setSelectedDate(day.dateString);
+                }}
+                markedDates={{
+                  ...markedDates,
 
-                [selectedDate]: {
-                  selected: true,
-                  marked: markedDates[selectedDate]?.marked!,
-                  dotColor: markedDates[selectedDate]?.dotColor,
-                },
-              }}
-              theme={{
-                selectedDayBackgroundColor: '#FF4B2B',
-                todayTextColor: '#FF4B2B',
-                dotColor: '#FF4B2B',
-                arrowColor: '#FF4B2B',
-              }}
-            />
+                  [selectedDate]: {
+                    selected: true,
+                    marked: (markedDates as any)[selectedDate]?.marked!,
+                    dotColor: (markedDates as any)[selectedDate]?.dotColor,
+                  },
+                }}
+                theme={{
+                  selectedDayBackgroundColor: '#FF4B2B',
+                  todayTextColor: '#FF4B2B',
+                  dotColor: '#FF4B2B',
+                  arrowColor: '#FF4B2B',
+                }}
+              />
+              <View style={{marginTop: 10}}>
+                <ScheduleList
+                  scheduleDetails={schedules.filter(
+                    x =>
+                      format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
+                  )}
+                />
+              </View>
+            </ScrollView>
           )}
         </View>
       </Provider>

@@ -5,9 +5,10 @@ import {colors} from '../../theme';
 import {Avatar, Button, Card, Divider, List} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {Animated, StyleSheet} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {StackNavigation} from '../../navigators';
 import {useAccounts} from '../../hooks/useAccounts';
+import {mutate} from 'swr';
 
 export const Profile = () => {
   const {user, logout} = useAuth();
@@ -18,6 +19,14 @@ export const Profile = () => {
   const navigation = useNavigation<StackNavigation>();
   const handleChangePassword = () => navigation.navigate('ChangePassword');
   const handleEditProfile = () => navigation.navigate('EditProfile');
+
+  // Refresh accounts data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Invalidate the SWR cache to fetch fresh data
+      mutate('users-all');
+    }, []),
+  );
 
   return (
     <Screen styles={{backgroundColor: colors.grey}} useDefault={false}>
@@ -32,9 +41,10 @@ export const Profile = () => {
           <Box style={styles.avatarContainer}>
             <Avatar.Image
               size={80}
+              key={sepcificUser?.image} // Force re-render when image URL changes
               source={
-                user?.image
-                  ? {uri: sepcificUser?.image}
+                sepcificUser?.image
+                  ? {uri: sepcificUser.image}
                   : require('../../assets/images/avatar-default.svg')
               }
             />

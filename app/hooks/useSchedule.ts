@@ -13,8 +13,6 @@ export function useSchedules(userId: string | undefined) {
     swrFetcher,
   );
 
-  console.log('data', data);
-
   const updateSchedule = async (
     id: string,
     updatedData: IUpdateScheduleRequest,
@@ -36,7 +34,7 @@ export function useSchedules(userId: string | undefined) {
   };
 
   return {
-    schedules: data ?? [],
+    schedules: data?.sort((a, b) => b.date.localeCompare(a.date)) ?? [],
     isLoading,
     error,
     updateSchedule,

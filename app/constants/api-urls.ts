@@ -11,6 +11,7 @@ export const API_URLS = {
     CREATE: `users`,
     UPDATE: (id: string) => `users/${id}`,
     UPDATE_STATUS: (id: string) => `users/update-status/${id}`,
+    UPDATE_AVATAR: (id: string) => `users/${id}/avatar`,
     DELETE: (id: string) => `users/${id}`,
     LOGIN: `users/login`, // Backend xử lý login và trả về token
     REGISTER: `users/register`, // Backend xử lý register
@@ -51,6 +52,16 @@ export const API_URLS = {
     DELETE: (id: string) => `areas/${id}`,
   },
 
+  CLOUDINARY: `Cloudinary/upload`,
+
+  // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
+  CHECK_IN_OUT: {
+    GET_ALL: `attendanceRecord/all`,
+    MY: `attendanceRecord/my-records`,
+    CHECK_IN: `attendanceRecord/checkin`,
+    CHECK_OUT: `attendanceRecord/checkout`,
+  },
+
   // Shift management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong shifts.ts
   SHIFT: {
     GET_ALL: `shifts`,
@@ -89,6 +100,8 @@ export const API_URLS = {
     CREATE_FOR_SCHEDULE: (scheduleId: string) =>
       `scheduledetails/${scheduleId}/details`,
     UPDATE: (id: string) => `scheduledetails/${id}`,
+    UPDATE_STATUS: (id: string) =>
+      `scheduledetails/schedule-details/${id}/status`,
     DELETE: (id: string) => `scheduledetails/${id}`,
     RATE: (id: string) => `scheduledetails/scheduledetails/rating/${id}`,
   },
@@ -137,6 +150,7 @@ export const API_URLS = {
   // TrashBin management endpoints
   TRASHBIN: {
     GET_ALL: `trashbins`,
+    GET_ALL_WITH_SENSORS: `trashbins/with-sensors`,
     GET_BY_ID: (id: string) => `trashbins/${id}`,
     CREATE: `trashbins`,
     UPDATE: (id: string) => `trashbins/${id}`,

@@ -44,6 +44,10 @@ export default function FloorDetails() {
               <Badge
                 style={[
                   {
+                    width: 100,
+                    textAlign: 'center',
+                    color: 'white',
+                    borderRadius: 10,
                     backgroundColor: getStatusColor(floor.status),
                     alignSelf: 'center',
                   },
@@ -85,6 +89,10 @@ export default function FloorDetails() {
                       style={[
                         {
                           backgroundColor: getStatusColor(area.status),
+                          width: 100,
+                          textAlign: 'center',
+                          color: 'white',
+                          borderRadius: 10,
                         },
                       ]}>
                       {area.status}

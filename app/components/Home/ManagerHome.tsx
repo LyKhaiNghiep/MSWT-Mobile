@@ -27,13 +27,13 @@ export const ManagerHome = () => {
       route: 'Trash',
       color: theme.colors.error,
     },
-    {
-      id: 'sensor',
-      title: 'Cảm biến',
-      icon: 'signal',
-      route: 'Sensor',
-      color: theme.colors.error,
-    },
+    // {
+    //   id: 'sensor',
+    //   title: 'Cảm biến',
+    //   icon: 'signal',
+    //   route: 'Sensor',
+    //   color: theme.colors.error,
+    // },
     {
       id: 'area',
       title: 'Khu vực',

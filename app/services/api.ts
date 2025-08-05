@@ -30,7 +30,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       // TODO: go to login page
     }
-    return Promise.reject(err);
+    return Promise.reject(err.response.data);
   },
 );
 

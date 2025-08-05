@@ -6,7 +6,6 @@ import {
   Card,
   Text,
   Surface,
-  Badge,
   IconButton,
 } from 'react-native-paper';
 import {Screen} from '../../components';
@@ -23,7 +22,7 @@ export default function TrashBinPage() {
   console.log('trashbins', trashbins);
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'đang hoạt động':
+      case 'hoạt động':
         return colors.success;
       case 'bảo trì':
         return colors.warning;
@@ -46,31 +45,31 @@ export default function TrashBinPage() {
           <View style={styles.mainContent}>
             <View style={styles.header}>
               <View style={styles.titleContainer}>
-                <View style={styles.iconContainer}>
-                  <IconButton
-                    icon="trash-can"
-                    size={24}
-                    iconColor={colors.primary}
-                  />
-                </View>
-                <View
-                  style={{display: 'flex', flexDirection: 'column', gap: 1}}>
-                  <Text variant="titleMedium" style={styles.title}>
+                <View style={styles.textContainer}>
+                  <Text
+                    variant="titleMedium"
+                    style={styles.title}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {item.trashBinName}
                   </Text>
-                  <Text variant="bodyMedium" style={{}}>
+                  <Text
+                    variant="bodyMedium"
+                    style={styles.subtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {item.areaName}
                   </Text>
                 </View>
               </View>
 
-              <Badge
+              <View
                 style={[
                   styles.badge,
                   {backgroundColor: getStatusColor(item.status)},
                 ]}>
-                {item.status}
-              </Badge>
+                <Text style={styles.badgeText}>{item.status}</Text>
+              </View>
             </View>
           </View>
 
@@ -158,20 +157,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    minHeight: 40,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  iconContainer: {
+    flex: 1,
     marginRight: 8,
+  },
+  textContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   title: {
     color: colors.primary,
     fontWeight: '600',
   },
+  subtitle: {
+    color: colors.subLabel,
+    fontSize: 12,
+    marginTop: 2,
+  },
   badge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexShrink: 0,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    minHeight: 24,
+    borderRadius: 12,
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   infoContainer: {
     marginTop: 4,

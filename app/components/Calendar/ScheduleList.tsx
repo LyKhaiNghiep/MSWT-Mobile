@@ -1,30 +1,29 @@
 import {format, parseISO} from 'date-fns';
-import moment from 'moment';
-import React from 'react';
+import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {
   Button,
   Card,
   Chip,
   Divider,
   IconButton,
-  ProgressBar,
   Surface,
   Text,
 } from 'react-native-paper';
 import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
-import {useAuth} from '../../contexts/AuthContext';
-import {useSchedules} from '../../hooks/useSchedule';
+import {API_URLS} from '../../constants/api-urls';
+import api from '../../services/api';
 import {colors} from '../../theme';
-import ScheduleList from './ScheduleList';
+import {showSnackbar} from '../../utils/snackbar';
 
-export default function UpcomingCalendar() {
-  const {user} = useAuth();
-  const userId = user?.userId;
-  const {schedules, isLoading, error} = useSchedules(userId);
-  const scheduleDetails = schedules.filter(
-    x => x.date >= moment().format('YYYY-MM-DD'),
-  );
+interface IProps {
+  scheduleDetails: ScheduleDetails[];
+  onUpdate?: () => void;
+}
+
+export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
+  const [isUploading, setIsUploading] = useState(false);
 
   const groupByDate = (schedules: ScheduleDetails[]) => {
     const grouped: {[key: string]: any[]} = {};
@@ -47,6 +46,44 @@ export default function UpcomingCalendar() {
       schedules,
     }),
   );
+
+  const handleImagePick = async (scheduleDetailId: string) => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
+
+    if (result.assets && result.assets[0]) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('evidenceImage', {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type,
+          name: result.assets[0].fileName || 'image.jpg',
+        });
+
+        const response = await api.put(
+          API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          showSnackbar?.success('Đã cập nhật trạng thái');
+          onUpdate?.();
+        }
+      } catch (error) {
+        showSnackbar?.error('Cập nhật trạng thái thất bại');
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
 
   const getTimeRange = (startTime: string, endTime: string) => {
     return `${startTime} - ${endTime}`;
@@ -97,70 +134,159 @@ export default function UpcomingCalendar() {
         return 'calendar';
     }
   };
-
-  if (isLoading) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Đang tải lịch làm việc...</Text>
-      </View>
-    );
-  }
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          Không thể tải lịch làm việc. Vui lòng thử lại.
-        </Text>
-      </View>
-    );
-  }
-
-  const getProgressValue = (schedules: ScheduleDetails[]) => {
-    const completed = schedules.filter(
-      s => s.status === 'Đã hoàn thành',
-    ).length;
-    return schedules.length > 0 ? completed / schedules.length : 0;
+  const renderActionButton = (schedule: ScheduleDetails) => {
+    switch (schedule.status?.toLowerCase()) {
+      case 'đang làm':
+        return (
+          <Button
+            mode="contained-tonal"
+            onPress={() => handleImagePick(schedule.scheduleDetailId)}
+            loading={isUploading}>
+            Đánh dấu hoàn thành
+          </Button>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {isLoading && (
-        <Surface style={styles.loadingContainer} elevation={1}>
-          <ProgressBar indeterminate color={colors.primary} />
-          <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
-        </Surface>
-      )}
+      {groupedSchedules?.map(({date, schedules}) => (
+        <Surface key={date} style={styles.modernDateSection} elevation={2}>
+          <View style={styles.modernDateHeader}>
+            <View style={styles.dateHeaderLeft}>
+              <Surface style={styles.dateIconContainer} elevation={1}>
+                <IconButton
+                  icon="calendar"
+                  size={20}
+                  iconColor={colors.primary}
+                  style={styles.dateIcon}
+                />
+              </Surface>
+              <View>
+                <Text style={styles.dateLabel}>
+                  {new Date(date).toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text style={styles.dateSubtitle}>
+                  {schedules.length} công việc
+                </Text>
+              </View>
+            </View>
+          </View>
 
-      {error && (
-        <Surface style={styles.errorContainer} elevation={1}>
-          <IconButton icon="alert-circle" size={48} iconColor={colors.error} />
-          <Text style={styles.errorTitle}>Có lỗi xảy ra</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <Button mode="outlined">Thử lại</Button>
-        </Surface>
-      )}
+          {schedules.map((schedule: ScheduleDetails) => (
+            <Card
+              key={schedule.scheduleDetailId}
+              style={styles.modernScheduleCard}>
+              <Card.Content style={styles.modernCardContent}>
+                <View style={styles.modernScheduleHeader}>
+                  <View style={styles.headerLeft}>
+                    <Surface style={styles.scheduleIconContainer} elevation={1}>
+                      <IconButton
+                        icon={getScheduleTypeIcon(
+                          schedule.schedule.scheduleType,
+                        )}
+                        size={18}
+                        iconColor={getScheduleTypeColor(
+                          schedule.schedule.scheduleType,
+                        )}
+                      />
+                    </Surface>
+                    <View style={styles.headerText}>
+                      <Text style={styles.modernTimeText}>
+                        {getTimeRange(schedule.startTime, schedule.endTime)}
+                      </Text>
+                      <View style={styles.modernChipContainer}>
+                        <Chip
+                          style={[
+                            styles.modernTypeChip,
+                            {
+                              backgroundColor: getStatusColor(schedule.status),
+                            },
+                          ]}
+                          textStyle={styles.modernChipText}>
+                          {schedule.status}
+                        </Chip>
+                        {/* <Chip
+                                style={[
+                                  styles.modernTypeChip,
+                                  {
+                                    backgroundColor: getScheduleTypeColor(
+                                      schedule.schedule.scheduleType,
+                                    ),
+                                  },
+                                ]}
+                                textStyle={styles.modernChipText}>
+                                {schedule.schedule.scheduleType}
+                              </Chip> */}
+                      </View>
+                    </View>
+                  </View>
+                </View>
 
-      {!isLoading && !error && groupedSchedules.length === 0 && (
-        <Surface style={styles.emptyContainer} elevation={1}>
-          <IconButton
-            icon="calendar-check"
-            size={64}
-            iconColor={colors.subLabel}
-          />
-          <Text style={styles.emptyTitle}>Không có lịch sắp tới</Text>
-          <Text style={styles.emptySubtitle}>
-            Bạn đã hoàn thành tất cả công việc!\nHãy nghỉ ngơi và chuẩn bị cho
-            ngày mai.
-          </Text>
-        </Surface>
-      )}
+                <Divider style={styles.modernDivider} />
 
-      {!isLoading && !error && <ScheduleList scheduleDetails={schedules} />}
+                <View style={styles.modernInfoContainer}>
+                  <View style={styles.infoGrid}>
+                    <View style={styles.infoItem}>
+                      <IconButton
+                        icon="briefcase"
+                        size={16}
+                        iconColor={colors.subLabel}
+                      />
+                      <View>
+                        <Text style={styles.infoLabel}>Công việc</Text>
+                        <Text style={styles.infoValue}>
+                          {schedule.assignmentName}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.infoItem}>
+                      <IconButton
+                        icon="map-marker"
+                        size={16}
+                        iconColor={colors.subLabel}
+                      />
+                      <View>
+                        <Text style={styles.infoLabel}>Khu vực</Text>
+                        <Text style={styles.infoValue}>
+                          {schedule.areaName}
+                        </Text>
+                      </View>
+                    </View>
+                    {schedule.schedule.restroom && (
+                      <View style={styles.infoItem}>
+                        <IconButton
+                          icon="toilet"
+                          size={16}
+                          iconColor={colors.subLabel}
+                        />
+                        <View>
+                          <Text style={styles.infoLabel}>Nhà vệ sinh</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.schedule.restroomNumber}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    {renderActionButton(schedule)}
+                  </View>
+                </View>
+              </Card.Content>
+            </Card>
+          ))}
+        </Surface>
+      ))}
     </ScrollView>
   );
 }
 
-// Enhanced styles with modern design principles
 const styles = StyleSheet.create({
   modernScheduleHeader: {
     flexDirection: 'row',
@@ -175,7 +301,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   container: {
-    flex: 1,
     backgroundColor: colors.white,
   },
   modernDateSection: {
@@ -489,5 +614,9 @@ const styles = StyleSheet.create({
   commentInput: {
     width: '100%',
     marginTop: 16,
+  },
+  completeButton: {
+    marginTop: 16,
+    backgroundColor: colors.success,
   },
 });

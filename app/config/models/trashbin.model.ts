@@ -1,13 +1,19 @@
-import {SensorBin} from './sensor.model';
-
 export type TrashBin = {
   trashBinId: string;
   areaId: string;
-  description: string | null;
+  location: string;
   status: string;
-  trashBinName: string | null;
-  areaName: string | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-  sensorBins: SensorBin[];
+  image: string | null;
+  restroomId: string | null;
+  trashBinName?: string | null;
+  areaName?: string | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  description?: string | null;
+  sensors: TrashBinSensor[];
+};
+
+export type TrashBinSensor = {
+  sensorId: string;
+  sensorName: string;
 };
