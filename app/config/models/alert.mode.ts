@@ -8,6 +8,7 @@ export interface AlertModel {
   resolvedAt: string | null;
   userId: string | null;
   status: string;
+  areaName: string;
   trashBin: TrashBin;
   user: User;
 }

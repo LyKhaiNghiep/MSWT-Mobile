@@ -60,9 +60,7 @@ export default function NotificationDetails() {
             <View style={styles.infoSection}>
               <Text variant="titleMedium">Thông tin thùng rác</Text>
 
-              <Text variant="bodyLarge">
-                Vị trí: {alert.trashBin?.location}
-              </Text>
+              <Text variant="bodyLarge">Vị trí: {alert.areaName}</Text>
               <Text variant="bodyLarge">
                 Thời gian gửi:{' '}
                 {format(new Date(alert.timeSend), 'dd/MM/yyyy HH:mm')}
