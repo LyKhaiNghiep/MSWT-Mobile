@@ -1,6 +1,6 @@
-import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
-import { useEffect } from 'react';
-import { useAlerts } from '../hooks/useAlert';
+import notifee, {AndroidImportance, EventType} from '@notifee/react-native';
+import {useEffect} from 'react';
+import {useAlerts} from '../hooks/useAlert';
 
 export const displayNotification = async (title: string, body: string) => {
   // Create a channel (required for Android)
@@ -25,11 +25,11 @@ export const displayNotification = async (title: string, body: string) => {
 };
 
 export const useNotificationSetup = () => {
-  const { alerts } = useAlerts();
+  const {alerts} = useAlerts();
 
   useEffect(() => {
     // Set up foreground handler
-    const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
+    const unsubscribe = notifee.onForegroundEvent(({type, detail}) => {
       if (type === EventType.PRESS) {
         // Handle notification press
         console.log('User pressed notification', detail.notification);
@@ -37,7 +37,7 @@ export const useNotificationSetup = () => {
     });
 
     // Set up background handler
-    notifee.onBackgroundEvent(async ({ type, detail }) => {
+    notifee.onBackgroundEvent(async ({type, detail}) => {
       if (type === EventType.PRESS) {
         // Handle notification press
         console.log('User pressed notification', detail.notification);
@@ -51,10 +51,7 @@ export const useNotificationSetup = () => {
   useEffect(() => {
     const lastAlert = alerts[0]; // Assuming alerts are sorted by date
     if (lastAlert && !lastAlert.resolvedAt) {
-      displayNotification(
-        'Thông báo mới',
-        `Có thông báo mới từ thùng rác tại ${lastAlert.trashBin?.location}`,
-      );
+      displayNotification('Thông báo mới', `Có thông báo mới cần xử lý`);
     }
   }, [alerts]);
 };

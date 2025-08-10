@@ -23,7 +23,7 @@ export default function ReportPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'hoạt động':
-        return colors.success;
+        return colors.blueDark;
       case 'bảo trì':
         return colors.warning;
       case 'ngưng hoạt động':

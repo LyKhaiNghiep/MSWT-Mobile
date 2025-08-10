@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Text} from 'react-native-paper';
+import {Badge, Card, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useSensor} from '../../hooks/useSensor';
@@ -15,7 +15,18 @@ export default function AreaDetailsPage() {
   const trashbin = areas?.find(r => r.areaId === id);
 
   if (!trashbin) return null;
-
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'hoạt động':
+        return colors.blueDark;
+      case 'bảo trì':
+        return colors.warning;
+      case 'ngưng hoạt động':
+        return colors.error;
+      default:
+        return colors.subLabel;
+    }
+  };
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
       <AppHeader title="Chi tiết khu vực" navigateTo="Area" />
@@ -36,7 +47,18 @@ export default function AreaDetailsPage() {
             </View>
             <View style={styles.infoRow}>
               <Text variant="labelLarge">Trạng thái:</Text>
-              <Text variant="bodyLarge">{trashbin.status}</Text>
+              <Badge
+                style={[
+                  {
+                    width: 100,
+                    textAlign: 'center',
+                    color: 'white',
+                    borderRadius: 10,
+                  },
+                  {backgroundColor: getStatusColor(trashbin.status)},
+                ]}>
+                {trashbin.status}
+              </Badge>
             </View>
             <View>
               <Text variant="labelLarge">Mô tả:</Text>
