@@ -14,7 +14,7 @@ export const WorkerHome = () => {
 
   const menuItems: MenuItem[] = [
     {
-      id: 'report',
+      id: 'dashboard',
       title: 'Tổng quan',
       icon: 'home',
       route: 'WorkerDashboard',
