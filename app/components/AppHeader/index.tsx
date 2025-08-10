@@ -12,6 +12,7 @@ type AppHeaderProps = {
   showLogo?: boolean;
   style?: any;
   navigateTo?: ScreenName;
+  onBackPress?: () => void;
 };
 
 export const AppHeader = ({
@@ -19,11 +20,14 @@ export const AppHeader = ({
   style,
   showLogo = false,
   navigateTo = 'Home',
+  onBackPress,
 }: AppHeaderProps) => {
   const navigation = useNavigation<StackNavigation>();
 
   const handleGoBack = () => {
-    if (navigation.canGoBack()) {
+    if (onBackPress) {
+      onBackPress();
+    } else if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate(navigateTo);
