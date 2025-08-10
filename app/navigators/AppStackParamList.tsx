@@ -44,5 +44,6 @@ export type AppStackParamList = {
   CreateRequest: undefined;
   CheckInOut: undefined;
   CheckInOutDetails: undefined;
+  WorkerDashboard: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;

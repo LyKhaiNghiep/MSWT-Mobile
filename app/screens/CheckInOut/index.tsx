@@ -120,12 +120,7 @@ export default function CheckInOutPage() {
   };
 
   const renderAttendanceStatus = () => {
-    return (
-      <View style={styles.shiftsContainer}>
-        {renderShiftStatus(1)}
-        {renderShiftStatus(2)}
-      </View>
-    );
+    return <View style={styles.shiftsContainer}>{renderShiftStatus(1)}</View>;
   };
 
   const renderItem = ({item}: {item: CheckInOut}) => {
@@ -214,40 +209,17 @@ export default function CheckInOutPage() {
     );
   }
 
-  const getShiftRecords = (shiftNumber: number) => {
-    return todayData.filter(record => {
-      const checkInHour = moment(record.checkInTime).hour();
-      if (shiftNumber === 1) return checkInHour >= 5 && checkInHour < 12;
-      if (shiftNumber === 2) return checkInHour >= 13 && checkInHour < 21;
-      return false;
-    });
+  const getShiftRecords = () => {
+    return todayData;
   };
 
   const renderShiftStatus = (shiftNumber: number) => {
-    const shiftRecords = getShiftRecords(shiftNumber);
+    const shiftRecords = getShiftRecords();
     const shiftTime = shiftNumber === 1 ? '5:00 - 13:00' : '13:00 - 21:00';
-
-    // if (!isWithinShift) {
-    //   return (
-    //     <View style={styles.shiftContainer}>
-    //       <Text variant="titleMedium" style={styles.shiftTitle}>
-    //         Ca {shiftNumber} ({shiftTime})
-    //       </Text>
-    //       <Text style={styles.message}>
-    //         {moment().hour() < (shiftNumber === 1 ? 5 : 13)
-    //           ? 'Chưa đến giờ điểm danh'
-    //           : 'Đã hết giờ điểm danh'}
-    //       </Text>
-    //     </View>
-    //   );
-    // }
 
     if (shiftRecords.length === 0) {
       return (
-        <View style={styles.shiftContainer}>
-          <Text variant="titleMedium" style={styles.shiftTitle}>
-            Ca {shiftNumber} ({shiftTime})
-          </Text>
+        <View>
           <Button
             mode="contained"
             onPress={handleCheckIn}
@@ -261,17 +233,12 @@ export default function CheckInOutPage() {
     const latestRecord = shiftRecords[shiftRecords.length - 1];
     if (!latestRecord.checkOutTime) {
       return (
-        <View style={styles.shiftContainer}>
-          <Text variant="titleMedium" style={styles.shiftTitle}>
-            Ca {shiftNumber} ({shiftTime})
-          </Text>
-          <Button
-            mode="contained"
-            onPress={handleCheckOut}
-            style={styles.button}>
-            Check Out
-          </Button>
-        </View>
+        <Button
+          mode="contained"
+          onPress={handleCheckOut}
+          style={{...styles.button, backgroundColor: colors.greenDark}}>
+          Check Out
+        </Button>
       );
     }
 

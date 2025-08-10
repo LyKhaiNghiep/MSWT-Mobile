@@ -67,7 +67,7 @@ export default function MyCalendar() {
   const [yearMenuVisible, setYearMenuVisible] = useState(false);
 
   const months: {label: string; value: string | number}[] = [
-    {label: 'Tất cả', value: 'all'},
+    {label: 'Chọn tháng', value: 'all'},
     {label: 'Tháng 1', value: 1},
     {label: 'Tháng 2', value: 2},
     {label: 'Tháng 3', value: 3},
@@ -85,7 +85,7 @@ export default function MyCalendar() {
   // Danh sách năm (từ 2020 đến năm hiện tại + 2)
   const currentYear = moment().year();
   const years: {label: string; value: string | number}[] = [
-    {label: 'Tất cả', value: 'all'},
+    {label: 'Chọn năm', value: 'all'},
   ];
   for (let year = 2020; year <= currentYear + 2; year++) {
     years.push({label: `Năm ${year}`, value: year});
@@ -270,7 +270,10 @@ export default function MyCalendar() {
                   ))}
                 </Menu>
               </View>
-              <ScheduleList scheduleDetails={filteredSchedules} />
+              <ScheduleList
+                scheduleDetails={filteredSchedules}
+                showRating={true}
+              />
             </View>
           )}
 

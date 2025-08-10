@@ -7,7 +7,7 @@ import useSWRNative from '@nandorojo/swr-react-native';
 // Hook to fetch areas for dropdown
 export function useAlerts() {
   const {data, error, isLoading} = useSWRNative<AlertModel[]>(
-    API_URLS.ALERT.GET_ALL,
+    API_URLS.ALERT.MY_ALERTS,
     swrFetcher,
   );
 
