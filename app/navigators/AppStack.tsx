@@ -41,6 +41,7 @@ import MyCalendar from '../screens/Calendar';
 import CheckInOutPage from '../screens/CheckInOut';
 import {useNotificationSetup} from '../services/notification';
 import WorkerDashboard from '../screens/WorkerDashboard';
+import ForgotPassword from '../screens/ForgotPassword';
 
 export const AppStack = () => {
   useNotificationSetup();
@@ -80,6 +81,7 @@ export const AppStack = () => {
               animation: 'slide_from_right',
             }}
           />
+
           <Stack.Screen
             name="WorkerDashboard"
             component={WorkerDashboard}
@@ -298,7 +300,16 @@ export const AppStack = () => {
           />
         </Stack.Group>
       ) : (
-        <Stack.Screen name="Login" component={Login} />
+        <>
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPassword}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+        </>
       )}
     </Stack.Navigator>
   );
