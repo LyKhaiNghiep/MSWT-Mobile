@@ -8,6 +8,7 @@ export interface ScheduleDetails {
   status: string;
   supervisorId: string;
   rating: number | string | null;
+  comment: string | null;
   workerId: string;
   evidenceImage: string | null;
   startTime: string;

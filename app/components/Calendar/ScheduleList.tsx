@@ -282,22 +282,40 @@ export default function ScheduleList({
                         </View>
                       </View>
                     )}
-                    {showRating && (
-                      <View style={styles.infoItem}>
-                        <IconButton
-                          icon="star"
-                          size={16}
-                          iconColor={colors.subLabel}
-                        />
-                        <View>
-                          <Text style={styles.infoLabel}>Đánh giá</Text>
-                          <RatingDisplay
-                            rating={schedule.rating || 0}
-                            maxRating={5}
+                    {(() => {
+                      // Helper function to get valid rating value
+                      const getRatingValue = (rating: any) => {
+                        if (!rating) return 0;
+                        if (typeof rating === 'string') {
+                          const cleaned = rating.trim();
+                          if (!cleaned) return 0;
+                          const parsed = parseFloat(cleaned);
+                          return isNaN(parsed) ? 0 : parsed;
+                        }
+                        return rating;
+                      };
+                      
+                      const ratingValue = getRatingValue(schedule.rating);
+                      const hasValidRating = ratingValue > 0;
+                      
+                      return (showRating && hasValidRating) && (
+                        <View style={styles.infoItem}>
+                          <IconButton
+                            icon="star"
+                            size={16}
+                            iconColor={colors.warning}
                           />
+                          <View>
+                            <Text style={styles.infoLabel}>Đánh giá</Text>
+                            <RatingDisplay
+                              rating={ratingValue}
+                              comment={schedule.comment || undefined}
+                              maxRating={5}
+                            />
+                          </View>
                         </View>
-                      </View>
-                    )}
+                      );
+                    })()}
                     {renderActionButton(schedule)}
                   </View>
                 </View>

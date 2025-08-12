@@ -104,7 +104,9 @@ export const API_URLS = {
     UPDATE_STATUS: (id: string) =>
       `scheduledetails/schedule-details/${id}/status`,
     DELETE: (id: string) => `scheduledetails/${id}`,
-    RATE: (id: string) => `scheduledetails/schedule-detail/rating`,
+    // PUT /api/scheduledetails/scheduledetails/rating/{id}
+    // Body: { ratingvalue: number; comment: string }
+    RATE: (id: string) => `scheduledetails/scheduledetails/rating/${id}`,
   },
 
   // Shifts management endpoints
