@@ -14,11 +14,13 @@ import {Screen, Text} from '../../components';
 import {useAuth} from '../../contexts/AuthContext';
 import {colors} from '../../theme';
 import {showSnackbar} from '../../utils/snackbar';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigation} from '../../navigators';
 
 export const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
-
+  const navigation = useNavigation<StackNavigation>();
   const {login} = useAuth();
 
   const handleLogin = async () => {
@@ -74,7 +76,7 @@ export const Login = () => {
 
               <Text
                 style={styles.forgotPassword}
-                onPress={() => console.log('Forgot password')}>
+                onPress={() => navigation?.navigate('ForgotPassword')}>
                 Quên mật khẩu?
               </Text>
 

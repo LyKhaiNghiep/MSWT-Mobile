@@ -45,5 +45,6 @@ export type AppStackParamList = {
   CheckInOut: undefined;
   CheckInOutDetails: undefined;
   WorkerDashboard: undefined;
+  ForgotPassword: undefined;
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;
