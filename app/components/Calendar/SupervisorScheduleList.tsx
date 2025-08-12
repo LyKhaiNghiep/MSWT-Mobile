@@ -58,18 +58,28 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
 
   const handleRate = async () => {
     if (!selectedSchedule) return;
+    if (!rating || rating < 1) {
+      showSnackbar?.error('Vui lòng chọn số sao trước khi gửi');
+      return;
+    }
 
     try {
-      // Sử dụng format API mới theo Swagger documentation
+      // PUT /api/scheduledetails/scheduledetails/rating/{id}
       const ratingData = {
-        scheduleDetailId: selectedSchedule.scheduleDetailId,
-        ratingvalue: rating,
+        rating: rating, // ✅ Sửa từ 'ratingvalue' thành 'rating'
         comment: comment || '',
       };
 
       console.log('Rating data:', ratingData);
+      console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
+      console.log('Full request:', {
+        method: 'PUT',
+        url: API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId),
+        data: ratingData,
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-      const response = await api.post(
+      const response = await api.put(
         API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
         ratingData,
         {
@@ -80,16 +90,24 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
       );
 
       console.log('Rating response:', response);
+      console.log('Response data:', response.data);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
       if (response.status === 200) {
         showSnackbar?.success('Đánh giá đã được gửi');
-        onUpdate?.();
         
         // Reset state
         setRatingDialogVisible(false);
         setSelectedSchedule(null);
         setRating(0);
         setComment('');
+        
+        // Force refresh data
+        onUpdate?.();
+        
+        // Debug log
+        console.log('Rating submitted successfully, refreshing data...');
       }
     } catch (error: any) {
       console.error('Error rating:', error);
@@ -153,8 +171,45 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
     }
   };
 
+  // Helper function to get valid rating value
+  const getRatingValue = (rating: any) => {
+    console.log('getRatingValue input:', rating, 'type:', typeof rating);
+    
+    if (!rating) {
+      console.log('getRatingValue: no rating, returning 0');
+      return 0;
+    }
+    
+    if (typeof rating === 'string') {
+      const cleaned = rating.trim();
+      console.log('getRatingValue: cleaned string:', `"${cleaned}"`);
+      
+      if (!cleaned) {
+        console.log('getRatingValue: empty after trim, returning 0');
+        return 0;
+      }
+      
+      const parsed = parseFloat(cleaned);
+      console.log('getRatingValue: parsed result:', parsed, 'isNaN:', isNaN(parsed));
+      
+      if (isNaN(parsed)) {
+        console.log('getRatingValue: NaN result, returning 0');
+        return 0;
+      }
+      
+      console.log('getRatingValue: final result:', parsed);
+      return parsed;
+    }
+    
+    console.log('getRatingValue: non-string, returning:', rating);
+    return rating;
+  };
+
   const renderSupervisorActions = (schedule: ScheduleDetails) => {
     if (!schedule.workerId) return null;
+    
+    const ratingValue = getRatingValue(schedule.rating);
+    const hasValidRating = ratingValue > 0;
 
     return (
       <View style={styles.supervisorActions}>
@@ -162,15 +217,18 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
         <View style={styles.workerRow}>
           <Text style={styles.workerLabel}>Nhân viên: {schedule.workerId}</Text>
           <View style={styles.actionButtons}>
-            <IconButton
-              icon="star"
-              size={20}
-              iconColor={colors.warning}
-              onPress={() => {
-                setSelectedSchedule(schedule);
-                setRatingDialogVisible(true);
-              }}
-            />
+            {!hasValidRating && (
+              <IconButton
+                icon="star"
+                size={20}
+                iconColor={colors.warning}
+                onPress={() => {
+                  setSelectedSchedule(schedule);
+                  setRatingDialogVisible(true);
+                }}
+                style={styles.ratingStarButton}
+              />
+            )}
             {schedule.evidenceImage && (
               <Button
                 mode="outlined"
@@ -185,13 +243,21 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
           </View>
         </View>
         
-        {/* Rating Display - Hiển thị riêng biệt */}
-        {schedule.rating && (
+        {/* Rating Display - Hiển thị đánh giá và nhận xét */}
+        {hasValidRating && (
           <View style={styles.ratingDisplayContainer}>
             <RatingDisplay
-              rating={schedule.rating}
-              comment=""
+              rating={ratingValue}
+              comment={schedule.comment || undefined}
+              maxRating={5}
             />
+          </View>
+        )}
+        
+        {/* Comment Display - Hiển thị comment riêng biệt nếu có */}
+        {!hasValidRating && schedule.comment && schedule.comment.trim() && (
+          <View style={styles.commentOnlyContainer}>
+            <Text style={styles.commentOnlyText}>{schedule.comment}</Text>
           </View>
         )}
       </View>
@@ -504,9 +570,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   supervisorActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: colors.secondary2,
     padding: 12,
     borderRadius: 8,
@@ -520,12 +583,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
     fontFamily: 'WorkSans-SemiBold',
+    flex: 1,
   },
   workerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginLeft: 2,
   },
   workerItem: {
     flexDirection: 'row',
@@ -761,5 +824,25 @@ const styles = StyleSheet.create({
   },
   ratingDisplayContainer: {
     marginTop: 8,
+    backgroundColor: colors.grey,
+    padding: 8,
+    borderRadius: 6,
   },
+  ratingStarButton: {
+    margin: 0,
+    padding: 0,
+  },
+  commentOnlyContainer: {
+    backgroundColor: colors.grey,
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  commentOnlyText: {
+    fontSize: 13,
+    color: colors.primary,
+    lineHeight: 16,
+    fontFamily: 'WorkSans-Regular',
+  },
+
 }); 

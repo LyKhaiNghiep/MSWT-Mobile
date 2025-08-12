@@ -177,12 +177,15 @@ export default function CalendarSupervisor() {
 
   const handleRate = async () => {
     if (!selectedSchedule) return;
+    if (!rating || rating < 1) {
+      Alert.alert('Thiếu thông tin', 'Vui lòng chọn số sao trước khi gửi.');
+      return;
+    }
 
     try {
-      // Sử dụng format API mới theo Swagger documentation
+      // PUT /api/scheduledetails/scheduledetails/rating/{id}
       const ratingData = {
-        scheduleDetailId: selectedSchedule.scheduleDetailId,
-        ratingvalue: rating,
+        rating: rating, // ✅ Sửa từ 'ratingvalue' thành 'rating'
         comment: comment || '',
       };
 
@@ -190,7 +193,7 @@ export default function CalendarSupervisor() {
       console.log('Rating data:', ratingData);
       console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
 
-      const response = await api.post(
+      const response = await api.put(
         API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
         ratingData,
         {
