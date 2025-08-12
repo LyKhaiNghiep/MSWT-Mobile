@@ -170,6 +170,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                 setSelectedSchedule(schedule);
                 setRatingDialogVisible(true);
               }}
+              style={styles.ratingStarButton}
             />
             {schedule.evidenceImage && (
               <Button
@@ -185,6 +186,13 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
           </View>
         </View>
         
+        {/* Debug: Hiển thị thông tin evidenceImage */}
+        {schedule.evidenceImage && (
+          <Text style={styles.debugText}>
+            Debug: Có evidenceImage = {schedule.evidenceImage ? 'YES' : 'NO'}
+          </Text>
+        )}
+        
         {/* Rating Display - Hiển thị riêng biệt */}
         {schedule.rating && (
           <View style={styles.ratingDisplayContainer}>
@@ -193,6 +201,13 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
               comment=""
             />
           </View>
+        )}
+        
+        {/* Debug: Hiển thị thông tin rating */}
+        {schedule.rating && (
+          <Text style={styles.debugText}>
+            Debug: Rating = {schedule.rating}
+          </Text>
         )}
       </View>
     );
@@ -520,10 +535,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
     fontFamily: 'WorkSans-SemiBold',
+    flex: 1,
   },
   workerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginLeft: 2,
   },
@@ -761,5 +776,14 @@ const styles = StyleSheet.create({
   },
   ratingDisplayContainer: {
     marginTop: 8,
+  },
+  ratingStarButton: {
+    margin: 0,
+    padding: 0,
+  },
+  debugText: {
+    fontSize: 12,
+    color: colors.grey,
+    marginTop: 4,
   },
 }); 
