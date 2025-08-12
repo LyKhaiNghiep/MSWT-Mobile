@@ -39,8 +39,12 @@ import CreateRequest from '../screens/CreateRequest';
 import RequestDetails from '../screens/RequestDetails';
 import MyCalendar from '../screens/Calendar';
 import CheckInOutPage from '../screens/CheckInOut';
+import {useNotificationSetup} from '../services/notification';
+import WorkerDashboard from '../screens/WorkerDashboard';
 
 export const AppStack = () => {
+  useNotificationSetup();
+
   const Stack = createNativeStackNavigator<AppStackParamList>();
   const {user} = useAuth();
   const isFocused = useIsFocused();
@@ -72,6 +76,13 @@ export const AppStack = () => {
           <Stack.Screen
             name="CheckInOut"
             component={CheckInOutPage}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="WorkerDashboard"
+            component={WorkerDashboard}
             options={{
               animation: 'slide_from_right',
             }}

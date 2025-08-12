@@ -1,17 +1,36 @@
-import {useRoute} from '@react-navigation/native';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import {format} from 'date-fns';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Divider, Text} from 'react-native-paper';
+import {Button, Card, Divider, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useAlerts} from '../../hooks/useAlert';
+import {API_URLS} from '../../constants/api-urls';
+import api from '../../services/api';
+import {showSnackbar} from '../../utils/snackbar';
+import {StackNavigation} from '../../navigators';
 
 export default function NotificationDetails() {
   const route = useRoute();
+  const navigation = useNavigation<StackNavigation>();
   const {alerts} = useAlerts();
   const id = (route.params as any).id;
   const alert = alerts.find(r => r.alertId === id);
+
+  const handleResolve = async () => {
+    try {
+      await api.put(API_URLS.ALERTS.RESOLVE(id));
+
+      // Show success message
+      showSnackbar?.success('Đã xử lý thông báo');
+      navigation.navigate('Notification');
+
+      // Navigate back
+    } catch (error) {
+      showSnackbar?.error('Không thể xử lý thông báo. Vui lòng thử lại');
+    }
+  };
 
   if (!alert) {
     return (
@@ -40,10 +59,8 @@ export default function NotificationDetails() {
 
             <View style={styles.infoSection}>
               <Text variant="titleMedium">Thông tin thùng rác</Text>
-              <Text variant="bodyLarge">
-                Mã thùng: {alert.trashBin.trashBinName}
-              </Text>
-              <Text variant="bodyLarge">Vị trí: {alert.trashBin.areaName}</Text>
+
+              <Text variant="bodyLarge">Vị trí: {alert.areaName}</Text>
               <Text variant="bodyLarge">
                 Thời gian gửi:{' '}
                 {format(new Date(alert.timeSend), 'dd/MM/yyyy HH:mm')}
@@ -65,6 +82,18 @@ export default function NotificationDetails() {
                     {format(new Date(alert.resolvedAt), 'dd/MM/yyyy HH:mm')}
                   </Text>
                 </View>
+              </>
+            )}
+
+            {!alert.resolvedAt && (
+              <>
+                <Divider style={styles.divider} />
+                <Button
+                  mode="contained"
+                  onPress={handleResolve}
+                  style={styles.resolveButton}>
+                  Đã xử lý
+                </Button>
               </>
             )}
           </Card.Content>
@@ -100,5 +129,8 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     gap: 8,
+  },
+  resolveButton: {
+    marginTop: 8,
   },
 });

@@ -16,13 +16,19 @@ import {API_URLS} from '../../constants/api-urls';
 import api from '../../services/api';
 import {colors} from '../../theme';
 import {showSnackbar} from '../../utils/snackbar';
+import {RatingDisplay} from '../Rating/RatingDisplay';
 
 interface IProps {
   scheduleDetails: ScheduleDetails[];
+  showRating?: boolean;
   onUpdate?: () => void;
 }
 
-export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
+export default function ScheduleList({
+  scheduleDetails,
+  onUpdate,
+  showRating = false,
+}: IProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   const groupByDate = (schedules: ScheduleDetails[]) => {
@@ -260,6 +266,7 @@ export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
                         </Text>
                       </View>
                     </View>
+
                     {schedule.schedule.restroom && (
                       <View style={styles.infoItem}>
                         <IconButton
@@ -272,6 +279,22 @@ export default function ScheduleList({scheduleDetails, onUpdate}: IProps) {
                           <Text style={styles.infoValue}>
                             {schedule.schedule.restroomNumber}
                           </Text>
+                        </View>
+                      </View>
+                    )}
+                    {showRating && (
+                      <View style={styles.infoItem}>
+                        <IconButton
+                          icon="star"
+                          size={16}
+                          iconColor={colors.subLabel}
+                        />
+                        <View>
+                          <Text style={styles.infoLabel}>Đánh giá</Text>
+                          <RatingDisplay
+                            rating={schedule.rating || 0}
+                            maxRating={5}
+                          />
                         </View>
                       </View>
                     )}

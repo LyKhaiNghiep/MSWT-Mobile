@@ -29,7 +29,7 @@ export default function TrashBinDetails() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'hoạt động':
-        return colors.success;
+        return colors.blueDark;
       case 'bảo trì':
         return colors.warning;
       case 'ngưng hoạt động':
@@ -37,7 +37,7 @@ export default function TrashBinDetails() {
       default:
         return colors.subLabel;
     }
-  };
+  }; // abc
 
   const getSensorIcon = (sensorName: string) => {
     const name = sensorName?.toLowerCase() || '';

@@ -23,8 +23,8 @@ export default function AreaPage() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'đang hoạt động':
-        return colors.success;
+      case 'hoạt động':
+        return colors.blueDark;
       case 'bảo trì':
         return colors.warning;
       case 'ngưng hoạt động':

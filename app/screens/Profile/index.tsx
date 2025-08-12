@@ -6,7 +6,7 @@ import {Avatar, Button, Card, Divider, List} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {Animated, StyleSheet} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {StackNavigation} from '../../navigators';
+import {StackNavigation, StackTabNavigation} from '../../navigators';
 import {useAccounts} from '../../hooks/useAccounts';
 import {mutate} from 'swr';
 
@@ -17,8 +17,13 @@ export const Profile = () => {
   const sepcificUser = users?.find(u => u.userName === user?.userName);
 
   const navigation = useNavigation<StackNavigation>();
+  const tabNavigation = useNavigation<StackTabNavigation>();
   const handleChangePassword = () => navigation.navigate('ChangePassword');
   const handleEditProfile = () => navigation.navigate('EditProfile');
+  const handleGoHome = () => {
+    // Since Profile is a tab screen, navigate to the Home tab
+    tabNavigation.navigate('Home');
+  };
 
   // Refresh accounts data when screen comes into focus
   useFocusEffect(
@@ -30,7 +35,7 @@ export const Profile = () => {
 
   return (
     <Screen styles={{backgroundColor: colors.grey}} useDefault={false}>
-      <AppHeader title="Thông tin cá nhân" />
+      <AppHeader title="Thông tin cá nhân" onBackPress={handleGoHome} />
       <Animated.ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={true}

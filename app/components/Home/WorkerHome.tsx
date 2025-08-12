@@ -14,11 +14,18 @@ export const WorkerHome = () => {
 
   const menuItems: MenuItem[] = [
     {
+      id: 'dashboard',
+      title: 'Tổng quan',
+      icon: 'home',
+      route: 'WorkerDashboard',
+      color: theme.colors.primary,
+    },
+    {
       id: 'report',
       title: 'Báo cáo',
       icon: 'file-document-outline',
       route: 'WorkerReport',
-      color: theme.colors.primary,
+      color: colors.yellow,
     },
 
     {
@@ -26,7 +33,7 @@ export const WorkerHome = () => {
       title: 'Xem lịch',
       icon: 'calendar-month-outline',
       route: 'Calendar',
-      color: theme.colors.secondary,
+      color: colors.success,
     },
 
     {
@@ -34,7 +41,7 @@ export const WorkerHome = () => {
       title: 'Xin nghỉ phép',
       icon: 'ticket-outline',
       route: 'LeaveRequest',
-      color: theme.colors.primary,
+      color: colors.warning,
     },
     {
       id: 'checkInOut',

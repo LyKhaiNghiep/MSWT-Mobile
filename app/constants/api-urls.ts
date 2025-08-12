@@ -37,6 +37,7 @@ export const API_URLS = {
   },
   ALERT: {
     GET_ALL: `alerts`,
+    MY_ALERTS: `alerts/my-alerts`,
     GET_BY_ID: (id: string) => `alerts/${id}`,
     CREATE: `alerts`,
     UPDATE: (id: string) => `alerts/${id}`,
@@ -169,6 +170,15 @@ export const API_URLS = {
     DELETE: (id: string) => `reports/${id}`,
   },
 
+  DASHBOARD: {
+    MY_WORK_STATUS: (month: number, year: number) =>
+      `scheduledetails/my-work-stats?month=${month}&year=${year}`,
+    DAYS_OFF: (month: number, year: number) =>
+      `leaves/days-off?month=${month}&year=${year}`,
+    AVERAGE_RATING: (month: number, year: number) =>
+      `scheduledetails/average-rating?month=${month}&year=${year}`,
+  },
+
   // Alerts management endpoints
   ALERTS: {
     GET_ALL: `alerts`,
@@ -176,6 +186,7 @@ export const API_URLS = {
     GET_BY_USER: (userId: string) => `alerts/user/${userId}`,
     CREATE: `alerts`,
     UPDATE: (id: string) => `alerts/${id}`,
+    RESOLVE: (id: string) => `alerts/${id}/resolve`,
     MARK_AS_READ: (id: string) => `alerts/${id}/read`,
     MARK_ALL_AS_READ: (userId: string) => `alerts/user/${userId}/read-all`,
     DELETE: (id: string) => `alerts/${id}`,
