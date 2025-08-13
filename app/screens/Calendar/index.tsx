@@ -52,7 +52,7 @@ LocaleConfig.defaultLocale = 'vi';
 
 export default function MyCalendar() {
   const {user} = useAuth();
-  const {schedules} = useSchedules(user?.userId);
+  const {schedules, mutate} = useSchedules(user?.userId);
 
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
@@ -273,6 +273,7 @@ export default function MyCalendar() {
               <ScheduleList
                 scheduleDetails={filteredSchedules}
                 showRating={true}
+                onUpdate={mutate}
               />
             </View>
           )}
@@ -307,6 +308,7 @@ export default function MyCalendar() {
                     x =>
                       format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
                   )}
+                  onUpdate={mutate}
                 />
               </View>
             </ScrollView>
