@@ -17,7 +17,7 @@ export const SupervisorHome = () => {
       id: 'report',
       title: 'Báo cáo',
       icon: 'file-document-outline',
-      route: 'WorkerReport',
+      route: 'SupervisorReport',
       color: theme.colors.primary,
     },
 

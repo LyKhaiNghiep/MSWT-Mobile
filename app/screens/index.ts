@@ -6,3 +6,5 @@ export * from './Profile';
 export * from './Verification';
 export * from './VerificationStatus';
 export * from './CalendarSupervisor';
+export {default as SupervisorReport} from './SupervisorReport/index';
+export {default as CreateSupervisorReport} from './CreateSupervisorReport/index';

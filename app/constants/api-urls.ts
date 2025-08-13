@@ -168,6 +168,7 @@ export const API_URLS = {
     GET_BY_ID: (id: string) => `reports/${id}`,
     CREATE: `reports`,
     CREATE_LEADER: `reports/leader`, // POST /api/reports/leader - Tạo báo cáo cho Leader
+    CREATE_LEADER_SUPERVISOR: `reports/leader-supervisor`, // POST /api/reports/leader-supervisor - Tạo báo cáo cho Supervisor
     UPDATE: (id: string) => `reports/${id}`,
     DELETE: (id: string) => `reports/${id}`,
   },
