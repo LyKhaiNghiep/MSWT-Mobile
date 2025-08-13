@@ -42,6 +42,8 @@ import CheckInOutPage from '../screens/CheckInOut';
 import {useNotificationSetup} from '../services/notification';
 import WorkerDashboard from '../screens/WorkerDashboard';
 import ForgotPassword from '../screens/ForgotPassword';
+import SupervisorReport from '../screens/SupervisorReport/index';
+import CreateSupervisorReport from '../screens/CreateSupervisorReport/index';
 
 export const AppStack = () => {
   useNotificationSetup();
@@ -237,6 +239,20 @@ export const AppStack = () => {
           <Stack.Screen
             name="CreateWorkerReport"
             component={CreateWorkerReport}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="SupervisorReport"
+            component={SupervisorReport}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="CreateSupervisorReport"
+            component={CreateSupervisorReport}
             options={{
               animation: 'slide_from_right',
             }}

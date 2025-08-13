@@ -42,4 +42,6 @@ export type ScreenName =
   | 'Area'
   | 'Request'
   | 'CheckInOut'
-  | 'WorkerDashboard';
+  | 'WorkerDashboard'
+  | 'SupervisorReport'
+  | 'CreateSupervisorReport';
