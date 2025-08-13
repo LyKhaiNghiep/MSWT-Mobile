@@ -21,7 +21,7 @@ import ScheduleList from './ScheduleList';
 export default function UpcomingCalendar() {
   const {user} = useAuth();
   const userId = user?.userId;
-  const {schedules, isLoading, error} = useSchedules(userId);
+  const {schedules, isLoading, error, mutate} = useSchedules(userId);
   const scheduleDetails = schedules
     .filter(
       x => x.date >= moment().format('YYYY-MM-DD') && x.status === 'Sắp tới',
@@ -168,7 +168,7 @@ export default function UpcomingCalendar() {
       )}
 
       {!isLoading && !error && (
-        <ScheduleList scheduleDetails={scheduleDetails} />
+        <ScheduleList scheduleDetails={scheduleDetails} onUpdate={mutate} />
       )}
     </ScrollView>
   );

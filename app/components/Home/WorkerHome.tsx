@@ -43,13 +43,6 @@ export const WorkerHome = () => {
       route: 'LeaveRequest',
       color: colors.warning,
     },
-    {
-      id: 'checkInOut',
-      title: 'Check In/Out',
-      icon: 'clock-outline',
-      route: 'CheckInOut',
-      color: 'green',
-    },
   ];
 
   return (

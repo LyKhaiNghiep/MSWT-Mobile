@@ -28,14 +28,6 @@ export const SupervisorHome = () => {
       route: 'CalendarSupervisor',
       color: theme.colors.secondary,
     },
-    
-    {
-      id: 'checkInOut',
-      title: 'Check In/Out',
-      icon: 'clock-outline',
-      route: 'CheckInOut',
-      color: 'green',
-    },
 
     {
       id: 'trash',
