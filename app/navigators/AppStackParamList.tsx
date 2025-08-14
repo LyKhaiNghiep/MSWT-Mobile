@@ -48,5 +48,6 @@ export type AppStackParamList = {
   ForgotPassword: undefined;
   SupervisorReport: undefined;
   CreateSupervisorReport: undefined;
+  SupervisorReportDetails: {reportId: string};
 };
 export type StackNavigation = NavigationProp<AppStackParamList>;

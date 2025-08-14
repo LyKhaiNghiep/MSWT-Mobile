@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   ScrollView,
@@ -26,7 +26,7 @@ const REPORT_TYPES = [
 
 const PRIORITY_OPTIONS = [
   {value: 1, label: 'Thấp', color: colors.success},
-  {value: 2, label: 'Trung bình', color: colors.yellow},
+  {value: 2, label: 'Trung bình', color: colors.warning},
   {value: 3, label: 'Cao', color: colors.error},
 ];
 
@@ -40,16 +40,27 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
   const [formData, setFormData] = useState({
     reportName: '',
     description: '',
-    priority: 2,
-    image: '',
+    priority: 1, // Thay đổi từ 2 (Trung bình) thành 1 (Thấp)
     reportType: 1,
   });
 
+  // Debug log khi formData thay đổi
+  useEffect(() => {
+    console.log('Form data changed:', formData);
+  }, [formData]);
+
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({...prev, [field]: value}));
+    console.log(`Updating ${field}:`, value); // Debug log
+    setFormData(prev => {
+      const newData = {...prev, [field]: value};
+      console.log('New form data:', newData); // Debug log
+      return newData;
+    });
   };
 
   const handleSubmit = async () => {
+    console.log('Form data before submit:', formData); // Debug log
+    
     if (!formData.reportName.trim() || !formData.description.trim()) {
       Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
@@ -58,12 +69,13 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
     setIsSubmitting(true);
     try {
       const reportData = {
-        reportName: formData.reportName,
-        description: formData.description,
+        reportName: formData.reportName.trim(),
+        description: formData.description.trim(),
         priority: formData.priority,
-        image: formData.image || undefined,
         reportType: formData.reportType,
       };
+
+      console.log('Sending data:', reportData); // Debug log
 
       // Sử dụng API riêng cho supervisor
       const response = await fetch(`${BASE_API_URL}/reports/leader-supervisor`, {
@@ -86,6 +98,7 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
         throw new Error(result.message || 'Không thể tạo báo cáo');
       }
     } catch (error) {
+      console.error('Submit error:', error); // Debug log
       Alert.alert('Lỗi', error instanceof Error ? error.message : 'Có lỗi xảy ra');
     } finally {
       setIsSubmitting(false);
@@ -137,6 +150,8 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
             style={styles.input}
             maxLength={100}
             placeholder="Nhập tên báo cáo"
+            textColor={colors.dark}
+            placeholderTextColor={colors.subLabel}
           />
 
           <TextInput
@@ -149,17 +164,11 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
             style={styles.input}
             maxLength={500}
             placeholder="Mô tả chi tiết về báo cáo"
+            textColor={colors.dark}
+            placeholderTextColor={colors.subLabel}
           />
 
-          <TextInput
-            label="Link hình ảnh (tùy chọn)"
-            value={formData.image}
-            onChangeText={value => handleInputChange('image', value)}
-            mode="outlined"
-            style={styles.input}
-            maxLength={500}
-            placeholder="https://example.com/image.jpg"
-          />
+
 
           <Text variant="bodyMedium" style={styles.label}>
             Loại báo cáo
@@ -176,10 +185,8 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
           </Text>
           <View style={styles.priorityContainer}>
             {PRIORITY_OPTIONS.map(option => (
-              <Chip
+              <View
                 key={option.value}
-                selected={formData.priority === option.value}
-                onPress={() => handleInputChange('priority', option.value)}
                 style={[
                   styles.priorityChipForm,
                   formData.priority === option.value && {
@@ -187,12 +194,15 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
                     borderColor: option.color,
                   },
                 ]}
-                textStyle={[
-                  styles.priorityChipText,
-                  formData.priority === option.value && {color: option.color},
-                ]}>
-                {option.label}
-              </Chip>
+                onTouchEnd={() => handleInputChange('priority', option.value)}>
+                <Text
+                  style={[
+                    styles.priorityChipText,
+                    formData.priority === option.value && {color: option.color},
+                  ]}>
+                  {option.label}
+                </Text>
+              </View>
             ))}
           </View>
 

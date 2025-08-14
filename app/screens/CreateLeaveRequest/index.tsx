@@ -1,15 +1,16 @@
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {Button, SegmentedButtons, TextInput} from 'react-native-paper';
-import {showSnackbar} from '../../utils/snackbar';
+import {Button, SegmentedButtons, TextInput, Text} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {format} from 'date-fns';
 import {colors} from '../../theme';
-import api from '../../services/api';
 import {API_URLS} from '../../constants/api-urls';
+import {swrFetcher} from '../../utils/swr-fetcher';
+import {LeaveRequestData} from '../../config/models/leave.model';
+import {styles} from './styles';
 
 export default function CreateLeaveRequest() {
   const navigation = useNavigation();
@@ -19,30 +20,67 @@ export default function CreateLeaveRequest() {
   const [reason, setReason] = useState('');
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    // Validation
+    if (!reason.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập lý do xin nghỉ');
+      return;
+    }
+
+    if (startDate > endDate) {
+      Alert.alert('Lỗi', 'Ngày bắt đầu không thể sau ngày kết thúc');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      // Add API call here to submit leave request
-      const leaveData = {
+      const leaveData: LeaveRequestData = {
         leaveType: parseInt(leaveType, 10),
-        startDate: startDate,
-        endDate: endDate,
-        reason,
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        reason: reason.trim(),
       };
 
-      const response = await api.post(API_URLS.LEAVE_REQUEST.CREATE, {
-        leaveData,
+      console.log('Sending leave data:', leaveData);
+
+      // Sử dụng swrFetcher để có authentication tự động
+      await swrFetcher(API_URLS.LEAVE_REQUEST.CREATE, {
+        method: 'POST',
+        body: JSON.stringify(leaveData),
       });
 
-      if (response.data) {
-        console.log('Submit leave request:', leaveData);
-        showSnackbar?.success('Tạo đơn xin nghỉ thành công');
-        navigation.goBack();
+      Alert.alert('Thành công', 'Tạo đơn xin nghỉ thành công', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error: any) {
+      console.error('Submit error:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi tạo đơn xin nghỉ';
+      if (error.message) {
+        errorMessage = error.message;
       }
-    } catch (error) {
-      console.log('API Response:', error);
+      
+      Alert.alert('Lỗi', errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-      showSnackbar?.error('Tạo đơn xin nghỉ thất bại');
+  const getLeaveTypeLabel = (type: string) => {
+    switch (type) {
+      case '1':
+        return 'Xin nghỉ phép';
+      case '2':
+        return 'Xin nghỉ bệnh';
+      case '3':
+        return 'Cá nhân';
+      default:
+        return 'Không xác định';
     }
   };
 
@@ -50,6 +88,7 @@ export default function CreateLeaveRequest() {
     <Screen styles={{backgroundColor: 'white'}} useDefault>
       <AppHeader title="Tạo đơn xin nghỉ" navigateTo="LeaveRequest" />
       <ScrollView style={styles.container}>
+        <Text style={styles.sectionTitle}>Loại nghỉ phép</Text>
         <SegmentedButtons
           value={leaveType}
           onValueChange={setLeaveType}
@@ -58,14 +97,18 @@ export default function CreateLeaveRequest() {
             {value: '2', label: 'Nghỉ bệnh'},
             {value: '3', label: 'Cá nhân'},
           ]}
+          style={styles.segmentedButtons}
         />
 
+        <Text style={styles.sectionTitle}>Thời gian nghỉ</Text>
         <TextInput
           mode="outlined"
           style={styles.input}
           label="Ngày bắt đầu"
           value={format(startDate, 'dd/MM/yyyy')}
           onPressIn={() => setShowStartPicker(true)}
+          editable={false}
+          right={<TextInput.Icon icon="calendar" />}
         />
 
         <TextInput
@@ -74,16 +117,20 @@ export default function CreateLeaveRequest() {
           label="Ngày kết thúc"
           value={format(endDate, 'dd/MM/yyyy')}
           onPressIn={() => setShowEndPicker(true)}
+          editable={false}
+          right={<TextInput.Icon icon="calendar" />}
         />
 
+        <Text style={styles.sectionTitle}>Lý do xin nghỉ</Text>
         <TextInput
           mode="outlined"
           style={styles.input}
-          label="Lý do"
+          label="Lý do (bắt buộc)"
           value={reason}
           onChangeText={setReason}
           multiline
           numberOfLines={4}
+          placeholder="Nhập lý do xin nghỉ..."
         />
 
         {showStartPicker && (
@@ -111,18 +158,17 @@ export default function CreateLeaveRequest() {
         <View style={styles.buttonContainer}>
           <Button
             mode="contained"
-            style={{
-              backgroundColor: colors.mainColor,
-              flex: 1,
-              marginHorizontal: 8,
-            }}
-            onPress={handleSubmit}>
-            Tạo đơn
+            style={styles.submitButton}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            loading={isSubmitting}>
+            {isSubmitting ? 'Đang tạo...' : 'Tạo đơn'}
           </Button>
           <Button
             mode="outlined"
-            style={styles.button}
-            onPress={() => navigation.goBack()}>
+            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
+            disabled={isSubmitting}>
             Hủy
           </Button>
         </View>
@@ -130,22 +176,3 @@ export default function CreateLeaveRequest() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  input: {
-    marginTop: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 24,
-  },
-  button: {
-    flex: 1,
-    marginHorizontal: 8,
-  },
-});

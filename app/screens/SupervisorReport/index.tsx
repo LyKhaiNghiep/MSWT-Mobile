@@ -142,7 +142,7 @@ export default function SupervisorReportPage() {
         style={styles.card}
         mode="elevated"
         onPress={() => {
-          Alert.alert('Thông báo', 'Tính năng xem chi tiết đang được phát triển');
+          navigation.navigate('SupervisorReportDetails', {reportId: item.reportId});
         }}>
         <Card.Content style={styles.cardContent}>
           <View style={styles.cardHeader}>
