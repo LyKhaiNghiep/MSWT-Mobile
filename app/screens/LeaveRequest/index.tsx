@@ -12,7 +12,7 @@ import {useLeaveRequest} from '../../hooks/useLeaveRequest';
 
 export default function LeaveRequest() {
   const navigation = useNavigation<StackNavigation>();
-  const {myLeaves: leaves} = useLeaveRequest();
+  const {myLeaves: leaves, getLeaveTypeLabel} = useLeaveRequest();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -35,7 +35,7 @@ export default function LeaveRequest() {
       }>
       <Card.Content>
         <View style={styles.header}>
-          <Text variant="titleMedium">{item.leaveType}</Text>
+          <Text variant="titleMedium">{getLeaveTypeLabel(item.leaveType)}</Text>
           <Badge
             style={[
               styles.badge,

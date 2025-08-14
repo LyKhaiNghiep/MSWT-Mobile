@@ -19,6 +19,7 @@ export const styles = StyleSheet.create({
   input: {
     marginBottom: 20,
     backgroundColor: colors.white,
+    color: colors.dark,
   },
   label: {
     fontWeight: '500',
@@ -30,17 +31,27 @@ export const styles = StyleSheet.create({
   },
   priorityContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 32,
+    paddingHorizontal: 8,
   },
   priorityChipForm: {
     borderWidth: 1,
     borderColor: colors.subLabel,
+    backgroundColor: colors.white,
+    flex: 1,
+    marginHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   priorityChipText: {
     fontSize: 14,
     fontWeight: '500',
+    color: colors.dark,
   },
   modalActions: {
     flexDirection: 'row',

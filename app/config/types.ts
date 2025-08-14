@@ -44,4 +44,5 @@ export type ScreenName =
   | 'CheckInOut'
   | 'WorkerDashboard'
   | 'SupervisorReport'
-  | 'CreateSupervisorReport';
+  | 'CreateSupervisorReport'
+  | 'SupervisorReportDetails';

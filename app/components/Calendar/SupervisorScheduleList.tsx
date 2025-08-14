@@ -237,7 +237,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                 style={styles.evidenceImageButton}
                 compact
               >
-                ảnh
+                Ảnh
               </Button>
             )}
           </View>
