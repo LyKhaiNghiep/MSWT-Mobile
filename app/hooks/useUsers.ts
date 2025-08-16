@@ -1,15 +1,17 @@
 import {useState, useEffect, useCallback} from 'react';
 import userService from '../services/userService';
+import {User} from '../config/models/user.model';
 
 export const useUsers = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    itemsPerPage: 10,
+    itemsPerPage: 99999,
   });
 
   // Fetch users from API

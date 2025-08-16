@@ -1,19 +1,19 @@
 import auth from '@react-native-firebase/auth';
 
 class OTPService {
-  // Send OTP to phone number
+  // Gửi mã OTP đến số điện thoại
   async sendOTP(phoneNumber: string): Promise<string> {
-    console.log('phoneNumber', phoneNumber);
+    console.log('số điện thoại', phoneNumber);
     try {
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
-      return confirmation.verificationId;
+      return confirmation.verificationId!;
     } catch (error) {
-      console.error('Error sending OTP:', error);
+      console.error('Lỗi khi gửi mã OTP:', error);
       throw error;
     }
   }
 
-  // Verify OTP code
+  // Xác thực mã OTP
   async verifyOTP(verificationId: string, code: string): Promise<boolean> {
     try {
       const credential = auth.PhoneAuthProvider.credential(
@@ -23,27 +23,27 @@ class OTPService {
       await auth().signInWithCredential(credential);
       return true;
     } catch (error) {
-      console.error('Error verifying OTP:', error);
+      console.error('Lỗi khi xác thực mã OTP:', error);
       throw error;
     }
   }
 
-  // Sign out user
+  // Đăng xuất người dùng
   async signOut(): Promise<void> {
     try {
       await auth().signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Lỗi khi đăng xuất:', error);
       throw error;
     }
   }
 
-  // Get current user
+  // Lấy thông tin người dùng hiện tại
   getCurrentUser() {
     return auth().currentUser;
   }
 
-  // Check authentication state
+  // Kiểm tra trạng thái xác thực
   onAuthStateChanged(callback: (user: any) => void) {
     return auth().onAuthStateChanged(callback);
   }

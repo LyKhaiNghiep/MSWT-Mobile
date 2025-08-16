@@ -10,6 +10,8 @@ import {
 } from '@react-navigation/native';
 import {AuthProvider} from './contexts/AuthContext';
 import {AppStack} from './navigators/AppStack';
+import '@react-native-firebase/app';
+
 function App(): React.JSX.Element {
   const navigationRef = createNavigationContainerRef<any>();
 
