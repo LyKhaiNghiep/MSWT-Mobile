@@ -83,6 +83,8 @@ export default function ScheduleList({
           showSnackbar?.success('Đã cập nhật trạng thái');
           onUpdate?.();
         }
+
+        onUpdate?.();
       } catch (error) {
         showSnackbar?.error('Cập nhật trạng thái thất bại');
       } finally {
@@ -294,26 +296,29 @@ export default function ScheduleList({
                         }
                         return rating;
                       };
-                      
+
                       const ratingValue = getRatingValue(schedule.rating);
                       const hasValidRating = ratingValue > 0;
-                      
-                      return (showRating && hasValidRating) && (
-                        <View style={styles.infoItem}>
-                          <IconButton
-                            icon="star"
-                            size={16}
-                            iconColor={colors.warning}
-                          />
-                          <View>
-                            <Text style={styles.infoLabel}>Đánh giá</Text>
-                            <RatingDisplay
-                              rating={ratingValue}
-                              comment={schedule.comment || undefined}
-                              maxRating={5}
+
+                      return (
+                        showRating &&
+                        hasValidRating && (
+                          <View style={styles.infoItem}>
+                            <IconButton
+                              icon="star"
+                              size={16}
+                              iconColor={colors.warning}
                             />
+                            <View>
+                              <Text style={styles.infoLabel}>Đánh giá</Text>
+                              <RatingDisplay
+                                rating={ratingValue}
+                                comment={schedule.comment || undefined}
+                                maxRating={5}
+                              />
+                            </View>
                           </View>
-                        </View>
+                        )
                       );
                     })()}
                     {renderActionButton(schedule)}

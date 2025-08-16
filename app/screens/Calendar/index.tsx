@@ -308,7 +308,7 @@ export default function MyCalendar() {
                     x =>
                       format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
                   )}
-                  onUpdate={mutate}
+                  onUpdate={() => mutate()}
                 />
               </View>
             </ScrollView>
