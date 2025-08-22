@@ -9,13 +9,13 @@ import {AppStackParamList} from './AppStackParamList';
 import {Navigator} from './Navigator';
 import Trash from '../screens/Trash';
 import User from '../screens/User';
-import Restroom from '../screens/Restroom';
-import Floor from '../screens/Floor';
+// Removed: Restroom import - rooms are now displayed within Area details
+import Area from '../screens/Area';
 import ReportPage from '../screens/Report';
 import ReportDetails from '../screens/ReportDetails';
 import TrashBinDetails from '../screens/TrashDetails';
-import FloorDetails from '../screens/FloorDetails';
-import RestroomDetails from '../screens/RestroomDetails';
+import AreaDetails from '../screens/AreaDetails';
+// Removed: RestroomDetails import - rooms are now displayed within Area details
 import UserDetails from '../screens/UserDetails';
 import WorkerReportPage from '../screens/WorkerReport';
 import WorkerReportDetails from '../screens/WorkerReportDetails';
@@ -30,8 +30,7 @@ import CreateLeaveRequest from '../screens/CreateLeaveRequest';
 import Employees from '../screens/Employee';
 import SensorPage from '../screens/Sensor';
 import SensorDetailsPage from '../screens/SensorDetails';
-import AreaPage from '../screens/Area';
-import AreaDetailsPage from '../screens/AreaDetails';
+// Renamed: Floor and FloorDetails folders to Area and AreaDetails to reflect their actual purpose
 import NotificationDetails from '../screens/NotificationDetails';
 import CreateReport from '../screens/CreateReport';
 import Request from '../screens/Request';
@@ -122,32 +121,19 @@ export const AppStack = () => {
           />
           <Stack.Screen
             name="Floor"
-            component={Floor}
+            component={Area}
             options={{
               animation: 'slide_from_right',
             }}
           />
           <Stack.Screen
             name="FloorDetails"
-            component={FloorDetails}
+            component={AreaDetails}
             options={{
               animation: 'slide_from_right',
             }}
           />
-          <Stack.Screen
-            name="Restroom"
-            component={Restroom}
-            options={{
-              animation: 'slide_from_right',
-            }}
-          />
-          <Stack.Screen
-            name="RestroomDetails"
-            component={RestroomDetails}
-            options={{
-              animation: 'slide_from_right',
-            }}
-          />
+          {/* Removed: Restroom and RestroomDetails screens - rooms are now displayed within Area details */}
           <Stack.Screen
             name="Employees"
             component={Employees}
@@ -280,20 +266,7 @@ export const AppStack = () => {
             }}
           />
 
-          <Stack.Screen
-            name="Area"
-            component={AreaPage}
-            options={{
-              animation: 'slide_from_right',
-            }}
-          />
-          <Stack.Screen
-            name="AreaDetails"
-            component={AreaDetailsPage}
-            options={{
-              animation: 'slide_from_right',
-            }}
-          />
+          {/* Using Floor and FloorDetails route names for backward compatibility */}
           <Stack.Screen
             name="NotificationDetails"
             component={NotificationDetails}

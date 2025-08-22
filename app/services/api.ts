@@ -26,11 +26,20 @@ api.interceptors.request.use(async config => {
 api.interceptors.response.use(
   res => res,
   err => {
-    // Ví dụ: tự động redirect khi 401
-    if (err.response?.status === 401) {
-      // TODO: go to login page
+    // Log error for debugging
+    console.log('🔍 API Error Interceptor:', {
+      status: err.response?.status,
+      data: err.response?.data,
+      url: err.config?.url,
+    });
+
+    // Ví dụ: tự động redirect khi 401 (but not for login endpoint)
+    if (err.response?.status === 401 && !err.config?.url?.includes('/login')) {
+      // TODO: go to login page for other endpoints
     }
-    return Promise.reject(err.response.data);
+
+    // Return the full error object so authService can access response.status and response.data
+    return Promise.reject(err);
   },
 );
 

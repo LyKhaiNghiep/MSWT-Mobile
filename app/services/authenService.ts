@@ -266,11 +266,44 @@ export const authService = {
         };
       }
     } catch (error: any) {
+      console.error('❌ Login API Error:', error);
+
       // Handle different error responses
       if (error.response) {
         const status = error.response.status;
-        const message =
-          error.response.data?.message || error.response.data?.errors?.[0];
+        const responseData = error.response.data;
+
+        console.log('🔍 Error response data:', responseData);
+
+        // Try multiple ways to extract error message from API response
+        let message = null;
+
+        // Common API error message formats
+        if (responseData) {
+          message =
+            responseData.message || // Standard message field
+            responseData.error || // Error field
+            responseData.detail || // Detail field
+            responseData.title || // Title field
+            responseData.errors?.[0] || // First error in errors array
+            responseData.errors?.message || // Message in errors object
+            responseData.data?.message || // Message in nested data
+            (typeof responseData === 'string' ? responseData.trim() : null); // Direct string response (trimmed)
+        }
+
+        // If no message found but we have responseData, try to stringify it
+        if (!message && responseData && typeof responseData !== 'string') {
+          try {
+            const stringified = JSON.stringify(responseData);
+            if (stringified && stringified !== '{}' && stringified !== 'null') {
+              message = stringified;
+            }
+          } catch (e) {
+            // Ignore JSON stringify errors
+          }
+        }
+
+        console.log('🔍 Extracted error message:', message);
 
         switch (status) {
           case 400:
@@ -289,6 +322,16 @@ export const authService = {
               error:
                 message || 'Tài khoản bị khóa hoặc không có quyền truy cập',
             };
+          case 404:
+            return {
+              success: false,
+              error: message || 'Tài khoản không tồn tại',
+            };
+          case 422:
+            return {
+              success: false,
+              error: message || 'Dữ liệu không hợp lệ',
+            };
           case 500:
             return {
               success: false,
@@ -297,19 +340,21 @@ export const authService = {
           default:
             return {
               success: false,
-              error: message || 'Đăng nhập thất bại',
+              error: message || `Đăng nhập thất bại (HTTP ${status})`,
             };
         }
       } else if (error.request) {
+        console.error('❌ Network error:', error.request);
         return {
           success: false,
           error:
             'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
         };
       } else {
+        console.error('❌ Unknown error:', error.message);
         return {
           success: false,
-          error: 'Đã có lỗi xảy ra trong quá trình đăng nhập',
+          error: error.message || 'Đã có lỗi xảy ra trong quá trình đăng nhập',
         };
       }
     }

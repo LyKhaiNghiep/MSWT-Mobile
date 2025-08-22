@@ -38,23 +38,10 @@ export const ManagerHome = () => {
       id: 'area',
       title: 'Khu vực',
       icon: 'map-marker-radius',
-      route: 'Area',
-      color: theme.colors.secondary,
-    },
-    {
-      id: 'floor',
-      title: 'Tầng',
-      icon: 'office-building',
       route: 'Floor',
       color: theme.colors.secondary,
     },
-    {
-      id: 'restroom',
-      title: 'Nhà vệ sinh',
-      icon: 'toilet',
-      route: 'Restroom',
-      color: theme.colors.tertiary,
-    },
+    // Removed: Restroom menu - rooms are now displayed within Area details
     {
       id: 'user',
       title: 'Người dùng',

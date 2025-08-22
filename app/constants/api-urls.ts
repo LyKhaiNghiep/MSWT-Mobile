@@ -19,14 +19,7 @@ export const API_URLS = {
     UPDATE_PROFILE: `users/update-profile`, // Backend xử lý change password
   },
 
-  // Floor management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useFloor.ts
-  FLOOR: {
-    GET_ALL: `floors`,
-    GET_BY_ID: (id: string) => `floors/${id}`,
-    CREATE: `floors`,
-    UPDATE: (id: string) => `floors/${id}`,
-    DELETE: (id: string) => `floors/${id}`,
-  },
+  // Floor API removed - floors are now integrated into areas
 
   TRASH_BIN: {
     GET_ALL: `trashbins`,

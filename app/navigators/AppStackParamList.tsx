@@ -13,8 +13,7 @@ export type AppStackParamList = {
   TrashDetails: undefined;
   Floor: undefined;
   FloorDetails: undefined;
-  Restroom: undefined;
-  RestroomDetails: undefined;
+  // Removed: Restroom and RestroomDetails - rooms are now displayed within Area details
   User: undefined;
   UserDetails: undefined;
   Schedule: undefined;
@@ -34,8 +33,7 @@ export type AppStackParamList = {
   Employees: undefined;
   Sensor: undefined;
   SensorDetails: undefined;
-  Area: undefined;
-  AreaDetails: undefined;
+  // Area and AreaDetails removed - now using Floor and FloorDetails as Area pages
   NotificationDetails: undefined;
   Notification: undefined;
   CreateReport: undefined;

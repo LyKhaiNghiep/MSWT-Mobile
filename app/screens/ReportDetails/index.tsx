@@ -17,6 +17,7 @@ import {format} from 'date-fns';
 import {
   useReport,
   useReports,
+  useManagerReports,
   getReportStatusColor,
   getPriorityColor,
 } from '../../hooks/useReport';
@@ -25,11 +26,12 @@ export default function ReportDetails() {
   const route = useRoute();
   const reportId = (route.params as any).reportId;
   const {report, isLoading, isError} = useReport(reportId);
-  const {reports} = useReports();
+  const {reports: managerReports} = useManagerReports();
 
-  // Get userName from reports list if not available in individual report
-  const reportFromList = reports.find(r => r.reportId === reportId);
-  const userName = report?.userName || reportFromList?.userName;
+  // Get userName from manager reports list if not available in individual report
+  const reportFromList = managerReports.find(r => r.reportId === reportId);
+  const userName =
+    report?.userName || reportFromList?.fullName || reportFromList?.userName;
 
   // Debug log to check if userName is available
   console.log('Report data:', report);

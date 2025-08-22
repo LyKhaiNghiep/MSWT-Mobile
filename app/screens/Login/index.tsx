@@ -24,11 +24,35 @@ export const Login = () => {
   const {login} = useAuth();
 
   const handleLogin = async () => {
+    // Basic validation
+    if (!phoneNumber.trim()) {
+      showSnackbar?.error('Vui lòng nhập số điện thoại');
+      return;
+    }
+
+    if (!password.trim()) {
+      showSnackbar?.error('Vui lòng nhập mật khẩu');
+      return;
+    }
+
+    console.log('🔐 Login attempt with:', {
+      username: phoneNumber,
+      password: '***',
+    });
+
     const result = await login({password, username: phoneNumber});
+
+    console.log('🔍 Login result:', {
+      success: result.success,
+      error: result.error,
+    });
+
     if (result.success) {
       showSnackbar?.success('Đăng nhập thành công');
     } else {
-      showSnackbar?.error(result.error!);
+      const errorMessage = result.error || 'Đăng nhập thất bại';
+      console.log('❌ Displaying error:', errorMessage);
+      showSnackbar?.error(errorMessage);
     }
   };
 

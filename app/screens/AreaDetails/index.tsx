@@ -1,20 +1,22 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Badge, Card, Text} from 'react-native-paper';
+import {Card, Text, Badge} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {useSensor} from '../../hooks/useSensor';
-import {colors} from '../../theme';
 import {useAreas} from '../../hooks/useArea';
+import {colors} from '../../theme';
 
-export default function AreaDetailsPage() {
+export default function AreaDetails() {
   const route = useRoute();
   const {areas} = useAreas();
   const id = (route.params as any).id;
-  const trashbin = areas?.find(r => r.areaId === id);
+  const area = areas?.find(r => r.areaId === id);
 
-  if (!trashbin) return null;
+  if (!area) {
+    return null;
+  }
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'hoạt động':
@@ -27,24 +29,18 @@ export default function AreaDetailsPage() {
         return colors.subLabel;
     }
   };
+
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
-      <AppHeader title="Chi tiết khu vực" navigateTo="Area" />
+      <AppHeader title="Chi tiết khu vực" navigateTo="Floor" />
       <ScrollView style={styles.container}>
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.infoRow}>
               <Text variant="labelLarge">Tên khu vực:</Text>
-              <Text variant="bodyLarge">{trashbin.areaName || 'N/A'}</Text>
+              <Text variant="bodyLarge">{area.areaName}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text variant="labelLarge">Phòng bắt đầu:</Text>
-              <Text variant="bodyLarge">{trashbin.roomBegin.trim()}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text variant="labelLarge">Phòng kết thúc:</Text>
-              <Text variant="bodyLarge">{trashbin.roomEnd.trim()}</Text>
-            </View>
+
             <View style={styles.infoRow}>
               <Text variant="labelLarge">Trạng thái:</Text>
               <Badge
@@ -54,16 +50,66 @@ export default function AreaDetailsPage() {
                     textAlign: 'center',
                     color: 'white',
                     borderRadius: 10,
+                    backgroundColor: getStatusColor(area.status),
+                    alignSelf: 'center',
                   },
-                  {backgroundColor: getStatusColor(trashbin.status)},
                 ]}>
-                {trashbin.status}
+                {area.status}
               </Badge>
             </View>
-            <View>
-              <Text variant="labelLarge">Mô tả:</Text>
-              <Text variant="bodyLarge">{trashbin.description}</Text>
+
+            <View style={styles.infoRow}>
+              <Text variant="labelLarge">Số phòng:</Text>
+              <Text variant="bodyLarge">{area.rooms?.length || 0}</Text>
             </View>
+
+            <View style={styles.description}>
+              <Text variant="labelLarge">Mô tả:</Text>
+              <Text variant="bodyLarge" style={styles.descriptionText}>
+                {area.description || 'Không có mô tả'}
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
+
+        <Card style={[styles.card, styles.areaCard]}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.areaTitle}>
+              Danh sách phòng
+            </Text>
+            {area.rooms && area.rooms.length > 0 ? (
+              area.rooms.map(room => (
+                <View key={room.roomId} style={styles.areaItem}>
+                  <View style={styles.areaHeader}>
+                    <Text variant="titleMedium">Phòng {room.roomNumber}</Text>
+                    <Badge
+                      style={[
+                        {
+                          backgroundColor: getStatusColor(room.status),
+                          width: 100,
+                          textAlign: 'center',
+                          color: 'white',
+                          borderRadius: 10,
+                        },
+                      ]}>
+                      {room.status}
+                    </Badge>
+                  </View>
+                  <View style={styles.areaDetails}>
+                    <Text variant="bodyMedium">
+                      Loại phòng: {room.roomType}
+                    </Text>
+                    <Text variant="bodyMedium" style={styles.areaDescription}>
+                      {room.description || 'Không có mô tả'}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text variant="bodyLarge" style={styles.emptyText}>
+                Không có phòng nào
+              </Text>
+            )}
           </Card.Content>
         </Card>
       </ScrollView>
@@ -94,5 +140,35 @@ const styles = StyleSheet.create({
   descriptionText: {
     marginTop: 8,
     color: colors.darkLabel,
+  },
+  areaCard: {
+    marginTop: 8,
+  },
+  areaTitle: {
+    marginBottom: 16,
+    color: colors.primary,
+  },
+  areaItem: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: colors.secondary1Light,
+    borderRadius: 8,
+  },
+  areaHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  areaDetails: {
+    gap: 4,
+  },
+  areaDescription: {
+    color: colors.darkLabel,
+    marginTop: 4,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: colors.subLabel,
   },
 });

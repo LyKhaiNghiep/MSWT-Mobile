@@ -68,7 +68,7 @@ export default function ReportPage() {
                   {item.reportName}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdBy}>
-                  Bởi: {item.userName}
+                  Bởi: {item.fullName || item.userName || 'Không rõ'}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdDate}>
                   {item.date

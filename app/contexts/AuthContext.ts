@@ -114,10 +114,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
           error: result.error,
         };
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ AuthContext: Unexpected error during login:', error);
       return {
         success: false,
-        error: 'Đã có lỗi xảy ra trong quá trình đăng nhập',
+        error: error?.message || 'Đã có lỗi xảy ra trong quá trình đăng nhập',
       };
     } finally {
       console.log('🔄 AuthContext: Setting loading to false...');
@@ -165,7 +166,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
   // Get user role information
   const getUserRole = () => {
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     return {
       roleId: user.roleId,
@@ -180,13 +183,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
   // Check if user has specific role
   const hasRole = (role: string) => {
-    if (!user) return false;
+    if (!user) {
+      return false;
+    }
     return user.role === role;
   };
 
   // Check if user has permission (role hierarchy)
   const hasPermission = (requiredRole: string) => {
-    if (!user || !user.role) return false;
+    if (!user || !user.role) {
+      return false;
+    }
 
     const roleHierarchy: any = {
       Worker: 1, // Nhân viên vệ sinh
