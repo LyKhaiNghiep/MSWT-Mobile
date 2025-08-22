@@ -1,11 +1,11 @@
 export interface Leave {
   leaveId: string;
   workerId: string;
-  leaveType: number; // 1: Xin nghỉ phép, 2: Xin nghỉ bệnh, 3: Cá nhân
+  leaveType: string; // API returns string values like "Nghỉ phép năm", "Nghỉ bệnh", "Nghỉ việc riêng", "Không xác định"
   startDate: string;
   endDate: string;
   totalDays: number;
-  reason: string;
+  reason: string | null;
   requestDate: string;
   approvalStatus: string;
   approvedBy: string | null;

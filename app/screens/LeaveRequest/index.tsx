@@ -51,7 +51,7 @@ export default function LeaveRequest() {
           Đến: {format(new Date(item.endDate), 'dd/MM/yyyy')}
         </Text>
         <Text variant="bodyMedium" numberOfLines={2}>
-          Lý do: {item.reason}
+          Lý do: {item.reason || 'Không có lý do cụ thể'}
         </Text>
       </Card.Content>
     </Card>

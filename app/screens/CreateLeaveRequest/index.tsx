@@ -4,7 +4,7 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {Button, SegmentedButtons, TextInput, Text} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker';
 import {format} from 'date-fns';
 import {colors} from '../../theme';
 import {API_URLS} from '../../constants/api-urls';
@@ -59,12 +59,12 @@ export default function CreateLeaveRequest() {
       ]);
     } catch (error: any) {
       console.error('Submit error:', error);
-      
+
       let errorMessage = 'Có lỗi xảy ra khi tạo đơn xin nghỉ';
       if (error.message) {
         errorMessage = error.message;
       }
-      
+
       Alert.alert('Lỗi', errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -74,11 +74,11 @@ export default function CreateLeaveRequest() {
   const getLeaveTypeLabel = (type: string) => {
     switch (type) {
       case '1':
-        return 'Xin nghỉ phép';
+        return 'Nghỉ phép năm';
       case '2':
-        return 'Xin nghỉ bệnh';
+        return 'Nghỉ bệnh';
       case '3':
-        return 'Cá nhân';
+        return 'Nghỉ việc riêng';
       default:
         return 'Không xác định';
     }
@@ -93,9 +93,9 @@ export default function CreateLeaveRequest() {
           value={leaveType}
           onValueChange={setLeaveType}
           buttons={[
-            {value: '1', label: 'Nghỉ phép'},
+            {value: '1', label: 'Nghỉ phép năm'},
             {value: '2', label: 'Nghỉ bệnh'},
-            {value: '3', label: 'Cá nhân'},
+            {value: '3', label: 'Nghỉ việc riêng'},
           ]}
           style={styles.segmentedButtons}
         />
@@ -108,7 +108,12 @@ export default function CreateLeaveRequest() {
           value={format(startDate, 'dd/MM/yyyy')}
           onPressIn={() => setShowStartPicker(true)}
           editable={false}
-          right={<TextInput.Icon icon="calendar" />}
+          right={
+            <TextInput.Icon
+              icon="calendar"
+              onPress={() => setShowStartPicker(true)}
+            />
+          }
         />
 
         <TextInput
@@ -118,7 +123,12 @@ export default function CreateLeaveRequest() {
           value={format(endDate, 'dd/MM/yyyy')}
           onPressIn={() => setShowEndPicker(true)}
           editable={false}
-          right={<TextInput.Icon icon="calendar" />}
+          right={
+            <TextInput.Icon
+              icon="calendar"
+              onPress={() => setShowEndPicker(true)}
+            />
+          }
         />
 
         <Text style={styles.sectionTitle}>Lý do xin nghỉ</Text>
@@ -133,27 +143,39 @@ export default function CreateLeaveRequest() {
           placeholder="Nhập lý do xin nghỉ..."
         />
 
-        {showStartPicker && (
-          <DateTimePicker
-            value={startDate}
-            mode="date"
-            onChange={(event, date) => {
-              setShowStartPicker(false);
-              if (date) setStartDate(date);
-            }}
-          />
-        )}
+        <DatePicker
+          modal
+          open={showStartPicker}
+          date={startDate}
+          mode="date"
+          title="Chọn ngày bắt đầu"
+          confirmText="Chọn"
+          cancelText="Hủy"
+          onConfirm={date => {
+            setShowStartPicker(false);
+            setStartDate(date);
+          }}
+          onCancel={() => {
+            setShowStartPicker(false);
+          }}
+        />
 
-        {showEndPicker && (
-          <DateTimePicker
-            value={endDate}
-            mode="date"
-            onChange={(event, date) => {
-              setShowEndPicker(false);
-              if (date) setEndDate(date);
-            }}
-          />
-        )}
+        <DatePicker
+          modal
+          open={showEndPicker}
+          date={endDate}
+          mode="date"
+          title="Chọn ngày kết thúc"
+          confirmText="Chọn"
+          cancelText="Hủy"
+          onConfirm={date => {
+            setShowEndPicker(false);
+            setEndDate(date);
+          }}
+          onCancel={() => {
+            setShowEndPicker(false);
+          }}
+        />
 
         <View style={styles.buttonContainer}>
           <Button

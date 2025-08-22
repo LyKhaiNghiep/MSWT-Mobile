@@ -6,6 +6,7 @@ import {Card, Divider, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useLeaveRequest} from '../../hooks/useLeaveRequest';
+import {useUsers} from '../../hooks/useUsers';
 
 const getStatusColor = (status: string) => {
   switch (status?.toLowerCase()) {
@@ -23,8 +24,16 @@ const getStatusColor = (status: string) => {
 export default function LeaveRequestDetails() {
   const route = useRoute();
   const {getLeaveById} = useLeaveRequest();
+  const {users} = useUsers();
   const id = (route.params as any).id;
   const leaveRequest = getLeaveById(id);
+
+  // Helper function to get user name by user ID
+  const getUserName = (userId: string | null): string => {
+    if (!userId) return 'Không rõ';
+    const user = users.find(u => u.userId === userId);
+    return user?.fullName || user?.userName || userId;
+  };
 
   if (!leaveRequest) {
     return (
@@ -58,6 +67,9 @@ export default function LeaveRequestDetails() {
 
             <View style={styles.infoSection}>
               <Text variant="titleMedium">Thông tin người gửi</Text>
+              <Text variant="bodyLarge">
+                Người gửi: {getUserName(leaveRequest.workerId)}
+              </Text>
               <Text variant="bodyLarge">
                 Mã nhân viên: {leaveRequest.workerId}
               </Text>
@@ -99,7 +111,7 @@ export default function LeaveRequestDetails() {
                 <View style={styles.infoSection}>
                   <Text variant="titleMedium">Thông tin phê duyệt</Text>
                   <Text variant="bodyLarge">
-                    Người duyệt: {leaveRequest.approvedBy}
+                    Người duyệt: {getUserName(leaveRequest.approvedBy)}
                   </Text>
                   <Text variant="bodyLarge">
                     Ngày duyệt:{' '}
