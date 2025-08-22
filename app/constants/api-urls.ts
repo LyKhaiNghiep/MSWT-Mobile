@@ -86,7 +86,7 @@ export const API_URLS = {
   // Schedule Details management endpoints
   SCHEDULE_DETAILS: {
     GET_ALL: `scheduledetails`,
-    GET_BY_USER_ID: (id: string) => `scheduledetails/user/${id}`,
+    GET_BY_USER_ID: (id: string) => `scheduledetails/scheduleDetails/${id}`,
     GET_BY_ID: (id: string) => `scheduledetails/${id}`,
     GET_BY_SCHEDULE_ID: (scheduleId: string) =>
       `scheduledetails/schedule/${scheduleId}`,

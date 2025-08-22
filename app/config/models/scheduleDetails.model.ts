@@ -1,70 +1,48 @@
 export interface ScheduleDetails {
   scheduleDetailId: string;
   scheduleId: string;
-  assignmentId: string;
-  assignmentName: string;
   description: string;
   date: string;
   status: string;
   supervisorId: string;
+  supervisorName: string;
   rating: number | string | null;
   comment: string | null;
-  workerId: string;
-  evidenceImage: string | null;
-  startTime: string;
-  endTime: string;
-  isBackup: boolean | null;
+  workerGroupId: string;
   backupForUserId: string | null;
+  endTime: string | null;
+  startTime: string;
+  isBackup: boolean | null;
+  groupAssignmentId: string;
+  areaId: string;
   schedule: Schedule;
-  areaName: string;
-  scheduleName: string;
+  workers: Worker[];
+  assignments: Assignment[];
 }
 
 export interface Schedule {
   scheduleId: string;
-  scheduleName: string;
-  areaId: string;
   startDate: string;
   endDate: string;
-  trashBinId: string | null;
-  restroomId: string;
-  restroomNumber: string;
   scheduleType: string;
   shiftId: string;
-  supervisorId: string | null;
-  areaName: string;
-  trashBin: TrashBin | null;
-  restroom: Restroom;
-  areaRestrooms: any[];
-  areaTrashBins: TrashBin[];
+  scheduleName: string;
 }
 
-export interface TrashBin {
-  trashBinId: string;
-  status: string;
-  areaId: string;
-  location: string;
-  image: string | null;
-}
-
-export interface Restroom {
-  restroomId: string;
-  description: string;
-  areaId: string;
-  status: string;
-  restroomNumber: string;
-  areaName: string | null;
-}
-
-export interface User {
+export interface Worker {
+  workGroupMemberId: string;
+  workGroupId: string;
   userId: string;
-  userName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  status: string;
-  image: string;
   roleId: string;
-  roleName: string;
-} 
+  joinedAt: string;
+  leftAt: string | null;
+  fullName: string;
+}
+
+export interface Assignment {
+  assignmentId: string;
+  description: string;
+  status: string;
+  assigmentName: string; // Note: API has typo "assigmentName"
+  groupAssignmentId: string;
+}

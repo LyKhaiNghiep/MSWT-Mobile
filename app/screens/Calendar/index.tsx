@@ -59,7 +59,7 @@ export default function MyCalendar() {
   );
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Chưa hoàn thành');
+  const [status, setStatus] = useState('Chưa hoàn tất');
 
   const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
   const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
@@ -102,8 +102,10 @@ export default function MyCalendar() {
   };
 
   const statusOptopns = [
-    {label: 'Hoàn thành', value: 'Hoàn thành'},
-    {label: 'Chưa hoàn thành', value: 'Chưa hoàn thành'},
+    {label: 'Hoàn tất', value: 'Hoàn tất'},
+    {label: 'Chưa hoàn tất', value: 'Chưa hoàn tất'},
+    {label: 'Đang làm', value: 'Đang làm'},
+    {label: 'Sắp tới', value: 'Sắp tới'},
   ];
 
   const getStausLabel = () => {
@@ -136,19 +138,21 @@ export default function MyCalendar() {
       }
 
       let matchesStatus = false;
-      const lowerStatus = schedule.status?.toLowerCase();
+      const lowerStatus = schedule.status?.toLowerCase().trim();
 
       switch (status) {
-        case 'Hoàn thành':
-          // Check for completed status (handle different cases)
-          matchesStatus =
-            lowerStatus === 'đã hoàn thành' ||
-            lowerStatus === 'hoàn thành' ||
-            lowerStatus === 'completed';
+        case 'Hoàn tất':
+          matchesStatus = lowerStatus === 'hoàn tất';
           break;
-        case 'Chưa hoàn thành':
-          // Show only items with "Chưa hoàn thành" status
-          matchesStatus = lowerStatus === 'chưa hoàn thành';
+        case 'Chưa hoàn tất':
+          matchesStatus = lowerStatus === 'chưa hoàn tất';
+          break;
+        case 'Đang làm':
+          matchesStatus = lowerStatus === 'đang làm';
+          break;
+        case 'Sắp tới':
+          matchesStatus =
+            lowerStatus === 'sắp tới' || lowerStatus === 'sap toi';
           break;
         default:
           matchesStatus = true;

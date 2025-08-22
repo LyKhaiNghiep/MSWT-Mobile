@@ -4,9 +4,6 @@ import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {
   Button,
-  Card,
-  Chip,
-  Divider,
   IconButton,
   ProgressBar,
   Surface,
@@ -23,14 +20,18 @@ export default function UpcomingCalendar() {
   const userId = user?.userId;
   const {schedules, isLoading, error, mutate} = useSchedules(userId);
   const scheduleDetails = schedules
-    .filter(
-      x => x.date >= moment().format('YYYY-MM-DD') && x.status === 'Sắp tới',
-    )
+    .filter(x => {
+      const isUpcoming = x.date >= moment().format('YYYY-MM-DD');
+      const lowerStatus = x.status?.toLowerCase().trim();
+      const isUpcomingStatus =
+        lowerStatus === 'sắp tới' || lowerStatus === 'sap toi';
+      return isUpcoming && isUpcomingStatus;
+    })
     .sort((a, b) => moment(a.date).diff(moment(b.date))); // Sort by date ascending (closest first)
 
-  const groupByDate = (schedules: ScheduleDetails[]) => {
+  const groupByDate = (scheduleList: ScheduleDetails[]) => {
     const grouped: {[key: string]: any[]} = {};
-    schedules.forEach(schedule => {
+    scheduleList.forEach(schedule => {
       const date = format(parseISO(schedule.date), 'yyyy-MM-dd');
       if (!grouped[date]) {
         grouped[date] = [];
@@ -54,61 +55,11 @@ export default function UpcomingCalendar() {
 
   // Convert object to array format for easier rendering and sort by date
   const groupedSchedules = Object.entries(groupedSchedulesObject)
-    .map(([date, schedules]) => ({
+    .map(([date, scheduleList]) => ({
       date,
-      schedules,
+      schedules: scheduleList,
     }))
     .sort((a, b) => moment(a.date).diff(moment(b.date))); // Sort groups by date ascending
-
-  const getTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hoàn thành':
-        return 'green';
-      case 'sắp tới':
-        return 'orange';
-      case 'đang làm':
-        return '#007AFF';
-      case 'bỏ lỡ':
-        return 'red';
-      default:
-        return 'grey';
-    }
-  };
-
-  const getScheduleTypeColor = (scheduleType: string) => {
-    switch (scheduleType?.toLowerCase()) {
-      case 'dọn dẹp':
-        return colors.primary;
-      case 'maintenance':
-      case 'bảo trì':
-        return colors.secondary1;
-      case 'inspection':
-      case 'kiểm tra':
-        return colors.success;
-      default:
-        return colors.grey;
-    }
-  };
-
-  const getScheduleTypeIcon = (scheduleType: string) => {
-    switch (scheduleType?.toLowerCase()) {
-      case 'cleaning':
-      case 'dọn dẹp':
-        return 'broom';
-      case 'maintenance':
-      case 'bảo trì':
-        return 'wrench';
-      case 'inspection':
-      case 'kiểm tra':
-        return 'magnify';
-      default:
-        return 'calendar';
-    }
-  };
 
   if (isLoading) {
     return (
@@ -126,13 +77,6 @@ export default function UpcomingCalendar() {
       </View>
     );
   }
-
-  const getProgressValue = (schedules: ScheduleDetails[]) => {
-    const completed = schedules.filter(
-      s => s.status === 'Đã hoàn thành',
-    ).length;
-    return schedules.length > 0 ? completed / schedules.length : 0;
-  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -160,10 +104,6 @@ export default function UpcomingCalendar() {
             iconColor={colors.subLabel}
           />
           <Text style={styles.emptyTitle}>Không có lịch sắp tới</Text>
-          <Text style={styles.emptySubtitle}>
-            Bạn đã hoàn thành tất cả công việc!\nHãy nghỉ ngơi và chuẩn bị cho
-            ngày mai.
-          </Text>
         </Surface>
       )}
 

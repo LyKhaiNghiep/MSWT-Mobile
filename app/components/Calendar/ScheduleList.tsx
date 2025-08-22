@@ -93,19 +93,24 @@ export default function ScheduleList({
     }
   };
 
-  const getTimeRange = (startTime: string, endTime: string) => {
+  const getTimeRange = (startTime: string, endTime: string | null) => {
+    if (!endTime) {
+      return `${startTime}`;
+    }
     return `${startTime} - ${endTime}`;
   };
 
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hoàn thành':
+    const lowerStatus = status?.toLowerCase().trim();
+    switch (lowerStatus) {
+      case 'hoàn tất':
         return 'green';
       case 'sắp tới':
+      case 'sap toi':
         return 'orange';
       case 'đang làm':
         return '#007AFF';
-      case 'bỏ lỡ':
+      case 'chưa hoàn tất':
         return 'red';
       default:
         return 'grey';
@@ -198,11 +203,11 @@ export default function ScheduleList({
                     <Surface style={styles.scheduleIconContainer} elevation={1}>
                       <IconButton
                         icon={getScheduleTypeIcon(
-                          schedule.schedule.scheduleType,
+                          schedule.schedule?.scheduleType || 'default',
                         )}
                         size={18}
                         iconColor={getScheduleTypeColor(
-                          schedule.schedule.scheduleType,
+                          schedule.schedule?.scheduleType || 'default',
                         )}
                       />
                     </Surface>
@@ -242,44 +247,55 @@ export default function ScheduleList({
 
                 <View style={styles.modernInfoContainer}>
                   <View style={styles.infoGrid}>
+                    {/* Schedule Name */}
                     <View style={styles.infoItem}>
                       <IconButton
-                        icon="briefcase"
+                        icon="calendar-text"
                         size={16}
                         iconColor={colors.subLabel}
                       />
                       <View>
-                        <Text style={styles.infoLabel}>Công việc</Text>
+                        <Text style={styles.infoLabel}>Lịch làm việc</Text>
                         <Text style={styles.infoValue}>
-                          {schedule.assignmentName}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.infoItem}>
-                      <IconButton
-                        icon="map-marker"
-                        size={16}
-                        iconColor={colors.subLabel}
-                      />
-                      <View>
-                        <Text style={styles.infoLabel}>Khu vực</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.areaName}
+                          {schedule.schedule.scheduleName}
                         </Text>
                       </View>
                     </View>
 
-                    {schedule.schedule.restroom && (
+                    {/* Assignments */}
+                    {schedule.assignments &&
+                      schedule.assignments.length > 0 && (
+                        <View style={styles.infoItem}>
+                          <IconButton
+                            icon="briefcase"
+                            size={16}
+                            iconColor={colors.subLabel}
+                          />
+                          <View>
+                            <Text style={styles.infoLabel}>Công việc</Text>
+                            {schedule.assignments.map((assignment, index) => (
+                              <Text
+                                key={assignment.assignmentId}
+                                style={styles.infoValue}>
+                                {index + 1}. {assignment.assigmentName}
+                              </Text>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+
+                    {/* Description */}
+                    {schedule.description && (
                       <View style={styles.infoItem}>
                         <IconButton
-                          icon="toilet"
+                          icon="text"
                           size={16}
                           iconColor={colors.subLabel}
                         />
                         <View>
-                          <Text style={styles.infoLabel}>Nhà vệ sinh</Text>
+                          <Text style={styles.infoLabel}>Mô tả</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.schedule.restroomNumber}
+                            {schedule.description}
                           </Text>
                         </View>
                       </View>
@@ -287,10 +303,14 @@ export default function ScheduleList({
                     {(() => {
                       // Helper function to get valid rating value
                       const getRatingValue = (rating: any) => {
-                        if (!rating) return 0;
+                        if (!rating) {
+                          return 0;
+                        }
                         if (typeof rating === 'string') {
                           const cleaned = rating.trim();
-                          if (!cleaned) return 0;
+                          if (!cleaned) {
+                            return 0;
+                          }
                           const parsed = parseFloat(cleaned);
                           return isNaN(parsed) ? 0 : parsed;
                         }
