@@ -25,12 +25,28 @@ import {
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 import {useAuth} from '../../contexts/AuthContext';
+import {useUsers} from '../../hooks/useUsers';
 
 export default function WorkerReportPage() {
   const {reports, isLoading, isError, refresh} = useWorkerReports();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
+  const {users} = useUsers();
   const [selectedTab, setSelectedTab] = useState('sent');
+
+  // Helper function to get user name by user ID or userName
+  const getUserFullName = (userIdentifier: string | null): string => {
+    if (!userIdentifier) {
+      return 'Không rõ';
+    }
+
+    // Find user by userId first, then by userName
+    const foundUser = users.find(
+      u => u.userId === userIdentifier || u.userName === userIdentifier,
+    );
+
+    return foundUser?.fullName || foundUser?.userName || userIdentifier;
+  };
 
   const userReports = reports.filter(x => x.userName === user?.userName) || [];
   const filteredReports = userReports.filter(report => {
@@ -44,7 +60,19 @@ export default function WorkerReportPage() {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
+
+  const renderEmptyComponent = () => (
+    <View style={styles.centerContent}>
+      <Text style={styles.emptyText}>
+        {selectedTab === 'sent'
+          ? 'Không có báo cáo đã gửi'
+          : 'Không có báo cáo đã xử lý'}
+      </Text>
+    </View>
+  );
+
+  const renderSeparator = () => <View style={styles.separator} />;
 
   const renderItem = ({item}: {item: Report}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
@@ -75,7 +103,8 @@ export default function WorkerReportPage() {
                   {item.reportName}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdBy}>
-                  Bởi: {item.userName || user?.fullName || 'N/A'}
+                  Bởi:{' '}
+                  {getUserFullName(item.userName) || user?.fullName || 'N/A'}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdDate}>
                   {item.createdAt
@@ -184,16 +213,8 @@ export default function WorkerReportPage() {
           renderItem={renderItem}
           keyExtractor={item => item.reportId}
           contentContainerStyle={styles.listContainer}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={
-            <View style={styles.centerContent}>
-              <Text style={styles.emptyText}>
-                {selectedTab === 'sent'
-                  ? 'Không có báo cáo đã gửi'
-                  : 'Không có báo cáo đã xử lý'}
-              </Text>
-            </View>
-          }
+          ItemSeparatorComponent={renderSeparator}
+          ListEmptyComponent={renderEmptyComponent}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={false}
         />

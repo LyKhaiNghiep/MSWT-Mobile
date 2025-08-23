@@ -20,6 +20,7 @@ import {
   getReportStatusColor,
   getPriorityColor,
 } from '../../hooks/useReport';
+import {useUsers} from '../../hooks/useUsers';
 
 export default function WorkerReportDetails() {
   const route = useRoute();
@@ -27,15 +28,28 @@ export default function WorkerReportDetails() {
   const reportId = (route.params as any).reportId;
   const {report, isLoading, isError} = useReport(reportId);
   const {reports} = useReports();
+  const {users} = useUsers();
 
   // Get userName from reports list if not available in individual report
   const reportFromList = reports.find(r => r.reportId === reportId);
-  const userName = report?.userName || reportFromList?.userName;
+  const userIdentifier =
+    report?.userName || reportFromList?.userName || reportFromList?.fullName;
 
-  // Debug log to check if userName is available
-  console.log('Report data:', report);
-  console.log('Report from list:', reportFromList);
-  console.log('Final userName:', userName);
+  // Helper function to get user full name
+  const getUserFullName = (userIdentifier: string | null): string => {
+    if (!userIdentifier) {
+      return 'Không rõ';
+    }
+
+    // Find user by userId first, then by userName
+    const foundUser = users.find(
+      u => u.userId === userIdentifier || u.userName === userIdentifier,
+    );
+
+    return foundUser?.fullName || foundUser?.userName || userIdentifier;
+  };
+
+  const displayName = getUserFullName(userIdentifier);
 
   if (isLoading) {
     return (
@@ -82,7 +96,7 @@ export default function WorkerReportDetails() {
                       {report.reportName}
                     </Text>
                     <Text variant="bodyMedium" style={styles.createdBy}>
-                      Tạo bởi: {userName || 'Không rõ'}
+                      Tạo bởi: {displayName}
                     </Text>
                     <Text variant="bodySmall" style={styles.createdDate}>
                       {format(new Date(report.createdAt), 'dd/MM/yyyy HH:mm')}
@@ -313,9 +327,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
-
-
   },
   label: {
     fontWeight: '600',
