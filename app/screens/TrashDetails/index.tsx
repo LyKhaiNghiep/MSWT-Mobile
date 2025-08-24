@@ -1,30 +1,32 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Text, IconButton, Surface} from 'react-native-paper';
+import {Card, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {useTrashBins} from '../../hooks/useTrashbin';
-import {useRestrooms} from '../../hooks/useRestroom';
+import {useAreas} from '../../hooks/useArea';
 import {colors} from '../../theme';
-
-import {TrashBinSensor} from '../../config/models/trashbin.model';
 
 export default function TrashBinDetails() {
   const route = useRoute();
-  const {trashbins2: trashbins} = useTrashBins();
-  const {restrooms} = useRestrooms();
+  const {trashbins} = useTrashBins();
+  const {areas} = useAreas();
   const id = (route.params as any).id;
   const trashbin = trashbins?.find(r => r.trashBinId === id);
 
-  // Get restroom name from restroomId
-  const restroomName = useMemo(() => {
-    if (!trashbin?.restroomId || !restrooms) return null;
-    const restroom = restrooms.find(r => r.restroomId === trashbin.restroomId);
-    return restroom?.restroomNumber || restroom?.restroomId || null;
-  }, [trashbin?.restroomId, restrooms]);
+  // Get area name from areaId
+  const areaName = useMemo(() => {
+    if (!trashbin?.areaId || !areas) {
+      return null;
+    }
+    const area = areas.find(a => a.areaId === trashbin.areaId);
+    return area?.areaName || `Khu vực ${trashbin.areaId.slice(-4)}`;
+  }, [trashbin?.areaId, areas]);
 
-  if (!trashbin) return null;
+  if (!trashbin) {
+    return null;
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -37,51 +39,10 @@ export default function TrashBinDetails() {
       default:
         return colors.subLabel;
     }
-  }; // abc
-
-  const getSensorIcon = (sensorName: string) => {
-    const name = sensorName?.toLowerCase() || '';
-    if (name.includes('chuyển động') || name.includes('motion')) {
-      return 'motion-sensor';
-    }
-    if (name.includes('siêu âm') || name.includes('ultrasonic')) {
-      return 'wave';
-    }
-    if (name.includes('nhiệt độ') || name.includes('temperature')) {
-      return 'thermometer';
-    }
-    if (name.includes('độ ẩm') || name.includes('humidity')) {
-      return 'water-percent';
-    }
-    if (name.includes('ánh sáng') || name.includes('light')) {
-      return 'brightness-6';
-    }
-    return 'sensors';
   };
 
-  const renderSensor = (sensor: TrashBinSensor) => (
-    <Surface key={sensor.sensorId} style={styles.sensorSurface} elevation={2}>
-      <Card style={styles.sensorCard}>
-        <Card.Content style={styles.sensorContent}>
-          <View style={styles.sensorHeader}>
-            <View style={styles.sensorIconContainer}>
-              <IconButton
-                icon={getSensorIcon(sensor.sensorName)}
-                size={24}
-                iconColor={colors.primary}
-              />
-            </View>
-            <View style={styles.sensorInfo}>
-              <Text variant="titleMedium">{sensor.sensorName || 'Sensor'}</Text>
-            </View>
-          </View>
-        </Card.Content>
-      </Card>
-    </Surface>
-  );
-
   return (
-    <Screen styles={{backgroundColor: 'white'}} useDefault>
+    <Screen styles={{backgroundColor: colors.white}} useDefault>
       <AppHeader title="Chi tiết thùng rác" navigateTo="Trash" />
       <ScrollView style={styles.container}>
         {/* Upper Card - Trash Bin Information */}
@@ -90,7 +51,7 @@ export default function TrashBinDetails() {
             <View style={styles.headerSection}>
               <View style={styles.titleSection}>
                 <Text variant="headlineSmall" style={styles.title}>
-                  {trashbin.trashBinName || trashbin.location || 'Thùng rác'}
+                  Thùng rác {trashbin.trashBinId.slice(-4)}
                 </Text>
                 <View
                   style={[
@@ -116,71 +77,17 @@ export default function TrashBinDetails() {
 
               <View style={styles.infoRow}>
                 <Text variant="labelLarge" style={styles.label}>
-                  Vị trí:
-                </Text>
-                <Text variant="bodyLarge" style={styles.value}>
-                  {trashbin.location || 'N/A'}
-                </Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text variant="labelLarge" style={styles.label}>
                   Khu vực:
                 </Text>
                 <Text variant="bodyLarge" style={styles.value}>
-                  {trashbin.areaName || 'N/A'}
+                  {areaName || 'N/A'}
                 </Text>
               </View>
-
-              <View style={styles.infoRow}>
-                <Text variant="labelLarge" style={styles.label}>
-                  Nhà vệ sinh:
-                </Text>
-                <Text variant="bodyLarge" style={styles.value}>
-                  {trashbin.restroomId
-                    ? restroomName || trashbin.restroomId
-                    : 'Không có'}
-                </Text>
-              </View>
-
-              {trashbin.description && (
-                <View style={styles.descriptionSection}>
-                  <Text variant="labelLarge" style={styles.label}>
-                    Mô tả:
-                  </Text>
-                  <Text variant="bodyLarge" style={styles.descriptionText}>
-                    {trashbin.description}
-                  </Text>
-                </View>
-              )}
             </View>
           </Card.Content>
         </Card>
 
-        {/* Lower Section - Sensors */}
-        <View style={styles.sensorsSection}>
-          <Text variant="headlineSmall" style={styles.sensorTitle}>
-            Danh sách cảm biến ({trashbin.sensors?.length || 0})
-          </Text>
-          {trashbin.sensors && trashbin.sensors.length > 0 ? (
-            trashbin.sensors.map(sensor => renderSensor(sensor))
-          ) : (
-            <Surface style={styles.noSensorsSurface} elevation={1}>
-              <Card style={styles.noSensorsCard}>
-                <Card.Content style={styles.noSensorsContent}>
-                  <IconButton
-                    icon="gauge-empty"
-                    size={48}
-                    iconColor={colors.subLabel}
-                  />
-                  <Text variant="bodyLarge" style={styles.noSensorsText}>
-                    Không có cảm biến nào
-                  </Text>
-                </Card.Content>
-              </Card>
-            </Surface>
-          )}
-        </View>
+        {/* Note: Sensor functionality removed as it's not available in current API */}
       </ScrollView>
     </Screen>
   );
@@ -252,62 +159,5 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  descriptionSection: {
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.secondary1Light,
-  },
-  descriptionText: {
-    marginTop: 8,
-    color: colors.darkLabel,
-    lineHeight: 20,
-  },
-  sensorsSection: {
-    marginBottom: 24,
-  },
-  sensorTitle: {
-    marginBottom: 16,
-    color: colors.primary,
-    fontWeight: 'bold',
-  },
-  sensorSurface: {
-    marginBottom: 12,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  sensorCard: {
-    backgroundColor: colors.white,
-  },
-  sensorContent: {
-    padding: 16,
-  },
-  sensorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sensorIconContainer: {
-    backgroundColor: colors.primary + '15',
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  sensorInfo: {
-    flex: 1,
-  },
-  noSensorsSurface: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  noSensorsCard: {
-    backgroundColor: colors.white,
-  },
-  noSensorsContent: {
-    alignItems: 'center',
-    padding: 32,
-    gap: 12,
-  },
-  noSensorsText: {
-    textAlign: 'center',
-    color: colors.subLabel,
-  },
+  // Removed unused sensor-related styles as sensors are not available in current API
 });

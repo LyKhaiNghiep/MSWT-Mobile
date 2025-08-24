@@ -12,14 +12,20 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {TrashBin} from '../../config/models/trashbin.model';
 import {useTrashBins} from '../../hooks/useTrashbin';
+import {useAreas} from '../../hooks/useArea';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 
 export default function TrashBinPage() {
   const {trashbins, isLoading} = useTrashBins();
+  const {areas} = useAreas();
   const navigation = useNavigation<StackNavigation>();
 
-  console.log('trashbins', trashbins);
+  // Helper function to get area name from areaId
+  const getAreaName = (areaId: string): string => {
+    const area = areas.find(a => a.areaId === areaId);
+    return area?.areaName || `Khu vực ${areaId.slice(-4)}`;
+  };
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'hoạt động':
@@ -51,14 +57,14 @@ export default function TrashBinPage() {
                     style={styles.title}
                     numberOfLines={1}
                     ellipsizeMode="tail">
-                    {item.trashBinName}
+                    Thùng rác {item.trashBinId.slice(-4)}
                   </Text>
                   <Text
                     variant="bodyMedium"
                     style={styles.subtitle}
                     numberOfLines={1}
                     ellipsizeMode="tail">
-                    {item.areaName}
+                    {getAreaName(item.areaId)}
                   </Text>
                 </View>
               </View>
