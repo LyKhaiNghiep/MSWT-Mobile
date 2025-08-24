@@ -9,12 +9,15 @@ export interface ScheduleDetails {
   rating: number | string | null;
   comment: string | null;
   workerGroupId: string;
+  workerGroupName: string;
   backupForUserId: string | null;
   endTime: string | null;
   startTime: string;
   isBackup: boolean | null;
   groupAssignmentId: string;
+  groupAssignmentName: string;
   areaId: string;
+  areaName: string;
   schedule: Schedule;
   workers: Worker[];
   assignments: Assignment[];

@@ -104,6 +104,7 @@ export default function ScheduleList({
     const lowerStatus = status?.toLowerCase().trim();
     switch (lowerStatus) {
       case 'hoàn tất':
+      case 'đã đóng':
         return 'green';
       case 'sắp tới':
       case 'sap toi':
@@ -112,6 +113,8 @@ export default function ScheduleList({
         return '#007AFF';
       case 'chưa hoàn tất':
         return 'red';
+      case 'string': // Handle test data
+        return 'grey';
       default:
         return 'grey';
     }
@@ -258,6 +261,21 @@ export default function ScheduleList({
                         <Text style={styles.infoLabel}>Lịch làm việc</Text>
                         <Text style={styles.infoValue}>
                           {schedule.schedule.scheduleName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Area Name */}
+                    <View style={styles.infoItem}>
+                      <IconButton
+                        icon="map-marker"
+                        size={16}
+                        iconColor={colors.subLabel}
+                      />
+                      <View>
+                        <Text style={styles.infoLabel}>Khu vực</Text>
+                        <Text style={styles.infoValue}>
+                          {schedule.areaName || 'Không có thông tin khu vực'}
                         </Text>
                       </View>
                     </View>

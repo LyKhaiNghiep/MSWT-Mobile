@@ -59,7 +59,7 @@ export default function MyCalendar() {
   );
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Chưa hoàn tất');
+  const [status, setStatus] = useState('Hoàn tất');
 
   const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
   const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
@@ -104,8 +104,6 @@ export default function MyCalendar() {
   const statusOptopns = [
     {label: 'Hoàn tất', value: 'Hoàn tất'},
     {label: 'Chưa hoàn tất', value: 'Chưa hoàn tất'},
-    {label: 'Đang làm', value: 'Đang làm'},
-    {label: 'Sắp tới', value: 'Sắp tới'},
   ];
 
   const getStausLabel = () => {
@@ -114,27 +112,31 @@ export default function MyCalendar() {
   };
 
   const filteredSchedules = schedules.filter(schedule => {
-    const scheduleDate = moment(schedule.date);
-    const today = moment().startOf('day');
+    // Parse ISO date string using parseISO for better reliability
+    const scheduleDate = parseISO(schedule.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     if (selectedTab === 'upcoming') {
-      return scheduleDate.isSameOrAfter(today);
+      return scheduleDate >= today;
     }
 
     if (selectedTab === 'schedule') {
-      return scheduleDate.isSameOrAfter(today);
+      return scheduleDate >= today;
     }
 
     if (selectedTab === 'history') {
-      // Xử lý lọc theo khoảng thời gian cho tab 'history'
+      // History tab shows all schedules regardless of date, filtered by month/year and status
       let matchesTimeRange = true;
+
       if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
-        matchesTimeRange =
-          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
+        const scheduleMonth = scheduleDate.getMonth() + 1; // getMonth() is 0-indexed
+        matchesTimeRange = matchesTimeRange && scheduleMonth === selectedMonth;
       }
+
       if (selectedYear !== 'all' && typeof selectedYear === 'number') {
-        matchesTimeRange =
-          matchesTimeRange && scheduleDate.year() === selectedYear;
+        const scheduleYear = scheduleDate.getFullYear();
+        matchesTimeRange = matchesTimeRange && scheduleYear === selectedYear;
       }
 
       let matchesStatus = false;
@@ -142,17 +144,16 @@ export default function MyCalendar() {
 
       switch (status) {
         case 'Hoàn tất':
-          matchesStatus = lowerStatus === 'hoàn tất';
+          matchesStatus =
+            lowerStatus === 'hoàn tất' || lowerStatus === 'đã đóng';
           break;
         case 'Chưa hoàn tất':
-          matchesStatus = lowerStatus === 'chưa hoàn tất';
-          break;
-        case 'Đang làm':
-          matchesStatus = lowerStatus === 'đang làm';
-          break;
-        case 'Sắp tới':
           matchesStatus =
-            lowerStatus === 'sắp tới' || lowerStatus === 'sap toi';
+            lowerStatus === 'chưa hoàn tất' ||
+            lowerStatus === 'sắp tới' ||
+            lowerStatus === 'sap toi' ||
+            lowerStatus === 'đang làm' ||
+            lowerStatus === 'string'; // Handle test data
           break;
         default:
           matchesStatus = true;
