@@ -9,10 +9,16 @@ import {format} from 'date-fns';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 import {useLeaveRequest} from '../../hooks/useLeaveRequest';
+import {useAuth} from '../../contexts/AuthContext';
 
 export default function LeaveRequest() {
   const navigation = useNavigation<StackNavigation>();
   const {myLeaves: leaves, getLeaveTypeLabel} = useLeaveRequest();
+  const {user} = useAuth();
+  
+  // Xác định role để navigate đến trang phù hợp
+  const isSupervisor = user?.role === 'Supervisor' || user?.role === 'supervisor';
+  const createLeaveRoute = isSupervisor ? 'CreateSupervisorLeaveRequest' : 'CreateLeaveRequest';
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -74,7 +80,7 @@ export default function LeaveRequest() {
         <Button
           mode="contained"
           style={styles.button}
-          onPress={() => navigation.navigate('CreateLeaveRequest')}>
+          onPress={() => navigation.navigate(createLeaveRoute as any)}>
           Tạo đơn xin nghỉ
         </Button>
       </View>

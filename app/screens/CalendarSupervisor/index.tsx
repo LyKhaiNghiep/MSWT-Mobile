@@ -1,20 +1,9 @@
 import {format, parseISO} from 'date-fns';
 import moment from 'moment';
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View, Alert} from 'react-native';
+import {ScrollView, StyleSheet, View, ActivityIndicator} from 'react-native';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
-import {
-  Button,
-  Menu,
-  Provider,
-  SegmentedButtons,
-  Text,
-  IconButton,
-  Portal,
-  Dialog,
-  TextInput,
-  ActivityIndicator,
-} from 'react-native-paper';
+import {Button, Menu, Provider, SegmentedButtons, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {SupervisorScheduleList, UpcomingCalendar} from '../../components/Calendar';
@@ -23,10 +12,6 @@ import {useScheduleDetails} from '../../hooks/useScheduleDetails';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
 import {useAuth} from '../../contexts/AuthContext';
-import {API_URLS} from '../../constants/api-urls';
-import api from '../../services/api';
-import {Rating} from '../../components/Rating';
-import {RatingDisplay} from '../../components/Rating/RatingDisplay';
 
 // Configure Vietnamese locale
 LocaleConfig.locales['vi'] = {
@@ -77,10 +62,6 @@ export default function CalendarSupervisor() {
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
   const [status, setStatus] = useState('Đã hoàn thành');
-  const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
 
   const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
   const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
@@ -88,7 +69,7 @@ export default function CalendarSupervisor() {
   const [yearMenuVisible, setYearMenuVisible] = useState(false);
 
   const months: {label: string; value: string | number}[] = [
-    {label: 'Tất cả', value: 'all'},
+    {label: 'Chọn tháng', value: 'all'},
     {label: 'Tháng 1', value: 1},
     {label: 'Tháng 2', value: 2},
     {label: 'Tháng 3', value: 3},
@@ -106,7 +87,7 @@ export default function CalendarSupervisor() {
   // Danh sách năm (từ 2020 đến năm hiện tại + 2)
   const currentYear = moment().year();
   const years: {label: string; value: string | number}[] = [
-    {label: 'Tất cả', value: 'all'},
+    {label: 'Chọn năm', value: 'all'},
   ];
   for (let year = 2020; year <= currentYear + 2; year++) {
     years.push({label: `Năm ${year}`, value: year});
@@ -174,70 +155,6 @@ export default function CalendarSupervisor() {
 
     return true;
   });
-
-  const handleRate = async () => {
-    if (!selectedSchedule) return;
-    if (!rating || rating < 1) {
-      Alert.alert('Thiếu thông tin', 'Vui lòng chọn số sao trước khi gửi.');
-      return;
-    }
-
-    try {
-      // PUT /api/scheduledetails/scheduledetails/rating/{id}
-      const ratingData = {
-        rating: rating, // ✅ Sửa từ 'ratingvalue' thành 'rating'
-        comment: comment || '',
-      };
-
-      console.log('Selected Schedule:', selectedSchedule);
-      console.log('Rating data:', ratingData);
-      console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
-
-      const response = await api.put(
-        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
-        ratingData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log('Rating response:', response);
-      
-      // Refresh the schedules list
-      mutate();
-      
-      // Reset state
-      setRatingDialogVisible(false);
-      setSelectedSchedule(null);
-      setRating(0);
-      setComment('');
-
-      // Thông báo thành công
-      Alert.alert(
-        'Thành công',
-        'Đánh giá đã được gửi.',
-        [{text: 'OK'}]
-      );
-    } catch (error: any) {
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-      console.error('Error response:', error.response ? JSON.stringify(error.response, null, 2) : 'No response');
-      console.error('Error request:', error.request ? JSON.stringify(error.request, null, 2) : 'No request');
-      console.error('Error config:', error.config ? JSON.stringify(error.config, null, 2) : 'No config');
-      
-      // Optional: show detailed error message to user
-      Alert.alert(
-        'Lỗi',
-        `Không thể đánh giá. Chi tiết: ${
-          error.response?.data?.message || 
-          error.message || 
-          'Lỗi không xác định'
-        }`,
-        [{text: 'OK'}]
-      );
-    }
-  };
 
   const markedDates = scheduleDetails.reduce((acc, schedule) => {
     const date = moment(schedule.date).format('YYYY-MM-DD');
@@ -366,7 +283,6 @@ export default function CalendarSupervisor() {
                     <Menu.Item
                       key={option.value}
                       onPress={() => {
-                        // TODO: set status
                         setStatus(option.value);
                         setMenuStatusVisible(false);
                       }}
@@ -415,58 +331,12 @@ export default function CalendarSupervisor() {
             </ScrollView>
           )}
         </View>
-
-        <Portal>
-          <Dialog
-            visible={ratingDialogVisible}
-            onDismiss={() => {
-              setRatingDialogVisible(false);
-              setSelectedSchedule(null);
-              setRating(0);
-              setComment('');
-            }}
-          >
-            <Dialog.Title>Đánh giá nhân viên</Dialog.Title>
-            <Dialog.Content>
-              <View style={styles.ratingContainer}>
-                <Rating
-                  value={rating}
-                  onValueChange={setRating}
-                  size={30}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Nhận xét"
-                  value={comment}
-                  onChangeText={setComment}
-                  multiline
-                  numberOfLines={3}
-                  style={styles.commentInput}
-                />
-              </View>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => setRatingDialogVisible(false)}>Hủy</Button>
-              <Button onPress={handleRate}>Đánh giá</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
       </Provider>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContent: {
-    marginTop: 26,
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: colors.subLabel,
-    fontSize: 16,
-  },
   container: {
     flex: 1,
     padding: 16,
@@ -474,87 +344,11 @@ const styles = StyleSheet.create({
   tabs: {
     marginBottom: 16,
   },
-  statusFilter: {
-    marginBottom: 16,
-  },
-  calendar: {
-    height: 100,
-    marginBottom: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  calendarHeader: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateNumber: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateName: {
-    color: '#000',
-    fontSize: 12,
-  },
-  highlightDateNumber: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  highlightDateName: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  disabledDateName: {
-    color: '#ccc',
-    fontSize: 12,
-  },
-  disabledDateNumber: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  iconContainer: {
-    flex: 0.1,
-  },
-  card: {
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  content: {
-    gap: 4,
-  },
-  workerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  list: {
-    paddingBottom: 16,
-  },
   timeRangeButton: {
     marginBottom: 16,
     width: '100%',
     minWidth: 170,
     alignSelf: 'stretch',
-  },
-  calendarPlaceholder: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.grey,
-    borderRadius: 8,
-    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -576,13 +370,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.error,
     textAlign: 'center',
-  },
-  ratingContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  commentInput: {
-    width: '100%',
-    marginTop: 16,
   },
 }); 
