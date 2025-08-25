@@ -62,9 +62,6 @@ export default function RequestDetails() {
               {request.worker && (
                 <Text variant="bodyLarge">Người gửi: {request.worker}</Text>
               )}
-              <Text variant="bodyLarge">
-                Ngày gửi: {format(new Date(request.requestDate), 'dd/MM/yyyy')}
-              </Text>
             </View>
 
             <Divider style={styles.divider} />
@@ -77,6 +74,10 @@ export default function RequestDetails() {
               {request.trashBin && (
                 <Text variant="bodyLarge">Thùng rác: {request.trashBin}</Text>
               )}
+              <Text variant="bodyLarge">
+                Ngày yêu cầu:{' '}
+                {format(new Date(request.requestDate), 'dd/MM/yyyy')}
+              </Text>
               <Text variant="bodyLarge" style={styles.description}>
                 Mô tả: {request.description}
               </Text>
