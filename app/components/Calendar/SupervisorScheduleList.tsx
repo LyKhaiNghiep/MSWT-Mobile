@@ -115,7 +115,10 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
     }
   };
 
-  const getTimeRange = (startTime: string, endTime: string) => {
+  const getTimeRange = (startTime: string, endTime: string | null) => {
+    if (!endTime) {
+      return `${startTime}`;
+    }
     return `${startTime} - ${endTime}`;
   };
 
@@ -206,7 +209,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
   };
 
   const renderSupervisorActions = (schedule: ScheduleDetails) => {
-    if (!schedule.workerId) return null;
+    if (!schedule.workers || schedule.workers.length === 0) return null;
     
     const ratingValue = getRatingValue(schedule.rating);
     const hasValidRating = ratingValue > 0;
@@ -215,7 +218,9 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
       <View style={styles.supervisorActions}>
         {/* Worker Info Row - Luôn hiển thị */}
         <View style={styles.workerRow}>
-          <Text style={styles.workerLabel}>Nhân viên: {schedule.workerId}</Text>
+          <Text style={styles.workerLabel}>
+            Nhân viên: {schedule.workers.map(w => w.fullName).join(', ')}
+          </Text>
           <View style={styles.actionButtons}>
             {!hasValidRating && (
               <IconButton
@@ -228,17 +233,6 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                 }}
                 style={styles.ratingStarButton}
               />
-            )}
-            {schedule.evidenceImage && (
-              <Button
-                mode="outlined"
-                icon="image"
-                onPress={() => handleViewImage(schedule.evidenceImage!)}
-                style={styles.evidenceImageButton}
-                compact
-              >
-                Ảnh
-              </Button>
             )}
           </View>
         </View>
@@ -346,7 +340,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                         <View>
                           <Text style={styles.infoLabel}>Công việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.assignmentName}
+                            {schedule.groupAssignmentName}
                           </Text>
                         </View>
                       </View>
@@ -363,21 +357,40 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                           </Text>
                         </View>
                       </View>
-                      {schedule.schedule.restroom && (
+                      <View style={styles.infoItem}>
+                        <IconButton
+                          icon="account-group"
+                          size={16}
+                          iconColor={colors.subLabel}
+                        />
+                        <View>
+                          <Text style={styles.infoLabel}>Nhóm nhân viên</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.workerGroupName}
+                          </Text>
+                        </View>
+                      </View>
+                      {schedule.workers && schedule.workers.length > 0 && (
                         <View style={styles.infoItem}>
                           <IconButton
-                            icon="toilet"
+                            icon="account-multiple"
                             size={16}
                             iconColor={colors.subLabel}
                           />
                           <View>
-                            <Text style={styles.infoLabel}>Nhà vệ sinh</Text>
-                            <Text style={styles.infoValue}>
-                              {schedule.schedule.restroomNumber}
-                            </Text>
+                            <Text style={styles.infoLabel}>Nhân viên</Text>
+                            <View>
+                              {schedule.workers.map((worker, index) => (
+                                <Text key={worker.workGroupMemberId} style={styles.workerName}>
+                                  {worker.fullName}
+                                  {index < schedule.workers.length - 1 ? ', ' : ''}
+                                </Text>
+                              ))}
+                            </View>
                           </View>
                         </View>
                       )}
+
                       {renderSupervisorActions(schedule)}
                     </View>
                   </View>

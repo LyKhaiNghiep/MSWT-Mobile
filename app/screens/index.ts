@@ -9,3 +9,4 @@ export * from './CalendarSupervisor';
 export {default as SupervisorReport} from './SupervisorReport/index';
 export {default as CreateSupervisorReport} from './CreateSupervisorReport/index';
 export {default as SupervisorReportDetails} from './SupervisorReportDetails/index';
+export {default as CreateSupervisorLeaveRequest} from './CreateSupervisorLeaveRequest/index';

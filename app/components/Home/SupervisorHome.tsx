@@ -30,6 +30,14 @@ export const SupervisorHome = () => {
     },
 
     {
+      id: 'leave',
+      title: 'Đơn xin nghỉ',
+      icon: 'calendar-account',
+      route: 'LeaveRequest',
+      color: theme.colors.tertiary,
+    },
+
+    {
       id: 'trash',
       title: 'Thùng rác',
       icon: 'delete-outline',
@@ -67,7 +75,7 @@ export const SupervisorHome = () => {
                 ]}
                 elevation={2}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate(item.route)}
+                  onPress={() => navigation.navigate(item.route as any)}
                   style={styles.menuItemContent}>
                   <View
                     style={[

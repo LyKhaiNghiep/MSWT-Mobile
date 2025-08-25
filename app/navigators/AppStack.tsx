@@ -27,6 +27,7 @@ import ChangePassword from '../screens/ChangePassword';
 import Calendar from '../screens/Calendar';
 import CalendarSupervisor from '../screens/CalendarSupervisor';
 import CreateLeaveRequest from '../screens/CreateLeaveRequest';
+import CreateSupervisorLeaveRequest from '../screens/CreateSupervisorLeaveRequest';
 import Employees from '../screens/Employee';
 import SensorPage from '../screens/Sensor';
 import SensorDetailsPage from '../screens/SensorDetails';
@@ -165,6 +166,13 @@ export const AppStack = () => {
           <Stack.Screen
             name="CreateLeaveRequest"
             component={CreateLeaveRequest}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="CreateSupervisorLeaveRequest"
+            component={CreateSupervisorLeaveRequest}
             options={{
               animation: 'slide_from_right',
             }}
