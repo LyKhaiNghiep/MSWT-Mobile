@@ -337,6 +337,16 @@ export default function CalendarSupervisor() {
 }
 
 const styles = StyleSheet.create({
+  centerContent: {
+    marginTop: 26,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: colors.subLabel,
+    fontSize: 16,
+  },
   container: {
     flex: 1,
     padding: 16,
@@ -344,11 +354,82 @@ const styles = StyleSheet.create({
   tabs: {
     marginBottom: 16,
   },
+  statusFilter: {
+    marginBottom: 16,
+  },
+  calendar: {
+    height: 100,
+    marginBottom: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  calendarHeader: {
+    color: '#000',
+    fontSize: 14,
+  },
+  dateNumber: {
+    color: '#000',
+    fontSize: 14,
+  },
+  dateName: {
+    color: '#000',
+    fontSize: 12,
+  },
+  highlightDateNumber: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  highlightDateName: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  disabledDateName: {
+    color: '#ccc',
+    fontSize: 12,
+  },
+  disabledDateNumber: {
+    color: '#ccc',
+    fontSize: 14,
+  },
+  iconContainer: {
+    flex: 0.1,
+  },
+  card: {
+    marginBottom: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  divider: {
+    marginVertical: 12,
+  },
+  content: {
+    gap: 4,
+  },
+  list: {
+    paddingBottom: 16,
+  },
   timeRangeButton: {
     marginBottom: 16,
     width: '100%',
     minWidth: 170,
     alignSelf: 'stretch',
+  },
+  calendarPlaceholder: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.grey,
+    borderRadius: 8,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,
