@@ -52,6 +52,14 @@ export const SupervisorHome = () => {
       route: 'Employees',
       color: theme.colors.primary,
     },
+
+    {
+      id: 'attendance',
+      title: 'Điểm danh',
+      icon: 'account-check',
+      route: 'SupervisorAttendance',
+      color: theme.colors.surfaceVariant,
+    },
   ];
 
   return (
