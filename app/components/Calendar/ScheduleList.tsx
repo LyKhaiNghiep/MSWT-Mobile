@@ -1,7 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
 import {
   Button,
   Card,
@@ -53,43 +52,28 @@ export default function ScheduleList({
     }),
   );
 
-  const handleImagePick = async (scheduleDetailId: string) => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-
-    if (result.assets && result.assets[0]) {
-      setIsUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append('evidenceImage', {
-          uri: result.assets[0].uri,
-          type: result.assets[0].type,
-          name: result.assets[0].fileName || 'image.jpg',
-        });
-
-        const response = await api.put(
-          API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
+  const handleCompleteTask = async (scheduleDetailId: string) => {
+    setIsUploading(true);
+    try {
+      const response = await api.put(
+        API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+        },
+      );
 
-        if (response.status === 200) {
-          showSnackbar?.success('Đã cập nhật trạng thái');
-          onUpdate?.();
-        }
-
+      if (response.status === 200) {
+        showSnackbar?.success('Đã hoàn thành công việc');
         onUpdate?.();
-      } catch (error) {
-        showSnackbar?.error('Cập nhật trạng thái thất bại');
-      } finally {
-        setIsUploading(false);
       }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showSnackbar?.error('Cập nhật trạng thái thất bại');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -155,10 +139,11 @@ export default function ScheduleList({
       case 'đang làm':
         return (
           <Button
-            mode="contained-tonal"
-            onPress={() => handleImagePick(schedule.scheduleDetailId)}
-            loading={isUploading}>
-            Đánh dấu hoàn thành
+            mode="contained"
+            onPress={() => handleCompleteTask(schedule.scheduleDetailId)}
+            loading={isUploading}
+            buttonColor={colors.success}>
+            Hoàn thành
           </Button>
         );
       default:

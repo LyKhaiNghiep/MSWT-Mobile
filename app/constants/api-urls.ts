@@ -28,14 +28,6 @@ export const API_URLS = {
     UPDATE: (id: string) => `trashbins/${id}`,
     DELETE: (id: string) => `trashbins/${id}`,
   },
-  ALERT: {
-    GET_ALL: `alerts`,
-    MY_ALERTS: `alerts/my-alerts`,
-    GET_BY_ID: (id: string) => `alerts/${id}`,
-    CREATE: `alerts`,
-    UPDATE: (id: string) => `alerts/${id}`,
-    DELETE: (id: string) => `alerts/${id}`,
-  },
 
   // Area management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong useArea.ts
   AREA: {
@@ -95,7 +87,7 @@ export const API_URLS = {
       `scheduledetails/${scheduleId}/details`,
     UPDATE: (id: string) => `scheduledetails/${id}`,
     UPDATE_STATUS: (id: string) =>
-      `scheduledetails/schedule-details/${id}/status`,
+      `scheduledetails/scheduledetails/status/${id}`,
     DELETE: (id: string) => `scheduledetails/${id}`,
     // PUT /api/scheduledetails/scheduledetails/rating/{id}
     // Body: { ratingvalue: number; comment: string }
@@ -176,8 +168,9 @@ export const API_URLS = {
   },
 
   // Alerts management endpoints
-  ALERTS: {
+  ALERT: {
     GET_ALL: `alerts`,
+    MY_ALERTS: `alerts/my-alerts`,
     GET_BY_ID: (id: string) => `alerts/${id}`,
     GET_BY_USER: (userId: string) => `alerts/user/${userId}`,
     CREATE: `alerts`,
