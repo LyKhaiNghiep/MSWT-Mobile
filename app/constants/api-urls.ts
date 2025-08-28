@@ -45,8 +45,10 @@ export const API_URLS = {
   CHECK_IN_OUT: {
     GET_ALL: `attendanceRecord/all`,
     MY: `attendanceRecord/my-records`,
+    EMPLOYEES: `attendanceRecord/employees`,
     CHECK_IN: `attendanceRecord/checkin`,
     CHECK_OUT: `attendanceRecord/checkout`,
+    SAVE_ATTENDANCE: `attendanceRecord/save`,
   },
 
   // Shift management endpoints - ĐANG ĐƯỢC SỬ DỤNG trong shifts.ts

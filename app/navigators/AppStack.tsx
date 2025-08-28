@@ -44,6 +44,7 @@ import WorkerDashboard from '../screens/WorkerDashboard';
 import ForgotPassword from '../screens/ForgotPassword';
 import SupervisorReport from '../screens/SupervisorReport/index';
 import CreateSupervisorReport from '../screens/CreateSupervisorReport/index';
+import SupervisorAttendance from '../screens/SupervisorAttendance/index';
 import SupervisorReportDetails from '../screens/SupervisorReportDetails/index';
 
 export const AppStack = () => {
@@ -255,6 +256,13 @@ export const AppStack = () => {
           <Stack.Screen
             name="SupervisorReportDetails"
             component={SupervisorReportDetails}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="SupervisorAttendance"
+            component={SupervisorAttendance}
             options={{
               animation: 'slide_from_right',
             }}
