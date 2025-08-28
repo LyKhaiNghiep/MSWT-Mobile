@@ -4,7 +4,7 @@ import {StorageUtil} from '../utils/storage';
 
 // Lấy biến môi trường với fallback
 
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 60000; // Increased to 60 seconds for large responses
 
 // Debug log
 console.log('🔗 API Base URL:', BASE_API_URL);
