@@ -91,6 +91,9 @@ class FirebaseMessagingService {
 
       // Send FCM token as simple string (as per API documentation)
       console.log(`📦 Sending FCM token as string format`);
+      console.log(
+        `🌐 Full API URL will be: ${api.defaults.baseURL}/${API_URLS.USER.FCM_TOKEN}`,
+      );
 
       const response = await api.post(API_URLS.USER.FCM_TOKEN, token, {
         headers: {
