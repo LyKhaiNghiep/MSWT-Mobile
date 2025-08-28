@@ -3,7 +3,16 @@ import moment from 'moment';
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
-import {Button, Menu, Provider, SegmentedButtons} from 'react-native-paper';
+import {
+  Button,
+  Menu,
+  Provider,
+  SegmentedButtons,
+  Text,
+  Surface,
+  IconButton,
+  ProgressBar,
+} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import ScheduleList from '../../components/Calendar/ScheduleList';
@@ -52,7 +61,9 @@ LocaleConfig.defaultLocale = 'vi';
 
 export default function MyCalendar() {
   const {user} = useAuth();
-  const {schedules, mutate} = useSchedules(user?.userId);
+  const {schedules, mutate, isLoading, isRefreshing, error} = useSchedules(
+    user?.userId,
+  );
 
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
@@ -164,6 +175,48 @@ export default function MyCalendar() {
 
     return true;
   });
+
+  // Show loading state
+  if (isLoading && schedules.length === 0) {
+    return (
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
+        <Provider>
+          <AppHeader title="Lịch làm việc" />
+          <View style={styles.centerContent}>
+            <Surface style={styles.loadingContainer} elevation={1}>
+              <ProgressBar indeterminate color={colors.primary} />
+              <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
+            </Surface>
+          </View>
+        </Provider>
+      </Screen>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
+        <Provider>
+          <AppHeader title="Lịch làm việc" />
+          <View style={styles.centerContent}>
+            <Surface style={styles.errorContainer} elevation={1}>
+              <IconButton
+                icon="alert-circle"
+                size={48}
+                iconColor={colors.error}
+              />
+              <Text style={styles.errorTitle}>Có lỗi xảy ra</Text>
+              <Text style={styles.errorText}>{error}</Text>
+              <Button mode="outlined" onPress={() => mutate()}>
+                Thử lại
+              </Button>
+            </Surface>
+          </View>
+        </Provider>
+      </Screen>
+    );
+  }
 
   const markedDates = schedules.reduce((acc, schedule) => {
     const date = moment(schedule.date).format('YYYY-MM-DD');
@@ -279,6 +332,7 @@ export default function MyCalendar() {
                 scheduleDetails={filteredSchedules}
                 showRating={true}
                 onUpdate={mutate}
+                isRefreshing={isRefreshing}
               />
             </View>
           )}
@@ -314,6 +368,7 @@ export default function MyCalendar() {
                       format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
                   )}
                   onUpdate={() => mutate()}
+                  isRefreshing={isRefreshing}
                 />
               </View>
             </ScrollView>
@@ -334,6 +389,38 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.subLabel,
     fontSize: 16,
+  },
+  loadingContainer: {
+    padding: 24,
+    margin: 16,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.subLabel,
+  },
+  errorContainer: {
+    padding: 24,
+    margin: 16,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.error,
+    marginTop: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.subLabel,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 16,
   },
   container: {
     flex: 1,

@@ -5,7 +5,7 @@ import {StorageUtil} from './storage';
 // Create axios instance for SWR
 const swrAxios = axios.create({
   baseURL: BASE_API_URL,
-  timeout: 10000,
+  timeout: 60000, // Increased to 60 seconds for large responses
   headers: {
     'Content-Type': 'application/json',
   },
