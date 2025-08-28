@@ -5,7 +5,8 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import {Card, Divider, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {useRequest, TRequest} from '../../hooks/useRequest';
+import {useRequest} from '../../hooks/useRequest';
+import {useUsers} from '../../hooks/useUsers';
 
 const getStatusColor = (status: string) => {
   switch (status?.toLowerCase()) {
@@ -23,8 +24,23 @@ const getStatusColor = (status: string) => {
 export default function RequestDetails() {
   const route = useRoute();
   const {data: requests} = useRequest();
+  const {users} = useUsers();
   const id = (route.params as any).id;
   const request = requests.find(r => r.requestId === id);
+
+  // Helper function to get user full name
+  const getUserFullName = (userIdentifier: string | null): string => {
+    if (!userIdentifier) {
+      return 'Không rõ';
+    }
+
+    // Find user by userId first, then by userName
+    const foundUser = users.find(
+      u => u.userId === userIdentifier || u.userName === userIdentifier,
+    );
+
+    return foundUser?.fullName || foundUser?.userName || userIdentifier;
+  };
 
   if (!request) {
     return (
@@ -58,10 +74,9 @@ export default function RequestDetails() {
 
             <View style={styles.infoSection}>
               <Text variant="titleMedium">Thông tin người gửi</Text>
-              <Text variant="bodyLarge">Mã nhân viên: {request.workerId}</Text>
-              {request.worker && (
-                <Text variant="bodyLarge">Người gửi: {request.worker}</Text>
-              )}
+              <Text variant="bodyLarge">
+                Người gửi: {getUserFullName(request.worker || request.workerId)}
+              </Text>
             </View>
 
             <Divider style={styles.divider} />
@@ -88,11 +103,12 @@ export default function RequestDetails() {
                 <Divider style={styles.divider} />
                 <View style={styles.infoSection}>
                   <Text variant="titleMedium">Thông tin xử lý</Text>
-                  {request.supervisor && (
-                    <Text variant="bodyLarge">
-                      Người xử lý: {request.supervisor}
-                    </Text>
-                  )}
+                  <Text variant="bodyLarge">
+                    Người xử lý:{' '}
+                    {getUserFullName(
+                      request.supervisor || request.supervisorId,
+                    )}
+                  </Text>
                   <Text variant="bodyLarge">
                     Ngày xử lý:{' '}
                     {format(new Date(request.resolveDate), 'dd/MM/yyyy')}

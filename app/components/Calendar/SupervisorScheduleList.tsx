@@ -26,9 +26,13 @@ interface IProps {
   onUpdate?: () => void;
 }
 
-export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IProps) {
+export default function SupervisorScheduleList({
+  scheduleDetails,
+  onUpdate,
+}: IProps) {
   const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleDetails | null>(null);
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<ScheduleDetails | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [imageDialogVisible, setImageDialogVisible] = useState(false);
@@ -71,22 +75,25 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
       };
 
       console.log('Rating data:', ratingData);
-      console.log('Rating URL:', API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId));
+      console.log(
+        'Rating URL:',
+        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId),
+      );
       console.log('Full request:', {
         method: 'PUT',
         url: API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId),
         data: ratingData,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {'Content-Type': 'application/json'},
       });
 
       const response = await api.put(
-        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId), 
+        API_URLS.SCHEDULE_DETAILS.RATE(selectedSchedule.scheduleDetailId),
         ratingData,
         {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       console.log('Rating response:', response);
@@ -96,16 +103,16 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
 
       if (response.status === 200) {
         showSnackbar?.success('Đánh giá đã được gửi');
-        
+
         // Reset state
         setRatingDialogVisible(false);
         setSelectedSchedule(null);
         setRating(0);
         setComment('');
-        
+
         // Force refresh data
         onUpdate?.();
-        
+
         // Debug log
         console.log('Rating submitted successfully, refreshing data...');
       }
@@ -177,40 +184,45 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
   // Helper function to get valid rating value
   const getRatingValue = (rating: any) => {
     console.log('getRatingValue input:', rating, 'type:', typeof rating);
-    
+
     if (!rating) {
       console.log('getRatingValue: no rating, returning 0');
       return 0;
     }
-    
+
     if (typeof rating === 'string') {
       const cleaned = rating.trim();
       console.log('getRatingValue: cleaned string:', `"${cleaned}"`);
-      
+
       if (!cleaned) {
         console.log('getRatingValue: empty after trim, returning 0');
         return 0;
       }
-      
+
       const parsed = parseFloat(cleaned);
-      console.log('getRatingValue: parsed result:', parsed, 'isNaN:', isNaN(parsed));
-      
+      console.log(
+        'getRatingValue: parsed result:',
+        parsed,
+        'isNaN:',
+        isNaN(parsed),
+      );
+
       if (isNaN(parsed)) {
         console.log('getRatingValue: NaN result, returning 0');
         return 0;
       }
-      
+
       console.log('getRatingValue: final result:', parsed);
       return parsed;
     }
-    
+
     console.log('getRatingValue: non-string, returning:', rating);
     return rating;
   };
 
   const renderSupervisorActions = (schedule: ScheduleDetails) => {
     if (!schedule.workers || schedule.workers.length === 0) return null;
-    
+
     const ratingValue = getRatingValue(schedule.rating);
     const hasValidRating = ratingValue > 0;
 
@@ -236,7 +248,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
             )}
           </View>
         </View>
-        
+
         {/* Rating Display - Hiển thị đánh giá và nhận xét */}
         {hasValidRating && (
           <View style={styles.ratingDisplayContainer}>
@@ -247,7 +259,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
             />
           </View>
         )}
-        
+
         {/* Comment Display - Hiển thị comment riêng biệt nếu có */}
         {!hasValidRating && schedule.comment && schedule.comment.trim() && (
           <View style={styles.commentOnlyContainer}>
@@ -296,7 +308,9 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                 <Card.Content style={styles.modernCardContent}>
                   <View style={styles.modernScheduleHeader}>
                     <View style={styles.headerLeft}>
-                      <Surface style={styles.scheduleIconContainer} elevation={1}>
+                      <Surface
+                        style={styles.scheduleIconContainer}
+                        elevation={1}>
                         <IconButton
                           icon={getScheduleTypeIcon(
                             schedule.schedule.scheduleType,
@@ -316,7 +330,9 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                             style={[
                               styles.modernTypeChip,
                               {
-                                backgroundColor: getStatusColor(schedule.status),
+                                backgroundColor: getStatusColor(
+                                  schedule.status,
+                                ),
                               },
                             ]}
                             textStyle={styles.modernChipText}>
@@ -337,7 +353,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                           size={16}
                           iconColor={colors.subLabel}
                         />
-                        <View>
+                        <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Công việc</Text>
                           <Text style={styles.infoValue}>
                             {schedule.groupAssignmentName}
@@ -350,7 +366,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                           size={16}
                           iconColor={colors.subLabel}
                         />
-                        <View>
+                        <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Khu vực</Text>
                           <Text style={styles.infoValue}>
                             {schedule.areaName}
@@ -363,7 +379,7 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                           size={16}
                           iconColor={colors.subLabel}
                         />
-                        <View>
+                        <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Nhóm nhân viên</Text>
                           <Text style={styles.infoValue}>
                             {schedule.workerGroupName}
@@ -377,13 +393,17 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
                             size={16}
                             iconColor={colors.subLabel}
                           />
-                          <View>
+                          <View style={styles.textContainer}>
                             <Text style={styles.infoLabel}>Nhân viên</Text>
                             <View>
                               {schedule.workers.map((worker, index) => (
-                                <Text key={worker.workGroupMemberId} style={styles.workerName}>
+                                <Text
+                                  key={worker.workGroupMemberId}
+                                  style={styles.workerName}>
                                   {worker.fullName}
-                                  {index < schedule.workers.length - 1 ? ', ' : ''}
+                                  {index < schedule.workers.length - 1
+                                    ? ', '
+                                    : ''}
                                 </Text>
                               ))}
                             </View>
@@ -409,16 +429,11 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
             setSelectedSchedule(null);
             setRating(0);
             setComment('');
-          }}
-        >
+          }}>
           <Dialog.Title>Đánh giá nhân viên</Dialog.Title>
           <Dialog.Content>
             <View style={styles.ratingContainer}>
-              <Rating
-                value={rating}
-                onValueChange={setRating}
-                size={30}
-              />
+              <Rating value={rating} onValueChange={setRating} size={30} />
               <TextInput
                 mode="outlined"
                 label="Nhận xét"
@@ -442,13 +457,12 @@ export default function SupervisorScheduleList({scheduleDetails, onUpdate}: IPro
           onDismiss={() => {
             setImageDialogVisible(false);
             setSelectedImage('');
-          }}
-        >
+          }}>
           <Dialog.Title>Ảnh chứng minh</Dialog.Title>
           <Dialog.Content>
             <View style={styles.imageContainer}>
               <Image
-                source={{ uri: selectedImage }}
+                source={{uri: selectedImage}}
                 style={styles.evidenceImage}
                 resizeMode="contain"
               />
@@ -567,10 +581,14 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: colors.grey,
     padding: 12,
     borderRadius: 8,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 8,
   },
   infoLabel: {
     fontSize: 12,
@@ -581,6 +599,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     fontWeight: '500',
+    flexWrap: 'wrap',
   },
   supervisorActions: {
     backgroundColor: colors.secondary2,
@@ -857,5 +876,4 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontFamily: 'WorkSans-Regular',
   },
-
-}); 
+});

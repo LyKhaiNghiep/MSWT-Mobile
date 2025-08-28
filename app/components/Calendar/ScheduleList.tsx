@@ -257,7 +257,7 @@ export default function ScheduleList({
                         size={16}
                         iconColor={colors.subLabel}
                       />
-                      <View>
+                      <View style={styles.textContainer}>
                         <Text style={styles.infoLabel}>Lịch làm việc</Text>
                         <Text style={styles.infoValue}>
                           {schedule.schedule.scheduleName}
@@ -272,7 +272,7 @@ export default function ScheduleList({
                         size={16}
                         iconColor={colors.subLabel}
                       />
-                      <View>
+                      <View style={styles.textContainer}>
                         <Text style={styles.infoLabel}>Khu vực</Text>
                         <Text style={styles.infoValue}>
                           {schedule.areaName || 'Không có thông tin khu vực'}
@@ -289,7 +289,7 @@ export default function ScheduleList({
                             size={16}
                             iconColor={colors.subLabel}
                           />
-                          <View>
+                          <View style={styles.textContainer}>
                             <Text style={styles.infoLabel}>Công việc</Text>
                             {schedule.assignments.map((assignment, index) => (
                               <Text
@@ -310,7 +310,7 @@ export default function ScheduleList({
                           size={16}
                           iconColor={colors.subLabel}
                         />
-                        <View>
+                        <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Mô tả</Text>
                           <Text style={styles.infoValue}>
                             {schedule.description}
@@ -347,7 +347,7 @@ export default function ScheduleList({
                               size={16}
                               iconColor={colors.warning}
                             />
-                            <View>
+                            <View style={styles.textContainer}>
                               <Text style={styles.infoLabel}>Đánh giá</Text>
                               <RatingDisplay
                                 rating={ratingValue}
@@ -475,10 +475,14 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: colors.grey,
     padding: 12,
     borderRadius: 8,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 8,
   },
   infoLabel: {
     fontSize: 12,
@@ -489,6 +493,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     fontWeight: '500',
+    flexWrap: 'wrap',
   },
   workerItem: {
     flexDirection: 'row',
