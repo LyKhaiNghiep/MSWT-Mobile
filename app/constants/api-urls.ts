@@ -17,6 +17,7 @@ export const API_URLS = {
     REGISTER: `users/register`, // Backend xử lý register
     CHANGE_PASSWORD: `users/change-password`, // Backend xử lý change password
     UPDATE_PROFILE: `users/update-profile`, // Backend xử lý change password
+    FCM_TOKEN: `users/fcm-token`, // Send FCM token to backend
   },
 
   // Floor API removed - floors are now integrated into areas

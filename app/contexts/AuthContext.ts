@@ -10,6 +10,7 @@ import {UserData} from '../config/models/user.model';
 import {ILoginRequest} from '../config/models/auth.model';
 import {StorageUtil} from '../utils/storage';
 import {IResponse, IResponseWithData} from '../config/types';
+import {firebaseMessaging} from '../services/firebaseMessaging';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -53,6 +54,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // Initialize Firebase messaging
+        await firebaseMessaging.initialize();
+        firebaseMessaging.setupNotificationHandlers();
+
         const token = await StorageUtil.getToken();
         const userData = await StorageUtil.getUserData<UserData>();
 
@@ -61,6 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
           const storedUser = userData;
           setIsAuthenticated(true);
           setUser(storedUser);
+
+          // Set user context for Firebase messaging
+          await firebaseMessaging.onUserLogin(storedUser.userId);
 
           console.log('✅ Auth initialized from storage:', storedUser);
           console.log('🎭 User role:', storedUser?.role);
@@ -98,6 +106,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
         console.log('✅ AuthContext: Setting authentication state...');
         setIsAuthenticated(true);
         setUser(userData as UserData);
+
+        // Send FCM token to backend after successful login
+        try {
+          await firebaseMessaging.onUserLogin(userData.userId);
+          console.log('🔔 AuthContext: FCM token sent to backend');
+        } catch (fcmError) {
+          console.warn('⚠️ AuthContext: Failed to send FCM token:', fcmError);
+          // Don't fail login if FCM token sending fails
+        }
 
         console.log('✅ AuthContext: User logged in successfully:', userData);
         console.log('🎭 AuthContext: User role:', userData.role);
@@ -159,8 +176,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear Firebase messaging user context
+      firebaseMessaging.onUserLogout();
+
       setIsAuthenticated(false);
       setUser(null);
+
+      console.log('🔔 AuthContext: User logged out, FCM context cleared');
     }
   };
 
