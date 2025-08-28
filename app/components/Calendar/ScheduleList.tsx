@@ -9,6 +9,7 @@ import {
   IconButton,
   Surface,
   Text,
+  ProgressBar,
 } from 'react-native-paper';
 import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
 import {API_URLS} from '../../constants/api-urls';
@@ -21,12 +22,14 @@ interface IProps {
   scheduleDetails: ScheduleDetails[];
   showRating?: boolean;
   onUpdate?: () => void;
+  isRefreshing?: boolean;
 }
 
 export default function ScheduleList({
   scheduleDetails,
   onUpdate,
   showRating = false,
+  isRefreshing = false,
 }: IProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -67,7 +70,8 @@ export default function ScheduleList({
 
       if (response.status === 200) {
         showSnackbar?.success('Đã hoàn thành công việc');
-        onUpdate?.();
+        // Force refresh data from server
+        await onUpdate?.();
       }
     } catch (error) {
       console.error('Error updating status:', error);
@@ -87,6 +91,8 @@ export default function ScheduleList({
   const getStatusColor = (status: string) => {
     const lowerStatus = status?.toLowerCase().trim();
     switch (lowerStatus) {
+      case 'hoàn thành':
+      case 'đã hoàn thành':
       case 'hoàn tất':
       case 'đã đóng':
         return 'green';
@@ -152,69 +158,82 @@ export default function ScheduleList({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {groupedSchedules?.map(({date, schedules}) => (
-        <Surface key={date} style={styles.modernDateSection} elevation={2}>
-          <View style={styles.modernDateHeader}>
-            <View style={styles.dateHeaderLeft}>
-              <Surface style={styles.dateIconContainer} elevation={1}>
-                <IconButton
-                  icon="calendar"
-                  size={20}
-                  iconColor={colors.primary}
-                  style={styles.dateIcon}
-                />
-              </Surface>
-              <View>
-                <Text style={styles.dateLabel}>
-                  {new Date(date).toLocaleDateString('vi-VN', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <Text style={styles.dateSubtitle}>
-                  {schedules.length} công việc
-                </Text>
+    <View style={styles.container}>
+      {isRefreshing && (
+        <View style={styles.refreshOverlay}>
+          <ProgressBar indeterminate color={colors.primary} />
+          <Text style={styles.refreshText}>Đang cập nhật...</Text>
+        </View>
+      )}
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}>
+        {groupedSchedules?.map(({date, schedules}) => (
+          <Surface key={date} style={styles.modernDateSection} elevation={2}>
+            <View style={styles.modernDateHeader}>
+              <View style={styles.dateHeaderLeft}>
+                <Surface style={styles.dateIconContainer} elevation={1}>
+                  <IconButton
+                    icon="calendar"
+                    size={20}
+                    iconColor={colors.primary}
+                    style={styles.dateIcon}
+                  />
+                </Surface>
+                <View>
+                  <Text style={styles.dateLabel}>
+                    {new Date(date).toLocaleDateString('vi-VN', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <Text style={styles.dateSubtitle}>
+                    {schedules.length} công việc
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          {schedules.map((schedule: ScheduleDetails) => (
-            <Card
-              key={schedule.scheduleDetailId}
-              style={styles.modernScheduleCard}>
-              <Card.Content style={styles.modernCardContent}>
-                <View style={styles.modernScheduleHeader}>
-                  <View style={styles.headerLeft}>
-                    <Surface style={styles.scheduleIconContainer} elevation={1}>
-                      <IconButton
-                        icon={getScheduleTypeIcon(
-                          schedule.schedule?.scheduleType || 'default',
-                        )}
-                        size={18}
-                        iconColor={getScheduleTypeColor(
-                          schedule.schedule?.scheduleType || 'default',
-                        )}
-                      />
-                    </Surface>
-                    <View style={styles.headerText}>
-                      <Text style={styles.modernTimeText}>
-                        {getTimeRange(schedule.startTime, schedule.endTime)}
-                      </Text>
-                      <View style={styles.modernChipContainer}>
-                        <Chip
-                          style={[
-                            styles.modernTypeChip,
-                            {
-                              backgroundColor: getStatusColor(schedule.status),
-                            },
-                          ]}
-                          textStyle={styles.modernChipText}>
-                          {schedule.status}
-                        </Chip>
-                        {/* <Chip
+            {schedules.map((schedule: ScheduleDetails) => (
+              <Card
+                key={schedule.scheduleDetailId}
+                style={styles.modernScheduleCard}>
+                <Card.Content style={styles.modernCardContent}>
+                  <View style={styles.modernScheduleHeader}>
+                    <View style={styles.headerLeft}>
+                      <Surface
+                        style={styles.scheduleIconContainer}
+                        elevation={1}>
+                        <IconButton
+                          icon={getScheduleTypeIcon(
+                            schedule.schedule?.scheduleType || 'default',
+                          )}
+                          size={18}
+                          iconColor={getScheduleTypeColor(
+                            schedule.schedule?.scheduleType || 'default',
+                          )}
+                        />
+                      </Surface>
+                      <View style={styles.headerText}>
+                        <Text style={styles.modernTimeText}>
+                          {getTimeRange(schedule.startTime, schedule.endTime)}
+                        </Text>
+                        <View style={styles.modernChipContainer}>
+                          <Chip
+                            style={[
+                              styles.modernTypeChip,
+                              {
+                                backgroundColor: getStatusColor(
+                                  schedule.status,
+                                ),
+                              },
+                            ]}
+                            textStyle={styles.modernChipText}>
+                            {schedule.status}
+                          </Chip>
+                          {/* <Chip
                                 style={[
                                   styles.modernTypeChip,
                                   {
@@ -226,137 +245,160 @@ export default function ScheduleList({
                                 textStyle={styles.modernChipText}>
                                 {schedule.schedule.scheduleType}
                               </Chip> */}
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
 
-                <Divider style={styles.modernDivider} />
+                  <Divider style={styles.modernDivider} />
 
-                <View style={styles.modernInfoContainer}>
-                  <View style={styles.infoGrid}>
-                    {/* Schedule Name */}
-                    <View style={styles.infoItem}>
-                      <IconButton
-                        icon="calendar-text"
-                        size={16}
-                        iconColor={colors.subLabel}
-                      />
-                      <View style={styles.textContainer}>
-                        <Text style={styles.infoLabel}>Lịch làm việc</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.schedule.scheduleName}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Area Name */}
-                    <View style={styles.infoItem}>
-                      <IconButton
-                        icon="map-marker"
-                        size={16}
-                        iconColor={colors.subLabel}
-                      />
-                      <View style={styles.textContainer}>
-                        <Text style={styles.infoLabel}>Khu vực</Text>
-                        <Text style={styles.infoValue}>
-                          {schedule.areaName || 'Không có thông tin khu vực'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Assignments */}
-                    {schedule.assignments &&
-                      schedule.assignments.length > 0 && (
-                        <View style={styles.infoItem}>
-                          <IconButton
-                            icon="briefcase"
-                            size={16}
-                            iconColor={colors.subLabel}
-                          />
-                          <View style={styles.textContainer}>
-                            <Text style={styles.infoLabel}>Công việc</Text>
-                            {schedule.assignments.map((assignment, index) => (
-                              <Text
-                                key={assignment.assignmentId}
-                                style={styles.infoValue}>
-                                {index + 1}. {assignment.assigmentName}
-                              </Text>
-                            ))}
-                          </View>
-                        </View>
-                      )}
-
-                    {/* Description */}
-                    {schedule.description && (
+                  <View style={styles.modernInfoContainer}>
+                    <View style={styles.infoGrid}>
+                      {/* Schedule Name */}
                       <View style={styles.infoItem}>
                         <IconButton
-                          icon="text"
+                          icon="calendar-text"
                           size={16}
                           iconColor={colors.subLabel}
                         />
                         <View style={styles.textContainer}>
-                          <Text style={styles.infoLabel}>Mô tả</Text>
+                          <Text style={styles.infoLabel}>Lịch làm việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.description}
+                            {schedule.schedule.scheduleName}
                           </Text>
                         </View>
                       </View>
-                    )}
-                    {(() => {
-                      // Helper function to get valid rating value
-                      const getRatingValue = (rating: any) => {
-                        if (!rating) {
-                          return 0;
-                        }
-                        if (typeof rating === 'string') {
-                          const cleaned = rating.trim();
-                          if (!cleaned) {
-                            return 0;
-                          }
-                          const parsed = parseFloat(cleaned);
-                          return isNaN(parsed) ? 0 : parsed;
-                        }
-                        return rating;
-                      };
 
-                      const ratingValue = getRatingValue(schedule.rating);
-                      const hasValidRating = ratingValue > 0;
+                      {/* Area Name */}
+                      <View style={styles.infoItem}>
+                        <IconButton
+                          icon="map-marker"
+                          size={16}
+                          iconColor={colors.subLabel}
+                        />
+                        <View style={styles.textContainer}>
+                          <Text style={styles.infoLabel}>Khu vực</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.areaName || 'Không có thông tin khu vực'}
+                          </Text>
+                        </View>
+                      </View>
 
-                      return (
-                        showRating &&
-                        hasValidRating && (
+                      {/* Assignments */}
+                      {schedule.assignments &&
+                        schedule.assignments.length > 0 && (
                           <View style={styles.infoItem}>
                             <IconButton
-                              icon="star"
+                              icon="briefcase"
                               size={16}
-                              iconColor={colors.warning}
+                              iconColor={colors.subLabel}
                             />
                             <View style={styles.textContainer}>
-                              <Text style={styles.infoLabel}>Đánh giá</Text>
-                              <RatingDisplay
-                                rating={ratingValue}
-                                comment={schedule.comment || undefined}
-                                maxRating={5}
-                              />
+                              <Text style={styles.infoLabel}>Công việc</Text>
+                              {schedule.assignments.map((assignment, index) => (
+                                <Text
+                                  key={assignment.assignmentId}
+                                  style={styles.infoValue}>
+                                  {index + 1}. {assignment.assigmentName}
+                                </Text>
+                              ))}
                             </View>
                           </View>
-                        )
-                      );
-                    })()}
-                    {renderActionButton(schedule)}
+                        )}
+
+                      {/* Description */}
+                      {schedule.description && (
+                        <View style={styles.infoItem}>
+                          <IconButton
+                            icon="text"
+                            size={16}
+                            iconColor={colors.subLabel}
+                          />
+                          <View style={styles.textContainer}>
+                            <Text style={styles.infoLabel}>Mô tả</Text>
+                            <Text style={styles.infoValue}>
+                              {schedule.description}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      {(() => {
+                        // Helper function to get valid rating value
+                        const getRatingValue = (rating: any) => {
+                          if (!rating) {
+                            return 0;
+                          }
+                          if (typeof rating === 'string') {
+                            const cleaned = rating.trim();
+                            if (!cleaned) {
+                              return 0;
+                            }
+                            const parsed = parseFloat(cleaned);
+                            return isNaN(parsed) ? 0 : parsed;
+                          }
+                          return rating;
+                        };
+
+                        const ratingValue = getRatingValue(schedule.rating);
+                        const hasValidRating = ratingValue > 0;
+
+                        return (
+                          showRating &&
+                          hasValidRating && (
+                            <View style={styles.infoItem}>
+                              <IconButton
+                                icon="star"
+                                size={16}
+                                iconColor={colors.warning}
+                              />
+                              <View style={styles.textContainer}>
+                                <Text style={styles.infoLabel}>Đánh giá</Text>
+                                <RatingDisplay
+                                  rating={ratingValue}
+                                  comment={schedule.comment || undefined}
+                                  maxRating={5}
+                                />
+                              </View>
+                            </View>
+                          )
+                        );
+                      })()}
+                      {renderActionButton(schedule)}
+                    </View>
                   </View>
-                </View>
-              </Card.Content>
-            </Card>
-          ))}
-        </Surface>
-      ))}
-    </ScrollView>
+                </Card.Content>
+              </Card>
+            ))}
+          </Surface>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  refreshOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 16,
+    alignItems: 'center',
+  },
+  refreshText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: colors.subLabel,
+  },
   modernScheduleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -9,11 +9,17 @@ import {swrFetcher} from '../utils/swr-fetcher';
 import {ScheduleDetails} from '../config/models/scheduleDetails.model';
 
 export function useSchedules(userId: string | undefined) {
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
   const {data, error, isLoading, mutate} = useSWRNative<
     ScheduleDetails[] | ScheduleDetails
   >(
     userId ? API_URLS.SCHEDULE_DETAILS.GET_BY_USER_ID(userId) : null,
     swrFetcher,
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+    },
   );
 
   const updateSchedule = async (
@@ -49,11 +55,22 @@ export function useSchedules(userId: string | undefined) {
     return [data].sort((a, b) => b.date.localeCompare(a.date));
   }, [data]);
 
+  // Enhanced mutate function that forces revalidation
+  const forceRefresh = React.useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      return await mutate(undefined, {revalidate: true});
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [mutate]);
+
   return {
     schedules: normalizedSchedules,
     isLoading,
+    isRefreshing,
     error,
     updateSchedule,
-    mutate,
+    mutate: forceRefresh,
   };
 }

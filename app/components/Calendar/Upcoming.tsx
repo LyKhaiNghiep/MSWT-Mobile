@@ -18,7 +18,8 @@ import ScheduleList from './ScheduleList';
 export default function UpcomingCalendar() {
   const {user} = useAuth();
   const userId = user?.userId;
-  const {schedules, isLoading, error, mutate} = useSchedules(userId);
+  const {schedules, isLoading, isRefreshing, error, mutate} =
+    useSchedules(userId);
   const scheduleDetails = schedules
     .filter(x => {
       const isUpcoming = x.date >= moment().format('YYYY-MM-DD');
@@ -108,7 +109,11 @@ export default function UpcomingCalendar() {
       )}
 
       {!isLoading && !error && (
-        <ScheduleList scheduleDetails={scheduleDetails} onUpdate={mutate} />
+        <ScheduleList
+          scheduleDetails={scheduleDetails}
+          onUpdate={mutate}
+          isRefreshing={isRefreshing}
+        />
       )}
     </ScrollView>
   );
