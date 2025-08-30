@@ -59,7 +59,7 @@ export default function ScheduleList({
     setIsUploading(true);
     try {
       const response = await api.put(
-        API_URLS.SCHEDULE_DETAILS.UPDATE_STATUS(scheduleDetailId),
+        API_URLS.SCHEDULE_DETAILS.COMPLETE(scheduleDetailId),
         {},
         {
           headers: {
@@ -74,7 +74,33 @@ export default function ScheduleList({
         await onUpdate?.();
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error completing task:', error);
+      showSnackbar?.error('Cập nhật trạng thái thất bại');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleIncompleteTask = async (scheduleDetailId: string) => {
+    setIsUploading(true);
+    try {
+      const response = await api.put(
+        API_URLS.SCHEDULE_DETAILS.INCOMPLETE(scheduleDetailId),
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        showSnackbar?.success('Đã cập nhật trạng thái');
+        // Force refresh data from server
+        await onUpdate?.();
+      }
+    } catch (error) {
+      console.error('Error marking task as incomplete:', error);
       showSnackbar?.error('Cập nhật trạng thái thất bại');
     } finally {
       setIsUploading(false);
@@ -102,6 +128,7 @@ export default function ScheduleList({
       case 'đang làm':
         return '#007AFF';
       case 'chưa hoàn tất':
+      case 'chưa hoàn thành':
         return 'red';
       case 'string': // Handle test data
         return 'grey';
@@ -140,21 +167,33 @@ export default function ScheduleList({
         return 'calendar';
     }
   };
-  const renderActionButton = (schedule: ScheduleDetails) => {
-    switch (schedule.status?.toLowerCase()) {
-      case 'đang làm':
-        return (
+  const renderActionButtons = (schedule: ScheduleDetails) => {
+    const lowerStatus = schedule.status?.toLowerCase().trim();
+
+    if (lowerStatus === 'đang làm') {
+      return (
+        <View style={styles.actionButtonsContainer}>
           <Button
             mode="contained"
             onPress={() => handleCompleteTask(schedule.scheduleDetailId)}
             loading={isUploading}
-            buttonColor={colors.success}>
+            buttonColor={colors.success}
+            style={styles.actionButton}>
             Hoàn thành
           </Button>
-        );
-      default:
-        return null;
+          <Button
+            mode="outlined"
+            onPress={() => handleIncompleteTask(schedule.scheduleDetailId)}
+            loading={isUploading}
+            textColor={colors.error}
+            style={styles.actionButton}>
+            Chưa hoàn thành
+          </Button>
+        </View>
+      );
     }
+
+    return null;
   };
 
   return (
@@ -363,7 +402,7 @@ export default function ScheduleList({
                           )
                         );
                       })()}
-                      {renderActionButton(schedule)}
+                      {renderActionButtons(schedule)}
                     </View>
                   </View>
                 </Card.Content>
@@ -731,8 +770,12 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 16,
   },
-  completeButton: {
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 16,
-    backgroundColor: colors.success,
+  },
+  actionButton: {
+    flex: 1,
   },
 });

@@ -1,24 +1,20 @@
-import {format, parseISO} from 'date-fns';
 import moment from 'moment';
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
 import {
-  Button,
-  Menu,
   Provider,
-  SegmentedButtons,
   Text,
   Surface,
   IconButton,
-  ProgressBar,
+  ActivityIndicator,
 } from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import ScheduleList from '../../components/Calendar/ScheduleList';
-import UpcomingCalendar from '../../components/Calendar/Upcoming';
 import {useAuth} from '../../contexts/AuthContext';
-import {useSchedules} from '../../hooks/useSchedule';
+import {useScheduleDates} from '../../hooks/useScheduleDates';
+import {useScheduleDetailsByDate} from '../../hooks/useScheduleDetailsByDate';
 import {colors} from '../../theme';
 
 // Configure Vietnamese locale
@@ -61,140 +57,31 @@ LocaleConfig.defaultLocale = 'vi';
 
 export default function MyCalendar() {
   const {user} = useAuth();
-  const {schedules, mutate, isLoading, isRefreshing, error} = useSchedules(
-    user?.userId,
-  );
 
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
-  const [selectedTab, setSelectedTab] = useState('upcoming');
-  const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Hoàn tất');
 
-  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
-  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
-  const [monthMenuVisible, setMonthMenuVisible] = useState(false);
-  const [yearMenuVisible, setYearMenuVisible] = useState(false);
+  // Use the optimized APIs
+  const {
+    dates,
+    isLoading: datesLoading,
+    error: datesError,
+  } = useScheduleDates(user?.userId);
+  const {
+    scheduleDetails,
+    isRefreshing,
+    error: detailsError,
+    mutate,
+  } = useScheduleDetailsByDate(user?.userId, selectedDate);
 
-  const months: {label: string; value: string | number}[] = [
-    {label: 'Chọn tháng', value: 'all'},
-    {label: 'Tháng 1', value: 1},
-    {label: 'Tháng 2', value: 2},
-    {label: 'Tháng 3', value: 3},
-    {label: 'Tháng 4', value: 4},
-    {label: 'Tháng 5', value: 5},
-    {label: 'Tháng 6', value: 6},
-    {label: 'Tháng 7', value: 7},
-    {label: 'Tháng 8', value: 8},
-    {label: 'Tháng 9', value: 9},
-    {label: 'Tháng 10', value: 10},
-    {label: 'Tháng 11', value: 11},
-    {label: 'Tháng 12', value: 12},
-  ];
-
-  // Danh sách năm (từ 2020 đến năm hiện tại + 2)
-  const currentYear = moment().year();
-  const years: {label: string; value: string | number}[] = [
-    {label: 'Chọn năm', value: 'all'},
-  ];
-  for (let year = 2020; year <= currentYear + 2; year++) {
-    years.push({label: `Năm ${year}`, value: year});
-  }
-
-  const getMonthLabel = () => {
-    const month = months.find(m => m.value === selectedMonth);
-    return month ? month.label : 'Chọn tháng';
-  };
-
-  const getYearLabel = () => {
-    const year = years.find(y => y.value === selectedYear);
-    return year ? year.label : 'Chọn năm';
-  };
-
-  const statusOptopns = [
-    {label: 'Hoàn tất', value: 'Hoàn tất'},
-    {label: 'Chưa hoàn tất', value: 'Chưa hoàn tất'},
-  ];
-
-  const getStausLabel = () => {
-    const option = statusOptopns.find(opt => opt.value === status);
-    return option ? option.label : 'Chọn trạng thái';
-  };
-
-  const filteredSchedules = schedules.filter(schedule => {
-    // Parse ISO date string using parseISO for better reliability
-    const scheduleDate = parseISO(schedule.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedTab === 'upcoming') {
-      return scheduleDate >= today;
-    }
-
-    if (selectedTab === 'schedule') {
-      return scheduleDate >= today;
-    }
-
-    if (selectedTab === 'history') {
-      // History tab shows all schedules regardless of date, filtered by month/year and status
-      let matchesTimeRange = true;
-
-      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
-        const scheduleMonth = scheduleDate.getMonth() + 1; // getMonth() is 0-indexed
-        matchesTimeRange = matchesTimeRange && scheduleMonth === selectedMonth;
-      }
-
-      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
-        const scheduleYear = scheduleDate.getFullYear();
-        matchesTimeRange = matchesTimeRange && scheduleYear === selectedYear;
-      }
-
-      let matchesStatus = false;
-      const lowerStatus = schedule.status?.toLowerCase().trim();
-
-      switch (status) {
-        case 'Hoàn tất':
-          matchesStatus =
-            lowerStatus === 'hoàn tất' || lowerStatus === 'đã đóng';
-          break;
-        case 'Chưa hoàn tất':
-          matchesStatus =
-            lowerStatus === 'chưa hoàn tất' ||
-            lowerStatus === 'sắp tới' ||
-            lowerStatus === 'sap toi' ||
-            lowerStatus === 'đang làm' ||
-            lowerStatus === 'string'; // Handle test data
-          break;
-        default:
-          matchesStatus = true;
-      }
-
-      return matchesTimeRange && matchesStatus;
-    }
-
-    return true;
-  });
-
-  // Show loading state
-  if (isLoading && schedules.length === 0) {
-    return (
-      <Screen styles={{backgroundColor: 'white'}} useDefault>
-        <Provider>
-          <AppHeader title="Lịch làm việc" />
-          <View style={styles.centerContent}>
-            <Surface style={styles.loadingContainer} elevation={1}>
-              <ProgressBar indeterminate color={colors.primary} />
-              <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
-            </Surface>
-          </View>
-        </Provider>
-      </Screen>
-    );
-  }
-
-  // Show error state
-  if (error) {
+  // Show error state (only for real errors, not "no data found")
+  if (
+    (datesError && !datesError.message?.includes('No scheduleDetails found')) ||
+    (detailsError &&
+      !detailsError.message?.includes('No scheduleDetails found'))
+  ) {
+    const errorMessage = datesError || detailsError;
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
         <Provider>
@@ -207,10 +94,11 @@ export default function MyCalendar() {
                 iconColor={colors.error}
               />
               <Text style={styles.errorTitle}>Có lỗi xảy ra</Text>
-              <Text style={styles.errorText}>{error}</Text>
-              <Button mode="outlined" onPress={() => mutate()}>
-                Thử lại
-              </Button>
+              <Text style={styles.errorText}>
+                {errorMessage instanceof Error
+                  ? errorMessage.message
+                  : String(errorMessage)}
+              </Text>
             </Surface>
           </View>
         </Provider>
@@ -218,8 +106,7 @@ export default function MyCalendar() {
     );
   }
 
-  const markedDates = schedules.reduce((acc, schedule) => {
-    const date = moment(schedule.date).format('YYYY-MM-DD');
+  const markedDates = dates.reduce((acc: any, date: string) => {
     return {
       ...acc,
       [date]: {
@@ -228,151 +115,63 @@ export default function MyCalendar() {
       },
     };
   }, {});
+
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
       <Provider>
         <AppHeader title="Lịch làm việc" />
         <View style={styles.container}>
-          <SegmentedButtons
-            value={selectedTab}
-            onValueChange={setSelectedTab}
-            buttons={[
-              {value: 'upcoming', label: 'Sắp đến'},
-              {value: 'schedule', label: 'Lịch'},
-              {value: 'history', label: 'Lịch sử'},
-            ]}
-            style={styles.tabs}
-          />
-
-          {selectedTab === 'upcoming' && <UpcomingCalendar />}
-
-          {selectedTab === 'history' && (
-            <View>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: 20,
-                  width: 'auto',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                <Menu
-                  visible={monthMenuVisible}
-                  onDismiss={() => setMonthMenuVisible(false)}
-                  anchor={
-                    <Button
-                      mode="outlined"
-                      onPress={() => setMonthMenuVisible(true)}
-                      style={styles.timeRangeButton}>
-                      {getMonthLabel()}
-                    </Button>
-                  }>
-                  {months.map(month => (
-                    <Menu.Item
-                      key={month.value}
-                      onPress={() => {
-                        setSelectedMonth(month.value);
-                        setMonthMenuVisible(false);
-                      }}
-                      title={month.label}
-                    />
-                  ))}
-                </Menu>
-
-                <Menu
-                  visible={yearMenuVisible}
-                  onDismiss={() => setYearMenuVisible(false)}
-                  anchor={
-                    <Button
-                      style={styles.timeRangeButton}
-                      mode="outlined"
-                      onPress={() => setYearMenuVisible(true)}>
-                      {getYearLabel()}
-                    </Button>
-                  }>
-                  {years.map(year => (
-                    <Menu.Item
-                      key={year.value}
-                      onPress={() => {
-                        setSelectedYear(year.value);
-                        setYearMenuVisible(false);
-                      }}
-                      title={year.label}
-                    />
-                  ))}
-                </Menu>
-              </View>
-              <View>
-                <Menu
-                  visible={menuStatusVisible}
-                  onDismiss={() => setMenuStatusVisible(false)}
-                  anchor={
-                    <Button
-                      mode="outlined"
-                      onPress={() => setMenuStatusVisible(true)}
-                      style={styles.timeRangeButton}>
-                      {getStausLabel()}
-                    </Button>
-                  }>
-                  {statusOptopns.map(option => (
-                    <Menu.Item
-                      key={option.value}
-                      onPress={() => {
-                        // TODO: set status
-                        setStatus(option.value);
-                        setMenuStatusVisible(false);
-                      }}
-                      title={option.label}
-                    />
-                  ))}
-                </Menu>
-              </View>
-              <ScheduleList
-                scheduleDetails={filteredSchedules}
-                showRating={true}
-                onUpdate={mutate}
-                isRefreshing={isRefreshing}
-              />
+          {/* Loading indicator at the top */}
+          {datesLoading && (
+            <View style={styles.loadingIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
             </View>
           )}
-
-          {selectedTab === 'schedule' && (
-            <ScrollView>
-              <Calendar
-                current={selectedDate}
-                onDayPress={(day: any) => {
-                  console.log('dateString', day.dateString);
-                  setSelectedDate(day.dateString);
-                }}
-                markedDates={{
-                  ...markedDates,
-
-                  [selectedDate]: {
-                    selected: true,
-                    marked: (markedDates as any)[selectedDate]?.marked!,
-                    dotColor: (markedDates as any)[selectedDate]?.dotColor,
-                  },
-                }}
-                theme={{
-                  selectedDayBackgroundColor: '#FF4B2B',
-                  todayTextColor: '#FF4B2B',
-                  dotColor: '#FF4B2B',
-                  arrowColor: '#FF4B2B',
-                }}
-              />
-              <View style={{marginTop: 10}}>
+          <ScrollView>
+            <Calendar
+              current={selectedDate}
+              onDayPress={(day: any) => {
+                console.log('dateString', day.dateString);
+                setSelectedDate(day.dateString);
+              }}
+              markedDates={{
+                ...markedDates,
+                [selectedDate]: {
+                  selected: true,
+                  marked: (markedDates as any)[selectedDate]?.marked!,
+                  dotColor: (markedDates as any)[selectedDate]?.dotColor,
+                },
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#FF4B2B',
+                todayTextColor: '#FF4B2B',
+                dotColor: '#FF4B2B',
+                arrowColor: '#FF4B2B',
+              }}
+            />
+            <View style={{marginTop: 10}}>
+              {dates.length === 0 && !datesLoading && !datesError ? (
+                <Surface style={styles.emptyContainer} elevation={1}>
+                  <IconButton
+                    icon="calendar-blank"
+                    size={64}
+                    iconColor={colors.subLabel}
+                  />
+                  <Text style={styles.emptyTitle}>Không có lịch làm việc</Text>
+                  <Text style={styles.emptySubtitle}>
+                    Bạn chưa có lịch làm việc nào được phân công
+                  </Text>
+                </Surface>
+              ) : (
                 <ScheduleList
-                  scheduleDetails={schedules.filter(
-                    x =>
-                      format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
-                  )}
+                  scheduleDetails={scheduleDetails}
                   onUpdate={() => mutate()}
                   isRefreshing={isRefreshing}
                 />
-              </View>
-            </ScrollView>
-          )}
+              )}
+            </View>
+          </ScrollView>
         </View>
       </Provider>
     </Screen>
@@ -386,10 +185,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyText: {
-    color: colors.subLabel,
-    fontSize: 16,
-  },
   loadingContainer: {
     padding: 24,
     margin: 16,
@@ -397,10 +192,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
   },
+  loadingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.secondary2,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: colors.subLabel,
+    marginLeft: 8,
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
   },
   errorContainer: {
     padding: 24,
@@ -422,88 +228,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
+  emptyContainer: {
+    padding: 32,
+    margin: 16,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: colors.subLabel,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   container: {
     flex: 1,
     padding: 16,
-  },
-  tabs: {
-    marginBottom: 16,
-  },
-  statusFilter: {
-    marginBottom: 16,
-  },
-  calendar: {
-    height: 100,
-    marginBottom: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  calendarHeader: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateNumber: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateName: {
-    color: '#000',
-    fontSize: 12,
-  },
-  highlightDateNumber: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  highlightDateName: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  disabledDateName: {
-    color: '#ccc',
-    fontSize: 12,
-  },
-  disabledDateNumber: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  iconContainer: {
-    flex: 0.1,
-  },
-  card: {
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  content: {
-    gap: 4,
-  },
-  list: {
-    paddingBottom: 16,
-  },
-  timeRangeButton: {
-    marginBottom: 16,
-    width: '100%',
-    minWidth: 170,
-    alignSelf: 'stretch',
-  },
-  calendarPlaceholder: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.grey,
-    borderRadius: 8,
-    marginBottom: 16,
   },
 });

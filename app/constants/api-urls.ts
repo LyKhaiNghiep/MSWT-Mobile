@@ -80,6 +80,9 @@ export const API_URLS = {
   SCHEDULE_DETAILS: {
     GET_ALL: `scheduledetails`,
     GET_BY_USER_ID: (id: string) => `scheduledetails/scheduleDetails/${id}`,
+    GET_DATES_BY_USER: (userId: string) => `scheduledetails/dates/${userId}`,
+    GET_BY_USER_AND_DATE: (userId: string, date: string) =>
+      `scheduledetails/by-user-date?userId=${userId}&date=${date}`,
     GET_BY_ID: (id: string) => `scheduledetails/${id}`,
     GET_BY_SCHEDULE_ID: (scheduleId: string) =>
       `scheduledetails/schedule/${scheduleId}`,
@@ -89,6 +92,10 @@ export const API_URLS = {
     UPDATE: (id: string) => `scheduledetails/${id}`,
     UPDATE_STATUS: (id: string) =>
       `scheduledetails/scheduledetails/status/${id}`,
+    COMPLETE: (id: string) =>
+      `scheduledetails/scheduledetails/status/${id}/complete`,
+    INCOMPLETE: (id: string) =>
+      `scheduledetails/scheduledetails/status/${id}/incomplete`,
     DELETE: (id: string) => `scheduledetails/${id}`,
     // PUT /api/scheduledetails/scheduledetails/rating/{id}
     // Body: { ratingvalue: number; comment: string }
