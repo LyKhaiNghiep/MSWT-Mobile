@@ -18,6 +18,7 @@ import {
   Dialog,
   Portal,
   RadioButton,
+  Provider,
 } from 'react-native-paper';
 import {format} from 'date-fns';
 import {vi} from 'date-fns/locale';
@@ -229,10 +230,11 @@ export default function SupervisorAttendance() {
   }
 
       return (
-      <Screen styles={{backgroundColor: colors.grey}} useDefault>
-        <AppHeader title="Điểm danh nhân viên" />
-        
-        <View style={styles.container}>
+      <Provider>
+        <Screen styles={{backgroundColor: colors.grey}} useDefault>
+          <AppHeader title="Điểm danh nhân viên" />
+          
+          <View style={styles.container}>
           {/* Header with select all and count */}
           <View style={styles.headerRow}>
             <View style={styles.selectAllRow}>
@@ -342,7 +344,8 @@ export default function SupervisorAttendance() {
             </Dialog.Actions>
           </Dialog>
         </Portal>
-      </Screen>
+        </Screen>
+      </Provider>
     );
 }
 
