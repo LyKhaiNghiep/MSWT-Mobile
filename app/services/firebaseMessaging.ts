@@ -1,4 +1,8 @@
 import messaging from '@react-native-firebase/messaging';
+import notifee, {
+  AuthorizationStatus as NotifeeAuthorizationStatus,
+} from '@notifee/react-native';
+import {Platform} from 'react-native';
 import api from './api';
 import {API_URLS} from '../constants/api-urls';
 import {StorageUtil} from '../utils/storage';
@@ -13,16 +17,8 @@ class FirebaseMessagingService {
    */
   async initialize(): Promise<void> {
     try {
-      // Request permission for notifications
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (!enabled) {
-        console.log('Firebase messaging permission denied');
-        return;
-      }
+      // Request permission for notifications (iOS) and POST_NOTIFICATIONS (Android 13+)
+      await this.requestPermission();
 
       // Get initial token
       await this.getToken();
@@ -54,6 +50,43 @@ class FirebaseMessagingService {
     } catch (error) {
       console.error('❌ Error getting FCM token:', error);
       return null;
+    }
+  }
+
+  /**
+   * Request notifications permission:
+   * - iOS: Firebase Messaging requestPermission
+   * - Android 13+: Notifee requestPermission (POST_NOTIFICATIONS)
+   */
+  async requestPermission(): Promise<void> {
+    try {
+      if (Platform.OS === 'android') {
+        // Android 13+ requires runtime POST_NOTIFICATIONS permission
+        if (Platform.Version >= 33) {
+          const settings = await notifee.requestPermission();
+          const granted =
+            settings.authorizationStatus ===
+              NotifeeAuthorizationStatus.AUTHORIZED ||
+            settings.authorizationStatus ===
+              NotifeeAuthorizationStatus.PROVISIONAL;
+          if (!granted) {
+            console.log('Android notifications permission not granted');
+            return;
+          }
+        }
+      } else {
+        // iOS permission
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (!enabled) {
+          console.log('iOS notifications permission not granted');
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Permission request failed', err);
     }
   }
 
@@ -157,8 +190,29 @@ class FirebaseMessagingService {
   setupNotificationHandlers(): void {
     // Handle notifications when app is in foreground
     messaging().onMessage(async remoteMessage => {
-      console.log('FCM message received in foreground:', remoteMessage);
-      // You can show an in-app notification here
+      try {
+        const title = String(
+          remoteMessage.notification?.title ??
+            remoteMessage.data?.title ??
+            'Thông báo',
+        );
+        const body = String(
+          remoteMessage.notification?.body ??
+            remoteMessage.data?.body ??
+            'Bạn có thông báo mới',
+        );
+        const channelId = await notifee.createChannel({
+          id: 'default',
+          name: 'Default Channel',
+        });
+        await notifee.displayNotification({
+          title,
+          body,
+          android: {channelId},
+        });
+      } catch (e) {
+        console.log('Error displaying foreground notification', e);
+      }
     });
 
     // Handle notifications when app is in background/quit
