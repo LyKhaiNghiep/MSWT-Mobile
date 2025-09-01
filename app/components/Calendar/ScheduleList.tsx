@@ -406,6 +406,47 @@ export default function ScheduleList({
                           )
                         );
                       })()}
+
+                      {/* Comment Display - Show comment separately if no valid rating */}
+                      {(() => {
+                        // Helper function to get valid rating value (same logic as above)
+                        const getRatingValue = (rating: any) => {
+                          if (!rating) {
+                            return 0;
+                          }
+                          if (typeof rating === 'string') {
+                            const cleaned = rating.trim();
+                            if (!cleaned) {
+                              return 0;
+                            }
+                            const parsed = parseFloat(cleaned);
+                            return isNaN(parsed) ? 0 : parsed;
+                          }
+                          return rating;
+                        };
+
+                        const ratingValue = getRatingValue(schedule.rating);
+                        const hasValidRating = ratingValue > 0;
+
+                        return !hasValidRating &&
+                          schedule.comment &&
+                          schedule.comment.trim().length > 0 ? (
+                          <View style={styles.infoItem}>
+                            <IconButton
+                              icon="comment-text"
+                              size={16}
+                              iconColor={colors.subLabel}
+                            />
+                            <View style={styles.textContainer}>
+                              <Text style={styles.infoLabel}>Nhận xét</Text>
+                              <Text style={styles.infoValue}>
+                                {schedule.comment}
+                              </Text>
+                            </View>
+                          </View>
+                        ) : null;
+                      })()}
+
                       {renderActionButtons(schedule)}
                     </View>
                   </View>
