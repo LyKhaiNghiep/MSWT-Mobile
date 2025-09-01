@@ -225,6 +225,11 @@ export default function SupervisorScheduleList({
 
     const ratingValue = getRatingValue(schedule.rating);
     const hasValidRating = ratingValue > 0;
+    
+    // Kiểm tra xem có phải ngày hiện tại không
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const scheduleDate = schedule.date;
+    const isToday = today === scheduleDate;
 
     return (
       <View style={styles.supervisorActions}>
@@ -234,7 +239,7 @@ export default function SupervisorScheduleList({
             Nhân viên: {schedule.workers.map(w => w.fullName).join(', ')}
           </Text>
           <View style={styles.actionButtons}>
-            {!hasValidRating && (
+            {!hasValidRating && isToday && (
               <IconButton
                 icon="star"
                 size={20}
@@ -392,7 +397,7 @@ export default function SupervisorScheduleList({
                         </View>
 
                                                {/* Work Group Member Names */}
-                        <View style={styles.infoItem}>
+                        {/* <View style={styles.infoItem}>
                           <View style={styles.textContainer}>
                             <Text style={styles.infoLabel}>Nhân viên phụ trách </Text>
                             <Text style={styles.infoValue}>
@@ -403,7 +408,7 @@ export default function SupervisorScheduleList({
                                 : 'Không có thông tin work group member names'}
                             </Text>
                           </View>
-                        </View>
+                        </View> */}
 
                        {renderSupervisorActions(schedule)}
                     </View>

@@ -3,15 +3,13 @@ import moment from 'moment';
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View, ActivityIndicator} from 'react-native';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
-import {Button, Menu, Provider, SegmentedButtons, Text} from 'react-native-paper';
+import {Provider, Text} from 'react-native-paper';
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
-import {SupervisorScheduleList, UpcomingCalendar} from '../../components/Calendar';
-import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
+import {SupervisorScheduleList} from '../../components/Calendar';
 import {useScheduleDates} from '../../hooks/useScheduleDates';
 import {useScheduleDetailsByDate} from '../../hooks/useScheduleDetailsByDate';
 import {colors} from '../../theme';
-import {isEmpty} from '../../utils';
 import {useAuth} from '../../contexts/AuthContext';
 
 // Configure Vietnamese locale
@@ -72,59 +70,7 @@ export default function CalendarSupervisor() {
     error: detailsError,
     mutate,
   } = useScheduleDetailsByDate(userId, selectedDate);
-  const [selectedTab, setSelectedTab] = useState('upcoming');
-  const [menuStatusVisible, setMenuStatusVisible] = useState(false);
-  const [status, setStatus] = useState('Đã hoàn thành');
-
-  const [selectedMonth, setSelectedMonth] = useState<string | number>('all'); // Default to 'all'
-  const [selectedYear, setSelectedYear] = useState<string | number>('all'); // Default to 'all'
-  const [monthMenuVisible, setMonthMenuVisible] = useState(false);
-  const [yearMenuVisible, setYearMenuVisible] = useState(false);
-
-  const months: {label: string; value: string | number}[] = [
-    {label: 'Chọn tháng', value: 'all'},
-    {label: 'Tháng 1', value: 1},
-    {label: 'Tháng 2', value: 2},
-    {label: 'Tháng 3', value: 3},
-    {label: 'Tháng 4', value: 4},
-    {label: 'Tháng 5', value: 5},
-    {label: 'Tháng 6', value: 6},
-    {label: 'Tháng 7', value: 7},
-    {label: 'Tháng 8', value: 8},
-    {label: 'Tháng 9', value: 9},
-    {label: 'Tháng 10', value: 10},
-    {label: 'Tháng 11', value: 11},
-    {label: 'Tháng 12', value: 12},
-  ];
-
-  // Danh sách năm (từ 2020 đến năm hiện tại + 2)
-  const currentYear = moment().year();
-  const years: {label: string; value: string | number}[] = [
-    {label: 'Chọn năm', value: 'all'},
-  ];
-  for (let year = 2020; year <= currentYear + 2; year++) {
-    years.push({label: `Năm ${year}`, value: year});
-  }
-
-  const getMonthLabel = () => {
-    const month = months.find(m => m.value === selectedMonth);
-    return month ? month.label : 'Chọn tháng';
-  };
-
-  const getYearLabel = () => {
-    const year = years.find(y => y.value === selectedYear);
-    return year ? year.label : 'Chọn năm';
-  };
-
-  const statusOptopns = [
-    {label: 'Đã hoàn thành', value: 'Đã hoàn thành'},
-    {label: 'Bỏ lỡ', value: 'Bỏ lỡ'},
-  ];
-
-  const getStausLabel = () => {
-    const option = statusOptopns.find(opt => opt.value === status);
-    return option ? option.label : 'Chọn trạng thái';
-  };
+  // Removed all tab-related state and filter options since we only have 'schedule' tab now
 
   // Show error state (only for real errors, not "no data found")
   if (
@@ -135,7 +81,7 @@ export default function CalendarSupervisor() {
     const errorMessage = datesError || detailsError;
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
-        <AppHeader title="Lịch làm việc Supervisor" />
+        <AppHeader title="Lịch làm việc " />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {errorMessage instanceof Error
@@ -147,49 +93,7 @@ export default function CalendarSupervisor() {
     );
   }
 
-  // Filter schedules for different tabs
-  const filteredSchedules = scheduleDetails.filter(schedule => {
-    const scheduleDate = moment(schedule.date);
-    const today = moment().startOf('day');
-
-    if (selectedTab === 'upcoming') {
-      return scheduleDate.isSameOrAfter(today);
-    }
-
-    if (selectedTab === 'schedule') {
-      return scheduleDate.isSameOrAfter(today);
-    }
-
-    if (selectedTab === 'history') {
-      // Xử lý lọc theo khoảng thời gian cho tab 'history'
-      let matchesTimeRange = true;
-      if (selectedMonth !== 'all' && typeof selectedMonth === 'number') {
-        matchesTimeRange =
-          matchesTimeRange && scheduleDate.month() + 1 === selectedMonth;
-      }
-      if (selectedYear !== 'all' && typeof selectedYear === 'number') {
-        matchesTimeRange =
-          matchesTimeRange && scheduleDate.year() === selectedYear;
-      }
-
-      let matchesStatus = false;
-      switch (status) {
-        case 'Đã hoàn thành':
-          matchesStatus =
-            schedule.status === 'Đã hoàn thành' || isEmpty(schedule.status);
-          break;
-        case 'Bỏ lỡ':
-          matchesStatus = schedule.status === 'Bỏ lỡ';
-          break;
-        default:
-          matchesStatus = true;
-      }
-
-      return matchesTimeRange && matchesStatus;
-    }
-
-    return true;
-  });
+  // No filtering needed since we only have the calendar view
 
   // Use dates array for markedDates (like Worker Calendar)
   const markedDates = dates.reduce((acc: any, date: string) => {
@@ -205,7 +109,7 @@ export default function CalendarSupervisor() {
   if (datesLoading || isRefreshing) {
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
-        <AppHeader title="Lịch làm việc Supervisor" />
+        <AppHeader title="Lịch làm việc " />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
@@ -217,141 +121,41 @@ export default function CalendarSupervisor() {
   return (
     <Screen styles={{backgroundColor: 'white'}} useDefault>
       <Provider>
-        <AppHeader title="Lịch làm việc Supervisor" />
+        <AppHeader title="Lịch làm việc " />
         <View style={styles.container}>
-          <SegmentedButtons
-            value={selectedTab}
-            onValueChange={setSelectedTab}
-            buttons={[
-              {value: 'upcoming', label: 'Sắp đến'},
-              {value: 'schedule', label: 'Lịch'},
-              {value: 'history', label: 'Lịch sử'},
-            ]}
-            style={styles.tabs}
-          />
+          <ScrollView>
+            <Calendar
+              current={selectedDate}
+              onDayPress={(day: any) => {
+                console.log('dateString', day.dateString);
+                setSelectedDate(day.dateString);
+              }}
+              markedDates={{
+                ...markedDates,
 
-          {selectedTab === 'upcoming' && <UpcomingCalendar scheduleDetails={scheduleDetails} onUpdate={mutate} />}
-
-          {selectedTab === 'history' && (
-            <View>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: 20,
-                  width: 'auto',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                <Menu
-                  visible={monthMenuVisible}
-                  onDismiss={() => setMonthMenuVisible(false)}
-                  anchor={
-                    <Button
-                      mode="outlined"
-                      onPress={() => setMonthMenuVisible(true)}
-                      style={styles.timeRangeButton}>
-                      {getMonthLabel()}
-                    </Button>
-                  }>
-                  {months.map(month => (
-                    <Menu.Item
-                      key={month.value}
-                      onPress={() => {
-                        setSelectedMonth(month.value);
-                        setMonthMenuVisible(false);
-                      }}
-                      title={month.label}
-                    />
-                  ))}
-                </Menu>
-
-                <Menu
-                  visible={yearMenuVisible}
-                  onDismiss={() => setYearMenuVisible(false)}
-                  anchor={
-                    <Button
-                      style={styles.timeRangeButton}
-                      mode="outlined"
-                      onPress={() => setYearMenuVisible(true)}>
-                      {getYearLabel()}
-                    </Button>
-                  }>
-                  {years.map(year => (
-                    <Menu.Item
-                      key={year.value}
-                      onPress={() => {
-                        setSelectedYear(year.value);
-                        setYearMenuVisible(false);
-                      }}
-                      title={year.label}
-                    />
-                  ))}
-                </Menu>
-              </View>
-              <View>
-                <Menu
-                  visible={menuStatusVisible}
-                  onDismiss={() => setMenuStatusVisible(false)}
-                  anchor={
-                    <Button
-                      mode="outlined"
-                      onPress={() => setMenuStatusVisible(true)}
-                      style={styles.timeRangeButton}>
-                      {getStausLabel()}
-                    </Button>
-                  }>
-                  {statusOptopns.map(option => (
-                    <Menu.Item
-                      key={option.value}
-                      onPress={() => {
-                        setStatus(option.value);
-                        setMenuStatusVisible(false);
-                      }}
-                      title={option.label}
-                    />
-                  ))}
-                </Menu>
-              </View>
-              <SupervisorScheduleList scheduleDetails={filteredSchedules} onUpdate={mutate} />
-            </View>
-          )}
-
-          {selectedTab === 'schedule' && (
-            <ScrollView>
-              <Calendar
-                current={selectedDate}
-                onDayPress={(day: any) => {
-                  console.log('dateString', day.dateString);
-                  setSelectedDate(day.dateString);
-                }}
-                markedDates={{
-                  ...markedDates,
-
-                  [selectedDate]: {
-                    selected: true,
-                    marked: (markedDates as any)[selectedDate]?.marked!,
-                    dotColor: (markedDates as any)[selectedDate]?.dotColor,
-                  },
-                }}
-                theme={{
-                  selectedDayBackgroundColor: '#FF4B2B',
-                  todayTextColor: '#FF4B2B',
-                  dotColor: '#FF4B2B',
-                  arrowColor: '#FF4B2B',
-                }}
+                [selectedDate]: {
+                  selected: true,
+                  marked: (markedDates as any)[selectedDate]?.marked!,
+                  dotColor: (markedDates as any)[selectedDate]?.dotColor,
+                },
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#FF4B2B',
+                todayTextColor: '#FF4B2B',
+                dotColor: '#FF4B2B',
+                arrowColor: '#FF4B2B',
+              }}
+            />
+            <View style={{marginTop: 10}}>
+              <SupervisorScheduleList
+                scheduleDetails={scheduleDetails.filter(
+                  x =>
+                    format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
+                )}
+                onUpdate={mutate}
               />
-              <View style={{marginTop: 10}}>
-                <SupervisorScheduleList
-                  scheduleDetails={scheduleDetails.filter(
-                    x =>
-                      format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
-                  )}
-                  onUpdate={mutate}
-                />
-              </View>
-            </ScrollView>
-          )}
+            </View>
+          </ScrollView>
         </View>
       </Provider>
     </Screen>
