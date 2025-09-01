@@ -127,7 +127,7 @@ export const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 14,
-    color: colors.text,
+    color: colors.dark,
     flex: 1,
     textAlign: 'right',
   },

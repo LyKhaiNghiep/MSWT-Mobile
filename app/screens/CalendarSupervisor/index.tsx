@@ -8,7 +8,8 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {SupervisorScheduleList, UpcomingCalendar} from '../../components/Calendar';
 import {ScheduleDetails} from '../../config/models/scheduleDetails.model';
-import {useScheduleDetails} from '../../hooks/useScheduleDetails';
+import {useScheduleDates} from '../../hooks/useScheduleDates';
+import {useScheduleDetailsByDate} from '../../hooks/useScheduleDetailsByDate';
 import {colors} from '../../theme';
 import {isEmpty} from '../../utils';
 import {useAuth} from '../../contexts/AuthContext';
@@ -54,11 +55,23 @@ LocaleConfig.defaultLocale = 'vi';
 export default function CalendarSupervisor() {
   const {user} = useAuth();
   const userId = user?.userId;
-  const {scheduleDetails, isLoading, error, mutate} = useScheduleDetails(userId);
 
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
+
+  // Use the optimized APIs like Worker Calendar
+  const {
+    dates,
+    isLoading: datesLoading,
+    error: datesError,
+  } = useScheduleDates(userId);
+  const {
+    scheduleDetails,
+    isRefreshing,
+    error: detailsError,
+    mutate,
+  } = useScheduleDetailsByDate(userId, selectedDate);
   const [selectedTab, setSelectedTab] = useState('upcoming');
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
   const [status, setStatus] = useState('Đã hoàn thành');
@@ -113,6 +126,28 @@ export default function CalendarSupervisor() {
     return option ? option.label : 'Chọn trạng thái';
   };
 
+  // Show error state (only for real errors, not "no data found")
+  if (
+    (datesError && !datesError.message?.includes('No scheduleDetails found')) ||
+    (detailsError &&
+      !detailsError.message?.includes('No scheduleDetails found'))
+  ) {
+    const errorMessage = datesError || detailsError;
+    return (
+      <Screen styles={{backgroundColor: 'white'}} useDefault>
+        <AppHeader title="Lịch làm việc Supervisor" />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {errorMessage instanceof Error
+              ? errorMessage.message
+              : String(errorMessage)}
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  // Filter schedules for different tabs
   const filteredSchedules = scheduleDetails.filter(schedule => {
     const scheduleDate = moment(schedule.date);
     const today = moment().startOf('day');
@@ -156,8 +191,8 @@ export default function CalendarSupervisor() {
     return true;
   });
 
-  const markedDates = scheduleDetails.reduce((acc, schedule) => {
-    const date = moment(schedule.date).format('YYYY-MM-DD');
+  // Use dates array for markedDates (like Worker Calendar)
+  const markedDates = dates.reduce((acc: any, date: string) => {
     return {
       ...acc,
       [date]: {
@@ -167,26 +202,13 @@ export default function CalendarSupervisor() {
     };
   }, {});
 
-  if (isLoading) {
+  if (datesLoading || isRefreshing) {
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
         <AppHeader title="Lịch làm việc Supervisor" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
-        </View>
-      </Screen>
-    );
-  }
-
-  if (error) {
-    return (
-      <Screen styles={{backgroundColor: 'white'}} useDefault>
-        <AppHeader title="Lịch làm việc Supervisor" />
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            Không thể tải lịch làm việc. Vui lòng thử lại.
-          </Text>
         </View>
       </Screen>
     );
@@ -208,7 +230,7 @@ export default function CalendarSupervisor() {
             style={styles.tabs}
           />
 
-          {selectedTab === 'upcoming' && <UpcomingCalendar />}
+          {selectedTab === 'upcoming' && <UpcomingCalendar scheduleDetails={scheduleDetails} onUpdate={mutate} />}
 
           {selectedTab === 'history' && (
             <View>

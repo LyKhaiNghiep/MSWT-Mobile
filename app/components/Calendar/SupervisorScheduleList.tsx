@@ -347,71 +347,65 @@ export default function SupervisorScheduleList({
 
                   <View style={styles.modernInfoContainer}>
                     <View style={styles.infoGrid}>
+                      {/* Lịch làm việc */}
                       <View style={styles.infoItem}>
-                        <IconButton
-                          icon="briefcase"
-                          size={16}
-                          iconColor={colors.subLabel}
-                        />
                         <View style={styles.textContainer}>
-                          <Text style={styles.infoLabel}>Công việc</Text>
+                          <Text style={styles.infoLabel}>Lịch làm việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.groupAssignmentName}
+                            {schedule.schedule?.scheduleName || 'Không có thông tin'}
                           </Text>
                         </View>
                       </View>
+
+                      {/* Khu vực */}
                       <View style={styles.infoItem}>
-                        <IconButton
-                          icon="map-marker"
-                          size={16}
-                          iconColor={colors.subLabel}
-                        />
                         <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Khu vực</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.areaName}
+                            {schedule.areaName || 'Không có thông tin khu vực'}
                           </Text>
                         </View>
                       </View>
+
+                      {/* Công việc */}
                       <View style={styles.infoItem}>
-                        <IconButton
-                          icon="account-group"
-                          size={16}
-                          iconColor={colors.subLabel}
-                        />
                         <View style={styles.textContainer}>
-                          <Text style={styles.infoLabel}>Nhóm nhân viên</Text>
+                          <Text style={styles.infoLabel}>Công việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.workerGroupName}
+                            {schedule.assignments && schedule.assignments.length > 0
+                              ? schedule.assignments.map((assignment, index) => 
+                                  `${index + 1}. ${assignment.assigmentName}`
+                                ).join(', ')
+                              : 'Không có thông tin công việc'}
                           </Text>
                         </View>
                       </View>
-                      {schedule.workers && schedule.workers.length > 0 && (
+
+                                                                    {/* Mô tả */}
                         <View style={styles.infoItem}>
-                          <IconButton
-                            icon="account-multiple"
-                            size={16}
-                            iconColor={colors.subLabel}
-                          />
                           <View style={styles.textContainer}>
-                            <Text style={styles.infoLabel}>Nhân viên</Text>
-                            <View>
-                              {schedule.workers.map((worker, index) => (
-                                <Text
-                                  key={worker.workGroupMemberId}
-                                  style={styles.workerName}>
-                                  {worker.fullName}
-                                  {index < schedule.workers.length - 1
-                                    ? ', '
-                                    : ''}
-                                </Text>
-                              ))}
-                            </View>
+                            <Text style={styles.infoLabel}>Mô tả</Text>
+                            <Text style={styles.infoValue}>
+                              {schedule.description || 'Không có thông tin mô tả'}
+                            </Text>
                           </View>
                         </View>
-                      )}
 
-                      {renderSupervisorActions(schedule)}
+                                               {/* Work Group Member Names */}
+                        <View style={styles.infoItem}>
+                          <View style={styles.textContainer}>
+                            <Text style={styles.infoLabel}>Nhân viên phụ trách </Text>
+                            <Text style={styles.infoValue}>
+                              {schedule.workers && schedule.workers.length > 0
+                                ? schedule.workers.map((worker, index) => 
+                                    `${index + 1}. ${worker.fullName}`
+                                  ).join(', ')
+                                : 'Không có thông tin work group member names'}
+                            </Text>
+                          </View>
+                        </View>
+
+                       {renderSupervisorActions(schedule)}
                     </View>
                   </View>
                 </Card.Content>
@@ -582,13 +576,26 @@ const styles = StyleSheet.create({
   infoItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.grey,
+    backgroundColor: colors.white,
     padding: 12,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: colors.grey,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  infoIcon: {
+    margin: 0,
   },
   textContainer: {
     flex: 1,
-    marginLeft: 8,
   },
   infoLabel: {
     fontSize: 12,
@@ -636,7 +643,8 @@ const styles = StyleSheet.create({
   workerName: {
     fontSize: 14,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '500',
+    lineHeight: 18,
   },
   ratingContainer: {
     alignItems: 'center',
