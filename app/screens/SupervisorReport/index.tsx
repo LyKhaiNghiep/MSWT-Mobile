@@ -1,9 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  FlatList,
-  Alert,
-} from 'react-native';
+import {View, FlatList, Alert} from 'react-native';
 import {
   Text,
   Card,
@@ -21,10 +17,7 @@ import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {colors} from '../../theme';
 import {styles} from './styles';
-import {
-  Report,
-  useWorkerReports,
-} from '../../hooks/useReport';
+import {ReportWithRole, useMyReportHistory} from '../../hooks/useReport';
 import {BASE_API_URL} from '../../constants/api-urls';
 import {useAuth} from '../../contexts/AuthContext';
 import {useNavigation} from '@react-navigation/native';
@@ -42,13 +35,12 @@ const PRIORITY_OPTIONS = [
 ];
 
 export default function SupervisorReportPage() {
-  const {reports, isLoading, refresh} = useWorkerReports();
+  const {reports, isLoading, refresh} = useMyReportHistory();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
   const [selectedTab, setSelectedTab] = useState('sent');
 
-  const userReports = reports.filter((x: Report) => x.userName === user?.userName) || [];
-  const filteredReports = userReports.filter((report: Report) => {
+  const filteredReports = reports.filter((report: ReportWithRole) => {
     if (selectedTab === 'sent') {
       return report.status === 'Đã gửi';
     } else if (selectedTab === 'processed') {
@@ -62,34 +54,36 @@ export default function SupervisorReportPage() {
   }, []);
 
   const handleDelete = (reportId: string) => {
-    Alert.alert(
-      'Xác nhận xóa',
-      'Bạn có chắc chắn muốn xóa báo cáo này?',
-      [
-        {text: 'Hủy', style: 'cancel'},
-        {
-          text: 'Xóa',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Sử dụng API chung để xóa
-              const response = await fetch(`${BASE_API_URL}/reports/${reportId}`, {
+    Alert.alert('Xác nhận xóa', 'Bạn có chắc chắn muốn xóa báo cáo này?', [
+      {text: 'Hủy', style: 'cancel'},
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // Sử dụng API chung để xóa
+            const response = await fetch(
+              `${BASE_API_URL}/reports/${reportId}`,
+              {
                 method: 'DELETE',
-              });
-              
-              if (response.ok) {
-                Alert.alert('Thành công', 'Báo cáo đã được xóa');
-                refresh();
-              } else {
-                throw new Error('Không thể xóa báo cáo');
-              }
-            } catch (error) {
-              Alert.alert('Lỗi', error instanceof Error ? error.message : 'Có lỗi xảy ra');
+              },
+            );
+
+            if (response.ok) {
+              Alert.alert('Thành công', 'Báo cáo đã được xóa');
+              refresh();
+            } else {
+              throw new Error('Không thể xóa báo cáo');
             }
-          },
+          } catch (error) {
+            Alert.alert(
+              'Lỗi',
+              error instanceof Error ? error.message : 'Có lỗi xảy ra',
+            );
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -113,11 +107,11 @@ export default function SupervisorReportPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Đã gửi':
-        return colors.success;
+        return colors.blueDark;
       case 'Đang xử lý':
         return colors.warning;
       case 'Đã xử lý':
-        return colors.primary;
+        return colors.success;
       case 'Đã đóng':
         return colors.subLabel;
       default:
@@ -136,13 +130,15 @@ export default function SupervisorReportPage() {
     }
   };
 
-  const renderItem = ({item}: {item: Report}) => (
+  const renderItem = ({item}: {item: ReportWithRole}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
       <Card
         style={styles.card}
         mode="elevated"
         onPress={() => {
-          navigation.navigate('SupervisorReportDetails', {reportId: item.reportId});
+          navigation.navigate('SupervisorReportDetails', {
+            reportId: item.reportId,
+          });
         }}>
         <Card.Content style={styles.cardContent}>
           <View style={styles.cardHeader}>
@@ -163,10 +159,13 @@ export default function SupervisorReportPage() {
                   {item.reportName}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdBy}>
-                  Bởi: {item.userName || user?.fullName || 'N/A'}
+                  Bởi:{' '}
+                  {item.fullName || item.userName || user?.fullName || 'N/A'}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdDate}>
-                  {item.createdAt
+                  {item.date
+                    ? format(new Date(item.date), 'dd/MM/yyyy HH:mm')
+                    : item.createdAt
                     ? format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm')
                     : 'N/A'}
                 </Text>

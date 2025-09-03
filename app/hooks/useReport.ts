@@ -18,6 +18,7 @@ export interface Report {
   userName: string; // The one who created the report
 }
 
+// Union-friendly interface to support multiple backend shapes
 export interface ReportWithRole {
   reportId: string;
   reportName: string;
@@ -26,11 +27,24 @@ export interface ReportWithRole {
   priority: string;
   reportType: string;
   userId: string;
-  date: string | null; // Changed from createdAt to date, can be null
+  // Shape A (leader role list)
+  date?: string | null;
+  userName?: string;
+  fullName?: string;
+  roleName?: string;
+  // Shape B (detailed)
+  createdAt?: string;
+  resolvedAt?: string | null;
   image?: string | null;
-  userName: string;
-  fullName: string;
-  roleName: string;
+  user?: {
+    userId: string;
+    userName: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    status: string;
+    roleId: string;
+  } | null;
 }
 
 // Create report data interface for leader
@@ -63,11 +77,11 @@ export const PRIORITY_MAPPING = {
 export const getReportStatusColor = (status: string) => {
   switch (status) {
     case 'Đã gửi':
-      return colors.success;
+      return colors.blueDark;
     case 'Đang xử lý':
       return colors.warning;
     case 'Đã xử lý':
-      return colors.primary;
+      return colors.success;
     case 'Đã đóng':
       return colors.subLabel;
     default:
@@ -108,6 +122,21 @@ export const useReports = () => {
 export const useWorkerReports = () => {
   const {data, error, isLoading, mutate} = useSWRNative<Report[]>(
     API_URLS.REPORT.GET_WITH_ROLE,
+    swrFetcher,
+  );
+
+  return {
+    reports: data || [],
+    isLoading,
+    isError: error,
+    refresh: () => mutate(),
+  };
+};
+
+// Hook to get current user's report history
+export const useMyReportHistory = () => {
+  const {data, error, isLoading, mutate} = useSWRNative<ReportWithRole[]>(
+    API_URLS.REPORT.MY_HISTORY,
     swrFetcher,
   );
 

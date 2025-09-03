@@ -14,13 +14,6 @@ export const WorkerHome = () => {
 
   const menuItems: MenuItem[] = [
     {
-      id: 'dashboard',
-      title: 'Tổng quan',
-      icon: 'home',
-      route: 'WorkerDashboard',
-      color: theme.colors.primary,
-    },
-    {
       id: 'report',
       title: 'Báo cáo',
       icon: 'file-document-outline',

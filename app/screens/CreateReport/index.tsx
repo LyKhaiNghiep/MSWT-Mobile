@@ -19,6 +19,17 @@ export default function CreateReport() {
   });
 
   const handleSubmit = async () => {
+    // Basic validations: title and description are required
+    if (!reportData.reportName.trim()) {
+      showSnackbar?.error('Vui lòng nhập tiêu đề báo cáo');
+      return;
+    }
+
+    if (!reportData.description.trim()) {
+      showSnackbar?.error('Vui lòng nhập mô tả');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await api.post(API_URLS.REPORT.CREATE, reportData);
@@ -82,7 +93,11 @@ export default function CreateReport() {
           mode="contained"
           onPress={handleSubmit}
           loading={loading}
-          disabled={loading}
+          disabled={
+            loading ||
+            !reportData.reportName.trim() ||
+            !reportData.description.trim()
+          }
           style={styles.submitButton}>
           Tạo báo cáo
         </Button>

@@ -28,14 +28,19 @@ export default function SupervisorReportDetails() {
   const {report, isLoading, isError} = useReport(reportId);
   const {reports} = useReports();
 
-  // Get workerName from reports list if not available in individual report
+  // Determine creator name with robust fallbacks (fullName -> userName)
   const reportFromList = reports.find(r => r.reportId === reportId);
-  const workerName = (report as any)?.workerName || (reportFromList as any)?.workerName || 'Không rõ';
+  const creatorName =
+    (report as any)?.fullName ||
+    (report as any)?.userName ||
+    (reportFromList as any)?.fullName ||
+    (reportFromList as any)?.userName ||
+    'Không rõ';
 
   // Debug log to check if workerName is available
   console.log('Report data:', report);
   console.log('Report from list:', reportFromList);
-  console.log('Final workerName:', workerName);
+  console.log('Final workerName:', creatorName);
 
   if (isLoading) {
     return (
@@ -92,9 +97,9 @@ export default function SupervisorReportDetails() {
                     <Text variant="headlineSmall" style={styles.reportName}>
                       {report.reportName}
                     </Text>
-                                         <Text variant="bodyMedium" style={styles.createdBy}>
-                       Tạo bởi: {workerName || 'Không rõ'}
-                     </Text>
+                    <Text variant="bodyMedium" style={styles.createdBy}>
+                      Tạo bởi: {creatorName}
+                    </Text>
                     <Text variant="bodySmall" style={styles.createdDate}>
                       {format(new Date(report.createdAt), 'dd/MM/yyyy HH:mm')}
                     </Text>

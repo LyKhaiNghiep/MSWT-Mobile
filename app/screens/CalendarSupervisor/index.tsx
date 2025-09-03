@@ -69,6 +69,11 @@ export default function CalendarSupervisor() {
     mutate,
   } = useScheduleDetailsByDate(userId, selectedDate);
 
+  const noDataError =
+    (datesError && datesError.message?.includes('No scheduleDetails found')) ||
+    (detailsError &&
+      detailsError.message?.includes('No scheduleDetails found'));
+
   // Show error state (only for real errors, not "no data found")
   if (
     (datesError && !datesError.message?.includes('No scheduleDetails found')) ||
@@ -149,7 +154,7 @@ export default function CalendarSupervisor() {
               }}
             />
             <View style={{marginTop: 10}}>
-              {dates.length === 0 && !datesLoading && !datesError ? (
+              {(dates.length === 0 && !datesLoading) || noDataError ? (
                 <View style={styles.centerContent}>
                   <Text style={styles.emptyText}>Không có lịch làm việc</Text>
                 </View>

@@ -34,9 +34,11 @@ interface CreateSupervisorReportProps {
   navigation: any;
 }
 
-export default function CreateSupervisorReport({navigation}: CreateSupervisorReportProps) {
+export default function CreateSupervisorReport({
+  navigation,
+}: CreateSupervisorReportProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     reportName: '',
     description: '',
@@ -60,7 +62,7 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
 
   const handleSubmit = async () => {
     console.log('Form data before submit:', formData); // Debug log
-    
+
     if (!formData.reportName.trim() || !formData.description.trim()) {
       Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
@@ -78,13 +80,16 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
       console.log('Sending data:', reportData); // Debug log
 
       // Sử dụng API riêng cho supervisor
-      const response = await fetch(`${BASE_API_URL}/reports/leader-supervisor`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${BASE_API_URL}/reports/leader-supervisor`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reportData),
         },
-        body: JSON.stringify(reportData),
-      });
+      );
 
       if (response.ok) {
         Alert.alert('Thành công', 'Báo cáo đã được tạo thành công', [
@@ -99,7 +104,10 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
       }
     } catch (error) {
       console.error('Submit error:', error); // Debug log
-      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Có lỗi xảy ra');
+      Alert.alert(
+        'Lỗi',
+        error instanceof Error ? error.message : 'Có lỗi xảy ra',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -126,18 +134,14 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
 
   return (
     <Screen styles={{backgroundColor: colors.grey}} useDefault>
-      <AppHeader 
-        title="Tạo báo cáo mới" 
-        onBackPress={handleCancel}
-      />
+      <AppHeader title="Tạo báo cáo mới" onBackPress={handleCancel} />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingBottom: 32}}>
-          
           <Text variant="headlineSmall" style={styles.modalTitle}>
             Thông tin báo cáo
           </Text>
@@ -168,14 +172,14 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
             placeholderTextColor={colors.subLabel}
           />
 
-
-
           <Text variant="bodyMedium" style={styles.label}>
             Loại báo cáo
           </Text>
           <SegmentedButtons
             value={formData.reportType.toString()}
-            onValueChange={value => handleInputChange('reportType', parseInt(value))}
+            onValueChange={value =>
+              handleInputChange('reportType', parseInt(value))
+            }
             buttons={REPORT_TYPES}
             style={styles.segmentedButtons}
           />
@@ -219,7 +223,11 @@ export default function CreateSupervisorReport({navigation}: CreateSupervisorRep
               onPress={handleSubmit}
               style={styles.submitButton}
               loading={isSubmitting}
-              disabled={isSubmitting}>
+              disabled={
+                isSubmitting ||
+                !formData.reportName.trim() ||
+                !formData.description.trim()
+              }>
               Tạo báo cáo
             </Button>
           </View>

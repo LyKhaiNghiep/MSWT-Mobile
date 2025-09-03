@@ -68,12 +68,12 @@ export default function ReportPage() {
                   {item.reportName}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdBy}>
-                  Bởi: {item.fullName || item.userName || 'Không rõ'}
-                </Text>
-                <Text variant="bodySmall" style={styles.createdDate}>
-                  {item.date
-                    ? format(new Date(item.date), 'dd/MM/yyyy HH:mm')
-                    : 'N/A'}
+                  Bởi:{' '}
+                  {item.fullName ||
+                    item.user?.fullName ||
+                    item.userName ||
+                    item.user?.userName ||
+                    'Không rõ'}
                 </Text>
               </View>
             </View>

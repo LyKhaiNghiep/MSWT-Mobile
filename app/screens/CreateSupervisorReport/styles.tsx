@@ -63,6 +63,5 @@ export const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
-    backgroundColor: colors.primary,
   },
 });

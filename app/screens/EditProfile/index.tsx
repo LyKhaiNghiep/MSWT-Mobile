@@ -133,14 +133,43 @@ export default function EditProfile() {
     }
   };
 
+  const isFormValid = () => {
+    const fullNameOk = formData.fullName.trim().length > 0;
+    const emailOk = formData.email.trim().length > 0; // basic presence only per request
+    const phoneDigitsOnly = /^\d+$/.test(formData.phone.trim());
+    const phoneOk = formData.phone.trim().length > 0 && phoneDigitsOnly;
+    const addressOk = formData.address.trim().length > 0;
+    return fullNameOk && emailOk && phoneOk && addressOk;
+  };
+
   const handleUpdateProfile = async () => {
+    // Required fields & numeric phone validation
+    if (!isFormValid()) {
+      if (
+        !formData.fullName.trim() ||
+        !formData.email.trim() ||
+        !formData.phone.trim() ||
+        !formData.address.trim()
+      ) {
+        showSnackbar?.error('Vui lòng nhập đầy đủ thông tin bắt buộc');
+      } else if (!/^\d+$/.test(formData.phone.trim())) {
+        showSnackbar?.error('Số điện thoại chỉ được chứa chữ số');
+      }
+      return;
+    }
     try {
       if (!user?.userId) {
         showSnackbar?.error('Không tìm thấy thông tin người dùng');
         return;
       }
 
-      const response = await api.put(API_URLS.USER.UPDATE_PROFILE, formData);
+      const response = await api.put(API_URLS.USER.UPDATE_PROFILE, {
+        ...formData,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+      });
 
       if (response.data) {
         showSnackbar?.success('Cập nhật thông tin thành công');
@@ -194,8 +223,13 @@ export default function EditProfile() {
           <TextInput
             placeholder="Số điện thoại"
             value={formData.phone}
-            onChangeText={text => setFormData({...formData, phone: text})}
+            onChangeText={text => {
+              const onlyDigits = text.replace(/[^\d]/g, '');
+              setFormData({...formData, phone: onlyDigits});
+            }}
             style={styles.input}
+            keyboardType="phone-pad"
+            maxLength={15}
           />
 
           <TextInput
@@ -214,7 +248,8 @@ export default function EditProfile() {
                 flex: 1,
 
                 marginHorizontal: 8,
-              }}>
+              }}
+              disabled={!isFormValid()}>
               Lưu
             </Button>
             <Button

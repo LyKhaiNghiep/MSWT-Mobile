@@ -75,6 +75,11 @@ export default function MyCalendar() {
     mutate,
   } = useScheduleDetailsByDate(user?.userId, selectedDate);
 
+  const noDataError =
+    (datesError && datesError.message?.includes('No scheduleDetails found')) ||
+    (detailsError &&
+      detailsError.message?.includes('No scheduleDetails found'));
+
   // Show error state (only for real errors, not "no data found")
   if (
     (datesError && !datesError.message?.includes('No scheduleDetails found')) ||
@@ -151,7 +156,7 @@ export default function MyCalendar() {
               }}
             />
             <View style={{marginTop: 10}}>
-              {dates.length === 0 && !datesLoading && !datesError ? (
+              {(dates.length === 0 && !datesLoading) || noDataError ? (
                 <Surface style={styles.emptyContainer} elevation={1}>
                   <IconButton
                     icon="calendar-blank"
