@@ -14,10 +14,11 @@ export interface AlertModel {
   resolvedAt: string | null;
   workerGroupId: string | null;
   status: string;
-  trashBin: TrashBin;
-  workerGroup: WorkerGroup | null;
-  // Computed fields for backward compatibility
-  areaName?: string;
+  // New API returns areaName directly
+  areaName: string;
+  // Older payloads may include nested objects; keep them optional for compatibility
+  trashBin?: TrashBin | null;
+  workerGroup?: WorkerGroup | null;
   userId?: string | null;
   user?: User;
 }

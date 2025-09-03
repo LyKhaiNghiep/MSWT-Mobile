@@ -25,6 +25,9 @@ export const Notification = () => {
         <Text variant="titleMedium" style={styles.status}>
           {item.status}
         </Text>
+        <Text variant="bodyMedium">
+          Thùng rác {item.trashBinId ? item.trashBinId.slice(-4) : '----'}
+        </Text>
         <Text variant="bodyMedium">Vị trí: {item?.areaName}</Text>
         <Text variant="bodyMedium">
           Thời gian: {format(new Date(item.timeSend), 'dd/MM/yyyy HH:mm')}

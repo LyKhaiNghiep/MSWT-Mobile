@@ -10,11 +10,11 @@ export function useAlerts() {
     swrFetcher,
   );
 
-  // Transform the data to add computed fields for backward compatibility
+  // Transform for backward compatibility: prefer areaName from API, fallback to trashBin.location
   const transformedAlerts = (data ?? []).map(alert => ({
     ...alert,
-    areaName: alert.trashBin?.location || 'Không có thông tin vị trí',
-    // Add other computed fields if needed
+    areaName:
+      alert.areaName || alert.trashBin?.location || 'Không có thông tin vị trí',
   }));
 
   return {
