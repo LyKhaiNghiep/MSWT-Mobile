@@ -168,6 +168,7 @@ export default function MyCalendar() {
                   scheduleDetails={scheduleDetails}
                   onUpdate={() => mutate()}
                   isRefreshing={isRefreshing}
+                  showRating={true}
                 />
               )}
             </View>

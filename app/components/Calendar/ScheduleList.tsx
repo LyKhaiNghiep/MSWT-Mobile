@@ -31,7 +31,9 @@ export default function ScheduleList({
   showRating = false,
   isRefreshing = false,
 }: IProps) {
-  const [isUploading, setIsUploading] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<{[key: string]: boolean}>(
+    {},
+  );
 
   const groupByDate = (schedules: ScheduleDetails[]) => {
     const grouped: {[key: string]: any[]} = {};
@@ -56,7 +58,7 @@ export default function ScheduleList({
   );
 
   const handleCompleteTask = async (scheduleDetailId: string) => {
-    setIsUploading(true);
+    setLoadingStates(prev => ({...prev, [scheduleDetailId]: true}));
     try {
       const response = await api.put(
         API_URLS.SCHEDULE_DETAILS.COMPLETE(scheduleDetailId),
@@ -77,12 +79,12 @@ export default function ScheduleList({
       console.error('Error completing task:', error);
       showSnackbar?.error('Cập nhật trạng thái thất bại');
     } finally {
-      setIsUploading(false);
+      setLoadingStates(prev => ({...prev, [scheduleDetailId]: false}));
     }
   };
 
   const handleIncompleteTask = async (scheduleDetailId: string) => {
-    setIsUploading(true);
+    setLoadingStates(prev => ({...prev, [scheduleDetailId]: true}));
     try {
       const response = await api.put(
         API_URLS.SCHEDULE_DETAILS.INCOMPLETE(scheduleDetailId),
@@ -103,7 +105,7 @@ export default function ScheduleList({
       console.error('Error marking task as incomplete:', error);
       showSnackbar?.error('Cập nhật trạng thái thất bại');
     } finally {
-      setIsUploading(false);
+      setLoadingStates(prev => ({...prev, [scheduleDetailId]: false}));
     }
   };
 
@@ -169,6 +171,8 @@ export default function ScheduleList({
   };
   const renderActionButtons = (schedule: ScheduleDetails) => {
     const lowerStatus = schedule.status?.toLowerCase().trim();
+    const isThisScheduleLoading =
+      loadingStates[schedule.scheduleDetailId] || false;
 
     if (lowerStatus === 'đang làm') {
       return (
@@ -176,7 +180,7 @@ export default function ScheduleList({
           <Button
             mode="contained"
             onPress={() => handleCompleteTask(schedule.scheduleDetailId)}
-            loading={isUploading}
+            loading={isThisScheduleLoading}
             buttonColor={colors.success}
             style={styles.actionButton}>
             Hoàn thành
@@ -184,7 +188,7 @@ export default function ScheduleList({
           <Button
             mode="outlined"
             onPress={() => handleIncompleteTask(schedule.scheduleDetailId)}
-            loading={isUploading}
+            loading={isThisScheduleLoading}
             textColor={colors.error}
             style={styles.actionButton}>
             Chưa hoàn thành
@@ -402,6 +406,47 @@ export default function ScheduleList({
                           )
                         );
                       })()}
+
+                      {/* Comment Display - Show comment separately if no valid rating */}
+                      {(() => {
+                        // Helper function to get valid rating value (same logic as above)
+                        const getRatingValue = (rating: any) => {
+                          if (!rating) {
+                            return 0;
+                          }
+                          if (typeof rating === 'string') {
+                            const cleaned = rating.trim();
+                            if (!cleaned) {
+                              return 0;
+                            }
+                            const parsed = parseFloat(cleaned);
+                            return isNaN(parsed) ? 0 : parsed;
+                          }
+                          return rating;
+                        };
+
+                        const ratingValue = getRatingValue(schedule.rating);
+                        const hasValidRating = ratingValue > 0;
+
+                        return !hasValidRating &&
+                          schedule.comment &&
+                          schedule.comment.trim().length > 0 ? (
+                          <View style={styles.infoItem}>
+                            <IconButton
+                              icon="comment-text"
+                              size={16}
+                              iconColor={colors.subLabel}
+                            />
+                            <View style={styles.textContainer}>
+                              <Text style={styles.infoLabel}>Nhận xét</Text>
+                              <Text style={styles.infoValue}>
+                                {schedule.comment}
+                              </Text>
+                            </View>
+                          </View>
+                        ) : null;
+                      })()}
+
                       {renderActionButtons(schedule)}
                     </View>
                   </View>

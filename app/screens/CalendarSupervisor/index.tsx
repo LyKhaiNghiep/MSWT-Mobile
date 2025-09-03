@@ -1,4 +1,3 @@
-import {format, parseISO} from 'date-fns';
 import moment from 'moment';
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, View, ActivityIndicator} from 'react-native';
@@ -66,11 +65,9 @@ export default function CalendarSupervisor() {
   } = useScheduleDates(userId);
   const {
     scheduleDetails,
-    isRefreshing,
     error: detailsError,
     mutate,
   } = useScheduleDetailsByDate(userId, selectedDate);
-  // Removed all tab-related state and filter options since we only have 'schedule' tab now
 
   // Show error state (only for real errors, not "no data found")
   if (
@@ -93,8 +90,6 @@ export default function CalendarSupervisor() {
     );
   }
 
-  // No filtering needed since we only have the calendar view
-
   // Use dates array for markedDates (like Worker Calendar)
   const markedDates = dates.reduce((acc: any, date: string) => {
     return {
@@ -106,7 +101,8 @@ export default function CalendarSupervisor() {
     };
   }, {});
 
-  if (datesLoading || isRefreshing) {
+  // Show loading state only for dates loading (like Worker Calendar)
+  if (datesLoading) {
     return (
       <Screen styles={{backgroundColor: 'white'}} useDefault>
         <AppHeader title="Lịch làm việc " />
@@ -123,6 +119,13 @@ export default function CalendarSupervisor() {
       <Provider>
         <AppHeader title="Lịch làm việc " />
         <View style={styles.container}>
+          {/* Loading indicator at the top */}
+          {datesLoading && (
+            <View style={styles.loadingIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
+            </View>
+          )}
           <ScrollView>
             <Calendar
               current={selectedDate}
@@ -132,7 +135,6 @@ export default function CalendarSupervisor() {
               }}
               markedDates={{
                 ...markedDates,
-
                 [selectedDate]: {
                   selected: true,
                   marked: (markedDates as any)[selectedDate]?.marked!,
@@ -147,13 +149,16 @@ export default function CalendarSupervisor() {
               }}
             />
             <View style={{marginTop: 10}}>
-              <SupervisorScheduleList
-                scheduleDetails={scheduleDetails.filter(
-                  x =>
-                    format(parseISO(x.date), 'yyyy-MM-dd') === selectedDate,
-                )}
-                onUpdate={mutate}
-              />
+              {dates.length === 0 && !datesLoading && !datesError ? (
+                <View style={styles.centerContent}>
+                  <Text style={styles.emptyText}>Không có lịch làm việc</Text>
+                </View>
+              ) : (
+                <SupervisorScheduleList
+                  scheduleDetails={scheduleDetails}
+                  onUpdate={mutate}
+                />
+              )}
             </View>
           </ScrollView>
         </View>
@@ -177,90 +182,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  tabs: {
-    marginBottom: 16,
-  },
-  statusFilter: {
-    marginBottom: 16,
-  },
-  calendar: {
-    height: 100,
-    marginBottom: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  calendarHeader: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateNumber: {
-    color: '#000',
-    fontSize: 14,
-  },
-  dateName: {
-    color: '#000',
-    fontSize: 12,
-  },
-  highlightDateNumber: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  highlightDateName: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  disabledDateName: {
-    color: '#ccc',
-    fontSize: 12,
-  },
-  disabledDateNumber: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  iconContainer: {
-    flex: 0.1,
-  },
-  card: {
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  content: {
-    gap: 4,
-  },
-  list: {
-    paddingBottom: 16,
-  },
-  timeRangeButton: {
-    marginBottom: 16,
-    width: '100%',
-    minWidth: 170,
-    alignSelf: 'stretch',
-  },
-  calendarPlaceholder: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.grey,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   loadingText: {
     marginTop: 16,
@@ -278,4 +211,4 @@ const styles = StyleSheet.create({
     color: colors.error,
     textAlign: 'center',
   },
-}); 
+});
