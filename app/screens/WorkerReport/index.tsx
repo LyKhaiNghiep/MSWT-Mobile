@@ -17,39 +17,22 @@ import {
 import {Screen} from '../../components';
 import {AppHeader} from '../../components/AppHeader';
 import {
-  Report,
-  useWorkerReports,
+  ReportWithRole,
+  useMyReportHistory,
   getReportStatusColor,
   getPriorityColor,
 } from '../../hooks/useReport';
 import {StackNavigation} from '../../navigators';
 import {colors} from '../../theme';
 import {useAuth} from '../../contexts/AuthContext';
-import {useUsers} from '../../hooks/useUsers';
 
 export default function WorkerReportPage() {
-  const {reports, isLoading, isError, refresh} = useWorkerReports();
+  const {reports, isLoading, isError, refresh} = useMyReportHistory();
   const navigation = useNavigation<StackNavigation>();
   const {user} = useAuth();
-  const {users} = useUsers();
   const [selectedTab, setSelectedTab] = useState('sent');
-
-  // Helper function to get user name by user ID or userName
-  const getUserFullName = (userIdentifier: string | null): string => {
-    if (!userIdentifier) {
-      return 'Không rõ';
-    }
-
-    // Find user by userId first, then by userName
-    const foundUser = users.find(
-      u => u.userId === userIdentifier || u.userName === userIdentifier,
-    );
-
-    return foundUser?.fullName || foundUser?.userName || userIdentifier;
-  };
-
-  const userReports = reports.filter(x => x.userName === user?.userName) || [];
-  const filteredReports = userReports.filter(report => {
+  // my-history already scoped to current user
+  const filteredReports = reports.filter((report: ReportWithRole) => {
     if (selectedTab === 'sent') {
       return report.status === 'Đã gửi';
     } else if (selectedTab === 'processed') {
@@ -74,7 +57,7 @@ export default function WorkerReportPage() {
 
   const renderSeparator = () => <View style={styles.separator} />;
 
-  const renderItem = ({item}: {item: Report}) => (
+  const renderItem = ({item}: {item: ReportWithRole}) => (
     <Surface style={styles.surfaceContainer} elevation={1}>
       <Card
         style={styles.card}
@@ -104,10 +87,12 @@ export default function WorkerReportPage() {
                 </Text>
                 <Text variant="bodySmall" style={styles.createdBy}>
                   Bởi:{' '}
-                  {getUserFullName(item.userName) || user?.fullName || 'N/A'}
+                  {item.fullName || item.userName || user?.fullName || 'N/A'}
                 </Text>
                 <Text variant="bodySmall" style={styles.createdDate}>
-                  {item.createdAt
+                  {item.date
+                    ? format(new Date(item.date), 'dd/MM/yyyy HH:mm')
+                    : item.createdAt
                     ? format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm')
                     : 'N/A'}
                 </Text>

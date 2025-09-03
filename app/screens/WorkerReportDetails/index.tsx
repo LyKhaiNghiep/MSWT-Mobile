@@ -20,7 +20,6 @@ import {
   getReportStatusColor,
   getPriorityColor,
 } from '../../hooks/useReport';
-import {useUsers} from '../../hooks/useUsers';
 
 export default function WorkerReportDetails() {
   const route = useRoute();
@@ -28,28 +27,15 @@ export default function WorkerReportDetails() {
   const reportId = (route.params as any).reportId;
   const {report, isLoading, isError} = useReport(reportId);
   const {reports} = useReports();
-  const {users} = useUsers();
 
-  // Get userName from reports list if not available in individual report
+  // Match supervisor details logic: prefer fullName/userName from either detailed or list
   const reportFromList = reports.find(r => r.reportId === reportId);
-  const userIdentifier =
-    report?.userName || reportFromList?.userName || reportFromList?.fullName;
-
-  // Helper function to get user full name
-  const getUserFullName = (userIdentifier: string | null): string => {
-    if (!userIdentifier) {
-      return 'Không rõ';
-    }
-
-    // Find user by userId first, then by userName
-    const foundUser = users.find(
-      u => u.userId === userIdentifier || u.userName === userIdentifier,
-    );
-
-    return foundUser?.fullName || foundUser?.userName || userIdentifier;
-  };
-
-  const displayName = getUserFullName(userIdentifier);
+  const displayName =
+    (report as any)?.fullName ||
+    (report as any)?.userName ||
+    (reportFromList as any)?.fullName ||
+    (reportFromList as any)?.userName ||
+    'Không rõ';
 
   if (isLoading) {
     return (
