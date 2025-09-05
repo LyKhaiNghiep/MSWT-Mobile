@@ -47,6 +47,17 @@ export default function SupervisorScheduleList({
       }
       grouped[date].push(schedule);
     });
+
+    // Sort schedules within each date group by start time
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) => {
+        // Convert time strings to comparable format (HH:MM:SS)
+        const timeA = a.startTime || '00:00:00';
+        const timeB = b.startTime || '00:00:00';
+        return timeA.localeCompare(timeB);
+      });
+    });
+
     return grouped;
   };
 
@@ -352,7 +363,8 @@ export default function SupervisorScheduleList({
                         <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Lịch làm việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.schedule?.scheduleName || 'Không có thông tin'}
+                            {schedule.schedule?.scheduleName ||
+                              'Không có thông tin'}
                           </Text>
                         </View>
                       </View>
@@ -372,40 +384,51 @@ export default function SupervisorScheduleList({
                         <View style={styles.textContainer}>
                           <Text style={styles.infoLabel}>Công việc</Text>
                           <Text style={styles.infoValue}>
-                            {schedule.assignments && schedule.assignments.length > 0
-                              ? schedule.assignments.map((assignment, index) => 
-                                  `${index + 1}. ${assignment.assigmentName}`
-                                ).join(', ')
+                            {schedule.assignments &&
+                            schedule.assignments.length > 0
+                              ? schedule.assignments
+                                  .map(
+                                    (assignment, index) =>
+                                      `${index + 1}. ${
+                                        assignment.assigmentName
+                                      }`,
+                                  )
+                                  .join(', ')
                               : 'Không có thông tin công việc'}
                           </Text>
                         </View>
                       </View>
 
-                                                                    {/* Mô tả */}
-                        <View style={styles.infoItem}>
-                          <View style={styles.textContainer}>
-                            <Text style={styles.infoLabel}>Mô tả</Text>
-                            <Text style={styles.infoValue}>
-                              {schedule.description || 'Không có thông tin mô tả'}
-                            </Text>
-                          </View>
+                      {/* Mô tả */}
+                      <View style={styles.infoItem}>
+                        <View style={styles.textContainer}>
+                          <Text style={styles.infoLabel}>Mô tả</Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.description || 'Không có thông tin mô tả'}
+                          </Text>
                         </View>
+                      </View>
 
-                                               {/* Work Group Member Names */}
-                        <View style={styles.infoItem}>
-                          <View style={styles.textContainer}>
-                            <Text style={styles.infoLabel}>Nhân viên phụ trách </Text>
-                            <Text style={styles.infoValue}>
-                              {schedule.workers && schedule.workers.length > 0
-                                ? schedule.workers.map((worker, index) => 
-                                    `${index + 1}. ${worker.fullName}`
-                                  ).join(', ')
-                                : 'Không có thông tin work group member names'}
-                            </Text>
-                          </View>
+                      {/* Work Group Member Names */}
+                      <View style={styles.infoItem}>
+                        <View style={styles.textContainer}>
+                          <Text style={styles.infoLabel}>
+                            Nhân viên phụ trách{' '}
+                          </Text>
+                          <Text style={styles.infoValue}>
+                            {schedule.workers && schedule.workers.length > 0
+                              ? schedule.workers
+                                  .map(
+                                    (worker, index) =>
+                                      `${index + 1}. ${worker.fullName}`,
+                                  )
+                                  .join(', ')
+                              : 'Không có thông tin work group member names'}
+                          </Text>
                         </View>
+                      </View>
 
-                       {renderSupervisorActions(schedule)}
+                      {renderSupervisorActions(schedule)}
                     </View>
                   </View>
                 </Card.Content>

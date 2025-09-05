@@ -44,6 +44,17 @@ export default function ScheduleList({
       }
       grouped[date].push(schedule);
     });
+
+    // Sort schedules within each date group by start time
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) => {
+        // Convert time strings to comparable format (HH:MM:SS)
+        const timeA = a.startTime || '00:00:00';
+        const timeB = b.startTime || '00:00:00';
+        return timeA.localeCompare(timeB);
+      });
+    });
+
     return grouped;
   };
 
@@ -494,9 +505,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 6,
-  },
-  container: {
-    backgroundColor: colors.white,
   },
   modernDateSection: {
     marginBottom: 16,
